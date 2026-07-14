@@ -99,6 +99,7 @@ describe('GameTable piece interactions', () => {
     expect(placedPiece.getAttribute('title')).toBe(
       'Ruby parallelogram - north, front',
     )
+    expect(placedPiece.querySelector('strong')).toBeNull()
 
     dragWithMouse(placedPiece, panel!, {
       from: boardPoint(3.5, 2.5),

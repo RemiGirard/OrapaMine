@@ -171,7 +171,6 @@ export function PlacedPiece({
         mineralId={placement.mineralId}
         orientation={placement.orientation}
       />
-      <strong>{mineral.shortName}</strong>
     </div>
   )
 }
