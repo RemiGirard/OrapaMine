@@ -326,6 +326,34 @@ describe('GameTable piece interactions', () => {
     expect(latestOutput.getAttribute('data-edge-role')).toBe('receiver')
   })
 
+  it('gives a self-returning clue both the emitter and receiver signals', () => {
+    const selfReturningAnswer: Extract<Answer, { mode: 'edge' }> = {
+      exitLabel: 'T2',
+      id: 12,
+      message: 'Exit T2 - Blue',
+      mode: 'edge',
+      path: [{ column: 1, row: 0 }],
+      query: 'T2',
+      signalColor: 'blue',
+    }
+
+    render(
+      <InteractiveGameTable
+        answers={[selfReturningAnswer]}
+        currentAnswer={selfReturningAnswer}
+        edgeAnswers={
+          new Map([[selfReturningAnswer.query, selfReturningAnswer]])
+        }
+      />,
+    )
+
+    const port = screen.getByRole('button', { name: 'Send ray T2' })
+
+    expect(port.getAttribute('data-edge-role')).toBe('both')
+    expect(port.className).toContain('activeEmitterEdge')
+    expect(port.className).toContain('activeReceiverEdge')
+  })
+
   it('previews an answered edge instead of asking for the clue again', () => {
     const answer: Extract<Answer, { mode: 'edge' }> = {
       exitLabel: 'B2',

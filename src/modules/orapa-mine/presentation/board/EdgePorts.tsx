@@ -11,6 +11,7 @@ import styles from './EdgePorts.module.css'
 
 type EdgeAnswer = Extract<Answer, { mode: 'edge' }>
 type EdgeSide = 'top' | 'right' | 'bottom' | 'left'
+type ActiveEdgeRole = 'emitter' | 'receiver' | 'both'
 
 const edgeGroups: Record<
   EdgeSide,
@@ -69,6 +70,10 @@ export function EdgePortGroup({
 }
 
 function activeRoleFor(label: string, answer: EdgeAnswer | null) {
+  if (label === answer?.query && label === answer.exitLabel) {
+    return 'both' as const
+  }
+
   if (label === answer?.query) {
     return 'emitter' as const
   }
@@ -90,7 +95,7 @@ function EdgePort({
   onClearPreview,
   onPreview,
 }: Readonly<{
-  activeRole: 'emitter' | 'receiver' | null
+  activeRole: ActiveEdgeRole | null
   activeColor: string | undefined
   answer: EdgeAnswer | undefined
   isActive: boolean
@@ -120,8 +125,12 @@ function EdgePort({
       className={[
         answer ? styles.answeredEdge : '',
         isActive ? styles.activeRayEdge : '',
-        activeRole === 'emitter' ? styles.activeEmitterEdge : '',
-        activeRole === 'receiver' ? styles.activeReceiverEdge : '',
+        activeRole === 'emitter' || activeRole === 'both'
+          ? styles.activeEmitterEdge
+          : '',
+        activeRole === 'receiver' || activeRole === 'both'
+          ? styles.activeReceiverEdge
+          : '',
       ].join(' ')}
       data-edge-role={activeRole ?? undefined}
       data-edge-side={label.slice(0, 1)}
