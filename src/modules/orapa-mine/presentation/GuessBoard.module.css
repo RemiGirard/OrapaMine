@@ -354,10 +354,10 @@
   opacity: 0.75;
 }
 
-.columnLabels .activeRayEdge,
-.bottomLabels .activeRayEdge,
-.rowLabels .activeRayEdge,
-.rightLabels .activeRayEdge {
+.columnLabels .activeRayEdge:not(.answeredEdge),
+.bottomLabels .activeRayEdge:not(.answeredEdge),
+.rowLabels .activeRayEdge:not(.answeredEdge),
+.rightLabels .activeRayEdge:not(.answeredEdge) {
   border-color: color-mix(in srgb, var(--edge-active-color) 42%, white);
   color: #ffffff;
   box-shadow:
@@ -366,10 +366,10 @@
     0 0 15px color-mix(in srgb, var(--edge-active-color) 38%, transparent);
 }
 
-.columnLabels .activeRayEdge::after,
-.bottomLabels .activeRayEdge::before,
-.rowLabels .activeRayEdge::after,
-.rightLabels .activeRayEdge::before {
+.columnLabels .activeRayEdge:not(.answeredEdge)::after,
+.bottomLabels .activeRayEdge:not(.answeredEdge)::before,
+.rowLabels .activeRayEdge:not(.answeredEdge)::after,
+.rightLabels .activeRayEdge:not(.answeredEdge)::before {
   background: color-mix(in srgb, var(--edge-active-color) 60%, white);
   box-shadow:
     0 0 12px var(--edge-active-color),
@@ -388,25 +388,31 @@
 .bottomLabels .activeReceiverEdge,
 .rowLabels .activeReceiverEdge,
 .rightLabels .activeReceiverEdge {
-  animation: receiverLamp 1800ms ease-in-out infinite;
   transform: scale(1.08);
 }
 
-.columnLabels .activeReceiverEdge::after,
-.bottomLabels .activeReceiverEdge::before,
-.rowLabels .activeReceiverEdge::after,
-.rightLabels .activeReceiverEdge::before {
+.columnLabels .activeReceiverEdge:not(.answeredEdge),
+.bottomLabels .activeReceiverEdge:not(.answeredEdge),
+.rowLabels .activeReceiverEdge:not(.answeredEdge),
+.rightLabels .activeReceiverEdge:not(.answeredEdge) {
+  animation: receiverLamp 1800ms ease-in-out infinite;
+}
+
+.columnLabels .activeReceiverEdge:not(.answeredEdge)::after,
+.bottomLabels .activeReceiverEdge:not(.answeredEdge)::before,
+.rowLabels .activeReceiverEdge:not(.answeredEdge)::after,
+.rightLabels .activeReceiverEdge:not(.answeredEdge)::before {
   animation: receiverLead 1800ms ease-in-out infinite;
 }
 
-.columnLabels button:hover,
-.bottomLabels button:hover,
-.rowLabels button:hover,
-.rightLabels button:hover,
-.columnLabels button:focus-visible,
-.bottomLabels button:focus-visible,
-.rowLabels button:focus-visible,
-.rightLabels button:focus-visible {
+.columnLabels button:hover:not(.answeredEdge):not(.activeRayEdge),
+.bottomLabels button:hover:not(.answeredEdge):not(.activeRayEdge),
+.rowLabels button:hover:not(.answeredEdge):not(.activeRayEdge),
+.rightLabels button:hover:not(.answeredEdge):not(.activeRayEdge),
+.columnLabels button:focus-visible:not(.answeredEdge):not(.activeRayEdge),
+.bottomLabels button:focus-visible:not(.answeredEdge):not(.activeRayEdge),
+.rowLabels button:focus-visible:not(.answeredEdge):not(.activeRayEdge),
+.rightLabels button:focus-visible:not(.answeredEdge):not(.activeRayEdge) {
   border-color: rgb(46 255 205 / 0.62);
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 0.16),
