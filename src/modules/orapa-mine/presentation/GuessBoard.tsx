@@ -132,6 +132,8 @@ export function GuessBoard({
         )
       : [],
   )
+  const activeEmitterLabel = currentRayPreview?.query
+  const activeReceiverLabel = currentRayPreview?.exitLabel
   const activeRayColor = currentRayPreview
     ? colorValue(currentRayPreview.signalColor)
     : undefined
@@ -161,6 +163,18 @@ export function GuessBoard({
     }
     setVoiceState('listening')
     recognition.start()
+  }
+
+  function activeRoleForEdge(label: string) {
+    if (label === activeEmitterLabel) {
+      return 'emitter'
+    }
+
+    if (label === activeReceiverLabel) {
+      return 'receiver'
+    }
+
+    return null
   }
 
   function commitDragState(nextDragState: DragState | null) {
@@ -522,6 +536,7 @@ export function GuessBoard({
             <div className={styles.columnLabels}>
               {topLabels.map((label) => (
                 <EdgeButton
+                  activeRole={activeRoleForEdge(label)}
                   activeColor={activeRayColor}
                   answer={edgeAnswers.get(label)}
                   isActive={activeRayLabels.has(label)}
@@ -536,6 +551,7 @@ export function GuessBoard({
             <div className={styles.rowLabels}>
               {leftLabels.map((label) => (
                 <EdgeButton
+                  activeRole={activeRoleForEdge(label)}
                   activeColor={activeRayColor}
                   answer={edgeAnswers.get(label)}
                   isActive={activeRayLabels.has(label)}
@@ -622,6 +638,7 @@ export function GuessBoard({
             <div className={styles.rightLabels}>
               {rightLabels.map((label) => (
                 <EdgeButton
+                  activeRole={activeRoleForEdge(label)}
                   activeColor={activeRayColor}
                   answer={edgeAnswers.get(label)}
                   isActive={activeRayLabels.has(label)}
@@ -636,6 +653,7 @@ export function GuessBoard({
             <div className={styles.bottomLabels}>
               {bottomLabels.map((label) => (
                 <EdgeButton
+                  activeRole={activeRoleForEdge(label)}
                   activeColor={activeRayColor}
                   answer={edgeAnswers.get(label)}
                   isActive={activeRayLabels.has(label)}
@@ -823,12 +841,14 @@ export function GuessBoard({
 }
 
 function EdgeButton({
+  activeRole,
   activeColor,
   answer,
   isActive,
   label,
   onAskEdge,
 }: Readonly<{
+  activeRole: 'emitter' | 'receiver' | null
   activeColor: string | undefined
   answer: Answer | undefined
   isActive: boolean
@@ -838,9 +858,13 @@ function EdgeButton({
   return (
     <button
       aria-label={`Send ray ${label}`}
+      data-edge-role={activeRole ?? undefined}
+      data-edge-side={label.slice(0, 1)}
       className={[
         answer ? styles.answeredEdge : '',
         isActive ? styles.activeRayEdge : '',
+        activeRole === 'emitter' ? styles.activeEmitterEdge : '',
+        activeRole === 'receiver' ? styles.activeReceiverEdge : '',
       ].join(' ')}
       onClick={() => onAskEdge(label)}
       style={
@@ -880,7 +904,7 @@ function RayOverlay({
           '--ray-color': colorValue(answer.signalColor),
         } as CSSProperties
       }
-      viewBox="0 0 100 100"
+      viewBox={`${-rayViewBoxOffset} ${-rayViewBoxOffset} ${100 + rayViewBoxOffset * 2} ${100 + rayViewBoxOffset * 2}`}
     >
       <polyline className={styles.rayGlow} points={toSvgPoints(points)} />
       <polyline className={styles.rayCore} points={toSvgPoints(points)} />
@@ -899,6 +923,10 @@ function RayOverlay({
     </svg>
   )
 }
+
+const rayViewBoxOffset = 4.5
+const horizontalRayEdgeOffset = 3
+const verticalRayEdgeOffset = 4
 
 function rayPoints(answer: Answer & { mode: 'edge' }) {
   const entryPoint = edgePoint(answer.query)
@@ -925,14 +953,18 @@ function edgePoint(label: string) {
 
     return {
       x: (column / boardSize.columns) * 100,
-      y: edgePort.label.startsWith('T') ? 0 : 100,
+      y: edgePort.label.startsWith('T')
+        ? -horizontalRayEdgeOffset
+        : 100 + horizontalRayEdgeOffset,
     }
   }
 
   const row = Number(edgePort.label.slice(1)) - 0.5
 
   return {
-    x: edgePort.label.startsWith('L') ? 0 : 100,
+    x: edgePort.label.startsWith('L')
+      ? -verticalRayEdgeOffset
+      : 100 + verticalRayEdgeOffset,
     y: (row / boardSize.rows) * 100,
   }
 }

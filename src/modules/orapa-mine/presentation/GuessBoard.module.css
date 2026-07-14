@@ -152,8 +152,8 @@
 .gridShell {
   display: grid;
   gap: 3px;
-  grid-template-columns: 1.8rem minmax(0, 1fr) 1.8rem;
-  grid-template-rows: 1.22rem auto 1.22rem;
+  grid-template-columns: 2rem minmax(0, 1fr) 2rem;
+  grid-template-rows: 1.55rem auto 1.55rem;
 }
 
 .corner {
@@ -164,10 +164,12 @@
 .bottomLabels,
 .rowLabels,
 .rightLabels {
+  align-items: center;
   color: #91a8b8;
   display: grid;
   font-size: 0.66rem;
   font-weight: 900;
+  justify-items: center;
 }
 
 .columnLabels,
@@ -204,43 +206,69 @@
 .rowLabels button,
 .rightLabels button {
   align-items: center;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 4px;
+  aspect-ratio: 1;
+  background:
+    radial-gradient(
+      circle at 42% 35%,
+      rgb(255 255 255 / 0.24),
+      transparent 34%
+    ),
+    radial-gradient(
+      circle at 50% 55%,
+      rgb(123 215 255 / 0.16),
+      rgb(6 14 22 / 0.86) 68%
+    );
+  border: 1px solid rgb(156 224 255 / 0.2);
+  border-radius: 999px;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.1),
+    inset 0 -7px 12px rgb(0 0 0 / 0.22),
+    0 0 8px rgb(123 215 255 / 0.08);
   color: inherit;
   display: flex;
-  font-size: inherit;
+  font-size: 0.52rem;
   font-weight: inherit;
   justify-content: center;
   min-width: 0;
   padding: 0;
   position: relative;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+  width: 1.2rem;
 }
 
 .columnLabels button::after,
 .bottomLabels button::before,
 .rowLabels button::after,
 .rightLabels button::before {
-  background: rgb(156 224 255 / 0.32);
+  background: rgb(156 224 255 / 0.24);
+  box-shadow: 0 0 8px rgb(123 215 255 / 0.16);
   content: '';
   pointer-events: none;
   position: absolute;
+  transition:
+    background 180ms ease,
+    box-shadow 180ms ease,
+    opacity 180ms ease;
 }
 
 .columnLabels button::after,
 .bottomLabels button::before {
-  height: 5px;
+  height: 8px;
   left: 50%;
   transform: translateX(-50%);
   width: 1px;
 }
 
 .columnLabels button::after {
-  bottom: -3px;
+  bottom: -7px;
 }
 
 .bottomLabels button::before {
-  top: -3px;
+  top: -7px;
 }
 
 .rowLabels button::after,
@@ -248,46 +276,82 @@
   height: 1px;
   top: 50%;
   transform: translateY(-50%);
-  width: 5px;
+  width: 9px;
 }
 
 .rowLabels button::after {
-  right: -3px;
+  right: -8px;
 }
 
 .rightLabels button::before {
-  left: -3px;
+  left: -8px;
 }
 
 .columnLabels .answeredEdge,
 .bottomLabels .answeredEdge,
 .rowLabels .answeredEdge,
 .rightLabels .answeredEdge {
-  background: var(--edge-answer-color);
-  border-color: color-mix(in srgb, var(--edge-answer-color) 70%, white);
-  box-shadow: 0 0 12px
-    color-mix(in srgb, var(--edge-answer-color) 45%, transparent);
-  color: #061018;
+  border-color: color-mix(in srgb, var(--edge-answer-color) 48%, white);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.12),
+    inset 0 -7px 12px rgb(0 0 0 / 0.18),
+    0 0 12px color-mix(in srgb, var(--edge-answer-color) 30%, transparent);
+  color: #ecf7ff;
+}
+
+.columnLabels .answeredEdge::after,
+.bottomLabels .answeredEdge::before,
+.rowLabels .answeredEdge::after,
+.rightLabels .answeredEdge::before {
+  background: color-mix(in srgb, var(--edge-answer-color) 58%, #ffffff);
+  box-shadow: 0 0 11px
+    color-mix(in srgb, var(--edge-answer-color) 42%, transparent);
+  opacity: 0.75;
 }
 
 .columnLabels .activeRayEdge,
 .bottomLabels .activeRayEdge,
 .rowLabels .activeRayEdge,
 .rightLabels .activeRayEdge {
-  border-color: #ffffff;
+  border-color: color-mix(in srgb, var(--edge-active-color) 42%, white);
+  color: #ffffff;
   box-shadow:
-    inset 0 0 10px rgb(255 255 255 / 0.8),
-    0 0 16px var(--edge-active-color),
-    0 0 30px color-mix(in srgb, var(--edge-active-color) 55%, transparent);
-  color: #061018;
-  transform: translateY(-1px);
+    inset 0 1px 0 rgb(255 255 255 / 0.2),
+    inset 0 -8px 12px rgb(0 0 0 / 0.14),
+    0 0 15px color-mix(in srgb, var(--edge-active-color) 38%, transparent);
 }
 
-.columnLabels .activeRayEdge:not(.answeredEdge),
-.bottomLabels .activeRayEdge:not(.answeredEdge),
-.rowLabels .activeRayEdge:not(.answeredEdge),
-.rightLabels .activeRayEdge:not(.answeredEdge) {
-  background: color-mix(in srgb, var(--edge-active-color) 68%, white);
+.columnLabels .activeRayEdge::after,
+.bottomLabels .activeRayEdge::before,
+.rowLabels .activeRayEdge::after,
+.rightLabels .activeRayEdge::before {
+  background: color-mix(in srgb, var(--edge-active-color) 60%, white);
+  box-shadow:
+    0 0 12px var(--edge-active-color),
+    0 0 24px color-mix(in srgb, var(--edge-active-color) 46%, transparent);
+  opacity: 1;
+}
+
+.columnLabels .activeEmitterEdge,
+.bottomLabels .activeEmitterEdge,
+.rowLabels .activeEmitterEdge,
+.rightLabels .activeEmitterEdge {
+  transform: scale(1.06);
+}
+
+.columnLabels .activeReceiverEdge,
+.bottomLabels .activeReceiverEdge,
+.rowLabels .activeReceiverEdge,
+.rightLabels .activeReceiverEdge {
+  animation: receiverLamp 1800ms ease-in-out infinite;
+  transform: scale(1.08);
+}
+
+.columnLabels .activeReceiverEdge::after,
+.bottomLabels .activeReceiverEdge::before,
+.rowLabels .activeReceiverEdge::after,
+.rightLabels .activeReceiverEdge::before {
+  animation: receiverLead 1800ms ease-in-out infinite;
 }
 
 .columnLabels button:hover,
@@ -298,10 +362,14 @@
 .bottomLabels button:focus-visible,
 .rowLabels button:focus-visible,
 .rightLabels button:focus-visible {
-  background: rgb(46 255 205 / 0.16);
   border-color: rgb(46 255 205 / 0.62);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.16),
+    inset 0 -8px 12px rgb(0 0 0 / 0.12),
+    0 0 18px rgb(46 255 205 / 0.22);
   color: #ecf7ff;
   outline: 0;
+  transform: scale(1.08);
 }
 
 .boardSurface {
@@ -317,7 +385,7 @@
   border-radius: 8px;
   grid-column: 2;
   grid-row: 2;
-  overflow: hidden;
+  overflow: visible;
   position: relative;
 }
 
@@ -369,10 +437,15 @@
 }
 
 .rayLayer {
+  display: block;
   filter: drop-shadow(0 0 8px var(--ray-color));
+  height: 109%;
+  left: -4.5%;
   mix-blend-mode: screen;
   overflow: visible;
   pointer-events: none;
+  top: -4.5%;
+  width: 109%;
   z-index: 2;
 }
 
@@ -385,22 +458,91 @@
 }
 
 .rayGlow {
+  animation: rayBreathe 1800ms ease-in-out infinite;
   opacity: 0.36;
   stroke: var(--ray-color);
   stroke-width: 7;
 }
 
 .rayCore {
+  animation: rayCoreBreathe 1800ms ease-in-out infinite;
   opacity: 0.94;
   stroke: #ffffff;
   stroke-width: 1.55;
 }
 
 .raySpark {
+  animation: receiverSpark 1800ms ease-in-out infinite;
   fill: #ffffff;
   stroke: var(--ray-color);
   stroke-width: 0.45;
+  transform-box: fill-box;
+  transform-origin: center;
   vector-effect: non-scaling-stroke;
+}
+
+@keyframes receiverLamp {
+  0%,
+  100% {
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.18),
+      inset 0 -8px 12px rgb(0 0 0 / 0.14),
+      0 0 12px color-mix(in srgb, var(--edge-active-color) 30%, transparent);
+  }
+
+  48% {
+    box-shadow:
+      inset 0 0 12px rgb(255 255 255 / 0.86),
+      inset 0 -8px 12px rgb(0 0 0 / 0.08),
+      0 0 18px var(--edge-active-color),
+      0 0 36px color-mix(in srgb, var(--edge-active-color) 62%, transparent);
+  }
+}
+
+@keyframes receiverLead {
+  0%,
+  100% {
+    opacity: 0.62;
+  }
+
+  48% {
+    opacity: 1;
+  }
+}
+
+@keyframes rayBreathe {
+  0%,
+  100% {
+    opacity: 0.28;
+  }
+
+  48% {
+    opacity: 0.48;
+  }
+}
+
+@keyframes rayCoreBreathe {
+  0%,
+  100% {
+    opacity: 0.78;
+  }
+
+  48% {
+    opacity: 1;
+  }
+}
+
+@keyframes receiverSpark {
+  0%,
+  100% {
+    opacity: 0.65;
+    transform: scale(0.86);
+  }
+
+  48% {
+    opacity: 1;
+    transform: scale(1.18);
+  }
 }
 
 .pieceLayer {
