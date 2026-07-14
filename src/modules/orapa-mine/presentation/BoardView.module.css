@@ -1,0 +1,68 @@
+.boardPanel {
+  display: grid;
+  gap: 0.8rem;
+  min-width: 0;
+}
+
+.boardPanel h2 {
+  font-size: 1rem;
+  letter-spacing: 0;
+  margin: 0;
+}
+
+.gridShell {
+  aspect-ratio: 12 / 10;
+  display: grid;
+  gap: 3px;
+  grid-template-columns: 2.1rem repeat(10, minmax(0, 1fr)) 2.1rem;
+  grid-template-rows: 1.85rem repeat(8, minmax(0, 1fr)) 1.85rem;
+  min-height: 360px;
+}
+
+.corner,
+.edgeLabel {
+  align-items: center;
+  color: #56646b;
+  display: flex;
+  font-size: 0.78rem;
+  font-weight: 800;
+  justify-content: center;
+}
+
+.cell {
+  align-items: center;
+  background: var(--cell-color, #f7fafb);
+  border: 1px solid #ced8dd;
+  border-radius: 4px;
+  display: flex;
+  font-size: 0.78rem;
+  font-weight: 900;
+  justify-content: center;
+  min-width: 0;
+  position: relative;
+}
+
+.hiddenCell {
+  background:
+    linear-gradient(90deg, rgb(23 33 38 / 0.04) 1px, transparent 1px),
+    linear-gradient(0deg, rgb(23 33 38 / 0.04) 1px, transparent 1px),
+    #f7fafb;
+  background-size: 16px 16px;
+}
+
+.pathCell {
+  outline: 3px solid #0e9f96;
+  outline-offset: -4px;
+}
+
+@media (max-width: 760px) {
+  .gridShell {
+    grid-template-columns: 1.6rem repeat(10, minmax(0, 1fr)) 1.6rem;
+    grid-template-rows: 1.6rem repeat(8, minmax(0, 1fr)) 1.6rem;
+    min-height: 270px;
+  }
+
+  .edgeLabel {
+    font-size: 0.66rem;
+  }
+}

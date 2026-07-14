@@ -1,0 +1,138 @@
+.panel {
+  background: #ffffff;
+  border: 1px solid #d5dde1;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.heading {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.9rem;
+}
+
+.heading h2,
+.heading p {
+  margin: 0;
+}
+
+.heading p {
+  color: #5d6b73;
+  font-size: 0.77rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.heading h2 {
+  font-size: 1rem;
+}
+
+.heading button {
+  align-items: center;
+  aspect-ratio: 1;
+  background: #ffffff;
+  border: 1px solid #c8d2d7;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  width: 2.45rem;
+}
+
+.grid {
+  aspect-ratio: 10 / 8;
+  display: grid;
+  gap: 3px;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  margin-bottom: 0.9rem;
+}
+
+.cell {
+  align-items: center;
+  background: #f7fafb;
+  border: 1px solid #ced8dd;
+  border-radius: 4px;
+  display: flex;
+  justify-content: center;
+  min-height: 2rem;
+  position: relative;
+}
+
+.cell:hover {
+  outline: 2px solid #0e9f96;
+  outline-offset: -3px;
+}
+
+.fill {
+  background: var(--guess-color);
+  inset: 2px;
+  opacity: 0.92;
+  position: absolute;
+}
+
+.cell strong {
+  color: #0d171c;
+  font-size: 0.68rem;
+  position: relative;
+  z-index: 1;
+}
+
+.rack {
+  display: grid;
+  gap: 0.5rem;
+  margin-bottom: 0.8rem;
+}
+
+.rackPiece {
+  align-items: center;
+  background: var(--rack-color);
+  border: 1px solid rgb(0 0 0 / 0.16);
+  border-radius: 8px;
+  display: flex;
+  font-size: 0.9rem;
+  font-weight: 800;
+  justify-content: space-between;
+  min-height: 2.5rem;
+  padding: 0 0.5rem 0 0.75rem;
+}
+
+.rackPiece button {
+  align-items: center;
+  background: rgb(255 255 255 / 0.72);
+  border: 1px solid rgb(0 0 0 / 0.15);
+  border-radius: 7px;
+  display: flex;
+  height: 1.8rem;
+  justify-content: center;
+  width: 1.8rem;
+}
+
+.submitButton {
+  background: #172126;
+  border: 0;
+  border-radius: 8px;
+  color: #ffffff;
+  font-weight: 800;
+  min-height: 2.65rem;
+  width: 100%;
+}
+
+.solved,
+.notSolved {
+  border-radius: 8px;
+  font-weight: 800;
+  margin: 0.75rem 0 0;
+  padding: 0.65rem 0.75rem;
+  text-align: center;
+}
+
+.solved {
+  background: #d9f6e6;
+  color: #12633a;
+}
+
+.notSolved {
+  background: #fff0d9;
+  color: #7a4300;
+}

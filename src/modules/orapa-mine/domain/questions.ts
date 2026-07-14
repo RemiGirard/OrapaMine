@@ -1,0 +1,136 @@
+import { formatGridCoordinate, parseEdgePort, parseGridCoordinate } from './coordinates'
+import type { SignalColor } from './colors'
+import { gemColorLabels, signalColorLabels } from './colors'
+import type { Puzzle } from './puzzles'
+import { findOccupant } from './minerals'
+import { traceWave } from './waves'
+
+export type QuestionMode = 'edge' | 'coordinate'
+
+export type Answer =
+  | Readonly<{
+      id: number
+      mode: 'edge'
+      query: string
+      message: string
+      signalColor: SignalColor | 'absorbed'
+      path: ReturnType<typeof traceWave>['path']
+    }>
+  | Readonly<{
+      id: number
+      mode: 'coordinate'
+      query: string
+      message: string
+      signalColor: SignalColor | 'absorbed'
+      path: ReturnType<typeof traceWave>['path']
+    }>
+
+export function answerQuestion(
+  puzzle: Puzzle,
+  mode: QuestionMode,
+  rawQuery: string,
+  id: number,
+): Answer {
+  if (mode === 'coordinate') {
+    return answerCoordinateQuestion(puzzle, rawQuery, id)
+  }
+
+  return answerEdgeQuestion(puzzle, rawQuery, id)
+}
+
+function answerEdgeQuestion(puzzle: Puzzle, rawQuery: string, id: number): Answer {
+  const edgePort = parseEdgePort(rawQuery)
+
+  if (!edgePort) {
+    return {
+      id,
+      mode: 'edge',
+      query: rawQuery,
+      message: 'Unknown edge',
+      signalColor: 'transparent',
+      path: [],
+    }
+  }
+
+  const trace = traceWave(puzzle.placements, edgePort)
+
+  if (trace.kind === 'absorbed') {
+    return {
+      id,
+      mode: 'edge',
+      query: trace.entryLabel,
+      message: 'Signal absorbed',
+      signalColor: 'absorbed',
+      path: trace.path,
+    }
+  }
+
+  if (trace.kind === 'loop') {
+    return {
+      id,
+      mode: 'edge',
+      query: trace.entryLabel,
+      message: `Loop - ${signalColorLabels[trace.signalColor]}`,
+      signalColor: trace.signalColor,
+      path: trace.path,
+    }
+  }
+
+  return {
+    id,
+    mode: 'edge',
+    query: trace.entryLabel,
+    message: `Exit ${trace.exitLabel} - ${signalColorLabels[trace.signalColor]}`,
+    signalColor: trace.signalColor,
+    path: trace.path,
+  }
+}
+
+function answerCoordinateQuestion(puzzle: Puzzle, rawQuery: string, id: number): Answer {
+  const coordinate = parseGridCoordinate(rawQuery)
+
+  if (!coordinate) {
+    return {
+      id,
+      mode: 'coordinate',
+      query: rawQuery,
+      message: 'Unknown coordinate',
+      signalColor: 'transparent',
+      path: [],
+    }
+  }
+
+  const occupant = findOccupant(puzzle.placements, coordinate)
+
+  if (!occupant) {
+    return {
+      id,
+      mode: 'coordinate',
+      query: formatGridCoordinate(coordinate),
+      message: 'Nothing',
+      signalColor: 'transparent',
+      path: [coordinate],
+    }
+  }
+
+  if (occupant.mineral.color === 'black') {
+    return {
+      id,
+      mode: 'coordinate',
+      query: formatGridCoordinate(coordinate),
+      message: 'Signal absorbed',
+      signalColor: 'absorbed',
+      path: [coordinate],
+    }
+  }
+
+  return {
+    id,
+    mode: 'coordinate',
+    query: formatGridCoordinate(coordinate),
+    message: `${gemColorLabels[occupant.mineral.color]} gem`,
+    signalColor:
+      occupant.mineral.color === 'transparent' ? 'transparent' : occupant.mineral.color,
+    path: [coordinate],
+  }
+}
