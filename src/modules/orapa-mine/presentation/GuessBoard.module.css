@@ -38,26 +38,8 @@
 .heading {
   align-items: center;
   display: flex;
-  justify-content: space-between;
-  margin-bottom: 0.55rem;
-}
-
-.heading h2,
-.heading p {
-  margin: 0;
-}
-
-.heading p {
-  color: #7bd7ff;
-  font-size: 0.77rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.heading h2 {
-  color: #ecf7ff;
-  font-size: 1rem;
+  justify-content: flex-end;
+  margin-bottom: 0.35rem;
 }
 
 .heading button {

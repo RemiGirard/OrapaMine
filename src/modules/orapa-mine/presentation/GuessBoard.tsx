@@ -499,10 +499,6 @@ export function GuessBoard({
       onPointerUp={finishActivePieceMove}
     >
       <div className={styles.heading}>
-        <div>
-          <p>Family map</p>
-          <h2>Solution</h2>
-        </div>
         <div className={styles.headingActions}>
           <button
             aria-label="Speak"
