@@ -5,16 +5,7 @@ import type {
 } from 'react'
 import { useRef, useState } from 'react'
 import { Mic, RotateCcw } from 'lucide-react'
-import {
-  finishPieceMovement,
-  movePieceMovement,
-  startPieceMovement,
-} from '../application/pieceMovement'
-import type {
-  PieceMovementAnchor,
-  PieceMovementSession,
-  PieceMovementTarget,
-} from '../application/pieceMovement'
+import type { PieceMovementSession } from '../application/pieceMovement'
 import type { VoiceRecognitionStatus } from '../application/voiceRecognition'
 import {
   boardSize,
@@ -26,12 +17,7 @@ import {
   topLabels,
 } from '../domain/coordinates'
 import type { Coordinate } from '../domain/coordinates'
-import {
-  canPlaceMineralWithOrientation,
-  getMineralShape,
-  minerals,
-  placementsOverlap,
-} from '../domain/minerals'
+import { getMineralShape, minerals } from '../domain/minerals'
 import type {
   GuessPlacement,
   MineralId,
@@ -42,6 +28,7 @@ import { ColorDot } from './ColorDot'
 import { PieceShape } from './PieceShape'
 import { colorValue } from './colorPalette'
 import styles from './GuessBoard.module.css'
+import { usePieceMovementInteraction } from './usePieceMovementInteraction'
 
 type GuessBoardProps = Readonly<{
   answers: ReadonlyArray<Answer>
@@ -99,10 +86,26 @@ export function GuessBoard({
   const [hoveredLogbookAnswerId, setHoveredLogbookAnswerId] = useState<
     number | null
   >(null)
-  const [dragState, setDragState] = useState<DragState | null>(null)
-  const dragStateRef = useRef<DragState | null>(null)
-  const suppressedClickMineralIdRef = useRef<MineralId | null>(null)
   const boardRef = useRef<HTMLDivElement>(null)
+  const {
+    cancelActiveMovement,
+    cancelMovingPiece,
+    dropPickedPiece,
+    movementState: dragState,
+    pickPieceFromClick,
+    placedDragAnchorFromClientPoint,
+    placedMouseDragAnchor,
+    placedPointerDragAnchor,
+    stackDragAnchor,
+    startMovingPiece,
+    startMovingPieceWithMouse,
+  } = usePieceMovementInteraction({
+    boardRef,
+    guess,
+    onPlace,
+    onRemove,
+    onSelect,
+  })
   const draggedPlacement = dragState
     ? guess.find((placement) => placement.mineralId === dragState.mineralId)
     : null
@@ -147,153 +150,6 @@ export function GuessBoard({
     setHoveredLogbookAnswerId(null)
   }
 
-  function commitDragState(nextDragState: DragState | null) {
-    dragStateRef.current = nextDragState
-    setDragState(nextDragState)
-  }
-
-  function boardPointFromClientPoint(clientX: number, clientY: number) {
-    const boardRect = boardRef.current?.getBoundingClientRect()
-
-    if (!boardRect) {
-      return null
-    }
-
-    const column =
-      ((clientX - boardRect.left) / boardRect.width) * boardSize.columns
-    const row = ((clientY - boardRect.top) / boardRect.height) * boardSize.rows
-
-    if (
-      column < 0 ||
-      column > boardSize.columns ||
-      row < 0 ||
-      row > boardSize.rows
-    ) {
-      return null
-    }
-
-    return { column, row }
-  }
-
-  function targetOriginFromClientPoint(
-    clientX: number,
-    clientY: number,
-    mineralId: MineralId,
-    anchor: PieceMovementAnchor,
-  ) {
-    const boardPoint = boardPointFromClientPoint(clientX, clientY)
-
-    if (!boardPoint) {
-      return null
-    }
-
-    const origin = {
-      column: Math.round(boardPoint.column - anchor.column),
-      row: Math.round(boardPoint.row - anchor.row),
-    }
-
-    return canDropMineral(mineralId, origin) ? origin : null
-  }
-
-  function targetFromClientPoint(
-    clientX: number,
-    clientY: number,
-    mineralId: MineralId,
-    anchor: PieceMovementAnchor,
-  ): PieceMovementTarget {
-    const boardOrigin = targetOriginFromClientPoint(
-      clientX,
-      clientY,
-      mineralId,
-      anchor,
-    )
-
-    if (boardOrigin) {
-      return {
-        kind: 'board',
-        origin: boardOrigin,
-      }
-    }
-
-    const placement = guess.find(
-      (guessPlacement) => guessPlacement.mineralId === mineralId,
-    )
-
-    if (
-      placement?.origin &&
-      isPointerOverStackSlot(clientX, clientY, mineralId)
-    ) {
-      return { kind: 'stack' }
-    }
-
-    return null
-  }
-
-  function isPointerOverStackSlot(
-    clientX: number,
-    clientY: number,
-    mineralId: MineralId,
-  ) {
-    let currentElement = document.elementFromPoint(clientX, clientY)
-
-    while (currentElement instanceof HTMLElement) {
-      if (currentElement.dataset.stackMineralId === mineralId) {
-        return true
-      }
-
-      currentElement = currentElement.parentElement
-    }
-
-    return false
-  }
-
-  function canDropMineral(mineralId: MineralId, origin: Coordinate) {
-    const targetPlacement = guess.find(
-      (placement) => placement.mineralId === mineralId,
-    )
-
-    if (!targetPlacement) {
-      return false
-    }
-
-    if (
-      !canPlaceMineralWithOrientation(
-        mineralId,
-        origin,
-        targetPlacement.orientation,
-        targetPlacement.face,
-      )
-    ) {
-      return false
-    }
-
-    const nextPlacements = guess.flatMap<MineralPlacement>((placement) => {
-      if (placement.mineralId === mineralId) {
-        return [
-          {
-            mineralId,
-            face: targetPlacement.face,
-            orientation: targetPlacement.orientation,
-            origin,
-          },
-        ]
-      }
-
-      return placement.origin
-        ? [
-            {
-              mineralId: placement.mineralId,
-              face: placement.face,
-              orientation: placement.orientation,
-              origin: placement.origin,
-            },
-          ]
-        : []
-    })
-
-    return !placementsOverlap(nextPlacements)
-  }
-
   function dragPreviewStyle(
     dragStateValue: DragState,
     placement: GuessPlacement,
@@ -315,326 +171,8 @@ export function GuessBoard({
     } satisfies CSSProperties
   }
 
-  function stackDragAnchor(placement: GuessPlacement) {
-    const shape = getMineralShape(
-      placement.mineralId,
-      placement.orientation,
-      placement.face,
-    )
-
-    return {
-      column: shape.width / 2,
-      row: shape.height / 2,
-    }
-  }
-
-  function placedDragAnchorFromClientPoint(
-    clientX: number,
-    clientY: number,
-    placement: GuessPlacement,
-  ) {
-    const boardPoint = boardPointFromClientPoint(clientX, clientY)
-
-    if (!boardPoint || !placement.origin) {
-      return stackDragAnchor(placement)
-    }
-
-    return {
-      column: boardPoint.column - placement.origin.column,
-      row: boardPoint.row - placement.origin.row,
-    }
-  }
-
-  function placedPointerDragAnchor(
-    event: ReactPointerEvent,
-    placement: GuessPlacement,
-  ) {
-    return placedDragAnchorFromClientPoint(
-      event.clientX,
-      event.clientY,
-      placement,
-    )
-  }
-
-  function placedMouseDragAnchor(
-    event: ReactMouseEvent,
-    placement: GuessPlacement,
-  ) {
-    return placedDragAnchorFromClientPoint(
-      event.clientX,
-      event.clientY,
-      placement,
-    )
-  }
-
-  function startMovingPieceFromClientPoint(
-    clientX: number,
-    clientY: number,
-    placement: GuessPlacement,
-    anchor: PieceMovementAnchor,
-  ) {
-    commitDragState(
-      startPieceMovement({
-        anchor,
-        mineralId: placement.mineralId,
-        pointer: {
-          x: clientX,
-          y: clientY,
-        },
-        target: targetFromClientPoint(
-          clientX,
-          clientY,
-          placement.mineralId,
-          anchor,
-        ),
-      }),
-    )
-    onSelect(placement.mineralId)
-  }
-
-  function startMovingPiece(
-    event: ReactPointerEvent<HTMLElement>,
-    placement: GuessPlacement,
-    anchor: PieceMovementAnchor,
-  ) {
-    if (event.button !== 0) {
-      return
-    }
-
-    event.preventDefault()
-    event.currentTarget.setPointerCapture(event.pointerId)
-    startMovingPieceFromClientPoint(
-      event.clientX,
-      event.clientY,
-      placement,
-      anchor,
-    )
-  }
-
-  function startMovingPieceWithMouse(
-    event: ReactMouseEvent<HTMLElement>,
-    placement: GuessPlacement,
-    anchor: PieceMovementAnchor,
-  ) {
-    if (event.button !== 0 || dragStateRef.current) {
-      return
-    }
-
-    event.preventDefault()
-    startMovingPieceFromClientPoint(
-      event.clientX,
-      event.clientY,
-      placement,
-      anchor,
-    )
-  }
-
-  function movePiecePreviewFromClientPoint(
-    clientX: number,
-    clientY: number,
-    mineralId: MineralId,
-  ) {
-    const currentDragState = dragStateRef.current
-
-    if (currentDragState?.mineralId !== mineralId) {
-      return
-    }
-
-    commitDragState(
-      movePieceMovement(
-        currentDragState,
-        {
-          x: clientX,
-          y: clientY,
-        },
-        targetFromClientPoint(
-          clientX,
-          clientY,
-          mineralId,
-          currentDragState.anchor,
-        ),
-      ),
-    )
-  }
-
-  function movePiecePreview(
-    event: ReactPointerEvent<HTMLElement>,
-    mineralId: MineralId,
-  ) {
-    event.preventDefault()
-    movePiecePreviewFromClientPoint(event.clientX, event.clientY, mineralId)
-  }
-
-  function movePiecePreviewWithMouse(
-    event: ReactMouseEvent<HTMLElement>,
-    mineralId: MineralId,
-  ) {
-    if (!dragStateRef.current) {
-      return
-    }
-
-    event.preventDefault()
-    movePiecePreviewFromClientPoint(event.clientX, event.clientY, mineralId)
-  }
-
-  function suppressClickAfterDrag(mineralId: MineralId) {
-    suppressedClickMineralIdRef.current = mineralId
-    window.setTimeout(() => {
-      if (suppressedClickMineralIdRef.current === mineralId) {
-        suppressedClickMineralIdRef.current = null
-      }
-    }, 0)
-  }
-
-  function shouldIgnoreClickAfterDrag(mineralId: MineralId) {
-    if (suppressedClickMineralIdRef.current !== mineralId) {
-      return false
-    }
-
-    suppressedClickMineralIdRef.current = null
-    return true
-  }
-
-  function pickPieceFromClick(
-    event: ReactMouseEvent<HTMLElement>,
-    placement: GuessPlacement,
-    anchor: PieceMovementAnchor,
-  ) {
-    event.preventDefault()
-    event.stopPropagation()
-
-    if (shouldIgnoreClickAfterDrag(placement.mineralId)) {
-      return
-    }
-
-    startMovingPieceFromClientPoint(
-      event.clientX,
-      event.clientY,
-      placement,
-      anchor,
-    )
-  }
-
-  function finishMovingPieceFromClientPoint(
-    clientX: number,
-    clientY: number,
-    mineralId: MineralId,
-  ) {
-    const currentDragState = dragStateRef.current
-
-    if (currentDragState?.mineralId !== mineralId) {
-      return
-    }
-
-    const target = targetFromClientPoint(
-      clientX,
-      clientY,
-      mineralId,
-      currentDragState.anchor,
-    )
-    const command = finishPieceMovement(currentDragState, target)
-    const wasPointerDrag = currentDragState.hasMoved
-
-    commitDragState(null)
-
-    if (wasPointerDrag) {
-      suppressClickAfterDrag(mineralId)
-    }
-
-    if (command?.kind === 'place') {
-      onPlace(command.mineralId, command.origin)
-    }
-
-    if (command?.kind === 'return') {
-      onRemove(command.mineralId)
-    }
-  }
-
-  function finishMovingPiece(
-    event: ReactPointerEvent<HTMLElement>,
-    mineralId: MineralId,
-  ) {
-    event.preventDefault()
-    finishMovingPieceFromClientPoint(event.clientX, event.clientY, mineralId)
-  }
-
-  function finishMovingPieceWithMouse(
-    event: ReactMouseEvent<HTMLElement>,
-    mineralId: MineralId,
-  ) {
-    if (!dragStateRef.current) {
-      return
-    }
-
-    event.preventDefault()
-    finishMovingPieceFromClientPoint(event.clientX, event.clientY, mineralId)
-  }
-
-  function cancelMovingPiece(mineralId: MineralId) {
-    if (dragStateRef.current?.mineralId === mineralId) {
-      commitDragState(null)
-    }
-  }
-
-  function moveActivePiecePreview(event: ReactPointerEvent<HTMLElement>) {
-    const activeDragState = dragStateRef.current
-
-    if (activeDragState) {
-      movePiecePreview(event, activeDragState.mineralId)
-    }
-  }
-
-  function finishActivePieceMove(event: ReactPointerEvent<HTMLElement>) {
-    const activeDragState = dragStateRef.current
-
-    if (activeDragState) {
-      finishMovingPiece(event, activeDragState.mineralId)
-    }
-  }
-
-  function moveActivePiecePreviewWithMouse(
-    event: ReactMouseEvent<HTMLElement>,
-  ) {
-    const activeDragState = dragStateRef.current
-
-    if (activeDragState) {
-      movePiecePreviewWithMouse(event, activeDragState.mineralId)
-    }
-  }
-
-  function finishActivePieceMoveWithMouse(event: ReactMouseEvent<HTMLElement>) {
-    const activeDragState = dragStateRef.current
-
-    if (activeDragState) {
-      finishMovingPieceWithMouse(event, activeDragState.mineralId)
-    }
-  }
-
-  function dropPickedPiece(event: ReactMouseEvent<HTMLElement>) {
-    const activeDragState = dragStateRef.current
-
-    if (!activeDragState) {
-      return
-    }
-
-    event.preventDefault()
-    event.stopPropagation()
-    finishMovingPieceFromClientPoint(
-      event.clientX,
-      event.clientY,
-      activeDragState.mineralId,
-    )
-  }
-
   return (
-    <aside
-      className={styles.panel}
-      onMouseMove={moveActivePiecePreviewWithMouse}
-      onMouseUp={finishActivePieceMoveWithMouse}
-      onPointerCancel={() => commitDragState(null)}
-      onPointerMove={moveActivePiecePreview}
-      onPointerUp={finishActivePieceMove}
-    >
+    <aside className={styles.panel} onPointerCancel={cancelActiveMovement}>
       <div className={styles.heading}>
         <div className={styles.headingActions}>
           <button
@@ -736,8 +274,6 @@ export function GuessBoard({
                       isDragging={dragState?.mineralId === placement.mineralId}
                       key={placement.mineralId}
                       onMoveCancel={cancelMovingPiece}
-                      onMoveEnd={finishMovingPiece}
-                      onMovePreview={movePiecePreview}
                       onMoveStart={(event, piecePlacement) =>
                         startMovingPiece(
                           event,
@@ -745,7 +281,6 @@ export function GuessBoard({
                           placedPointerDragAnchor(event, piecePlacement),
                         )
                       }
-                      onMouseMove={movePiecePreviewWithMouse}
                       onMouseStart={(event, piecePlacement) =>
                         startMovingPieceWithMouse(
                           event,
@@ -753,7 +288,6 @@ export function GuessBoard({
                           placedMouseDragAnchor(event, piecePlacement),
                         )
                       }
-                      onMouseEnd={finishMovingPieceWithMouse}
                       onFlip={onFlip}
                       onPick={(event, piecePlacement) =>
                         pickPieceFromClick(
@@ -891,24 +425,12 @@ export function GuessBoard({
                             stackDragAnchor(placement),
                           )
                         }
-                        onMouseMove={(event) =>
-                          movePiecePreviewWithMouse(event, placement.mineralId)
-                        }
-                        onMouseUp={(event) =>
-                          finishMovingPieceWithMouse(event, placement.mineralId)
-                        }
                         onPointerDown={(event) =>
                           startMovingPiece(
                             event,
                             placement,
                             stackDragAnchor(placement),
                           )
-                        }
-                        onPointerMove={(event) =>
-                          movePiecePreview(event, placement.mineralId)
-                        }
-                        onPointerUp={(event) =>
-                          finishMovingPiece(event, placement.mineralId)
                         }
                         title={`${mineral.name} - ${placement.orientation}, ${placement.face}`}
                         type="button"
@@ -1108,7 +630,7 @@ function RayOverlay({
           '--ray-color': colorValue(answer.signalColor),
         } as CSSProperties
       }
-      viewBox={`${-rayViewBoxOffset} ${-rayViewBoxOffset} ${100 + rayViewBoxOffset * 2} ${100 + rayViewBoxOffset * 2}`}
+      viewBox="0 0 100 100"
     >
       <polyline className={styles.rayGlow} points={toSvgPoints(points)} />
       <polyline className={styles.rayCore} points={toSvgPoints(points)} />
@@ -1128,9 +650,7 @@ function RayOverlay({
   )
 }
 
-const rayViewBoxOffset = 4.5
-const horizontalRayEdgeOffset = 3
-const verticalRayEdgeOffset = 4
+const rayEdgeInset = 1.1
 
 function rayPoints(answer: Answer & { mode: 'edge' }) {
   const entryPoint = edgePoint(answer.query)
@@ -1157,18 +677,14 @@ function edgePoint(label: string) {
 
     return {
       x: (column / boardSize.columns) * 100,
-      y: edgePort.label.startsWith('T')
-        ? -horizontalRayEdgeOffset
-        : 100 + horizontalRayEdgeOffset,
+      y: edgePort.label.startsWith('T') ? rayEdgeInset : 100 - rayEdgeInset,
     }
   }
 
   const row = Number(edgePort.label.slice(1)) - 0.5
 
   return {
-    x: edgePort.label.startsWith('L')
-      ? -verticalRayEdgeOffset
-      : 100 + verticalRayEdgeOffset,
+    x: edgePort.label.startsWith('L') ? rayEdgeInset : 100 - rayEdgeInset,
     y: (row / boardSize.rows) * 100,
   }
 }
@@ -1245,12 +761,8 @@ function PlacementGhost({
 function PlacedPiece({
   isDragging,
   isSelected,
-  onMouseEnd,
-  onMouseMove,
   onMouseStart,
   onMoveCancel,
-  onMoveEnd,
-  onMovePreview,
   onMoveStart,
   onFlip,
   onPick,
@@ -1260,27 +772,11 @@ function PlacedPiece({
 }: Readonly<{
   isDragging: boolean
   isSelected: boolean
-  onMouseEnd: (
-    event: ReactMouseEvent<HTMLElement>,
-    mineralId: MineralId,
-  ) => void
-  onMouseMove: (
-    event: ReactMouseEvent<HTMLElement>,
-    mineralId: MineralId,
-  ) => void
   onMouseStart: (
     event: ReactMouseEvent<HTMLElement>,
     placement: GuessPlacement,
   ) => void
   onMoveCancel: (mineralId: MineralId) => void
-  onMoveEnd: (
-    event: ReactPointerEvent<HTMLElement>,
-    mineralId: MineralId,
-  ) => void
-  onMovePreview: (
-    event: ReactPointerEvent<HTMLElement>,
-    mineralId: MineralId,
-  ) => void
   onMoveStart: (
     event: ReactPointerEvent<HTMLElement>,
     placement: GuessPlacement,
@@ -1346,12 +842,8 @@ function PlacedPiece({
         }
       }}
       onMouseDown={(event) => onMouseStart(event, placement)}
-      onMouseMove={(event) => onMouseMove(event, placement.mineralId)}
-      onMouseUp={(event) => onMouseEnd(event, placement.mineralId)}
       onPointerCancel={() => onMoveCancel(placement.mineralId)}
       onPointerDown={(event) => onMoveStart(event, placement)}
-      onPointerMove={(event) => onMovePreview(event, placement.mineralId)}
-      onPointerUp={(event) => onMoveEnd(event, placement.mineralId)}
       role="button"
       style={{
         height: `${(shape.height / boardSize.rows) * 100}%`,

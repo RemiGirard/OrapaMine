@@ -11,6 +11,7 @@ import {
   rotateGuessMineral,
 } from '../domain/puzzles'
 import type { Puzzle } from '../domain/puzzles'
+import type { Answer } from '../domain/questions'
 import { GuessBoard } from './GuessBoard'
 
 const puzzle: Puzzle = {
@@ -36,6 +37,17 @@ const boardRect = {
   y: 100,
 } as DOMRect
 
+const stackSlotRect = {
+  bottom: 130,
+  height: 110,
+  left: 20,
+  right: 140,
+  top: 20,
+  width: 120,
+  x: 20,
+  y: 20,
+} as DOMRect
+
 describe('GuessBoard piece interactions', () => {
   const originalGetBoundingClientRect =
     HTMLElement.prototype.getBoundingClientRect
@@ -47,6 +59,10 @@ describe('GuessBoard piece interactions', () => {
       .mockImplementation(function getBoundingClientRect(this: HTMLElement) {
         if (this.className.toString().includes('boardSurface')) {
           return boardRect
+        }
+
+        if (this.dataset.stackMineralId) {
+          return stackSlotRect
         }
 
         return originalGetBoundingClientRect.call(this)
@@ -109,11 +125,14 @@ describe('GuessBoard piece interactions', () => {
 
     expect(stackSlot).not.toBeNull()
 
-    document.elementFromPoint = vi.fn(() => stackSlot)
+    document.elementFromPoint = vi.fn(() => null)
 
     dragWithMouse(movedPiece, panel!, {
       from: boardPoint(5.5, 4.5),
-      to: { x: 40, y: 40 },
+      to: {
+        x: stackSlotRect.left + stackSlotRect.width / 2,
+        y: stackSlotRect.top + stackSlotRect.height / 2,
+      },
     })
 
     expect(
@@ -152,16 +171,58 @@ describe('GuessBoard piece interactions', () => {
       }),
     ).not.toBeNull()
   })
+
+  it('keeps ray endpoints inside the board instead of spilling over edge labels', () => {
+    const currentRayPreview: Extract<Answer, { mode: 'edge' }> = {
+      exitLabel: 'B1',
+      id: 1,
+      message: 'Exit B1 - Red',
+      mode: 'edge',
+      path: [{ column: 0, row: 4 }],
+      query: 'T1',
+      signalColor: 'red',
+    }
+
+    render(
+      <InteractiveGuessBoard
+        currentRayPreview={currentRayPreview}
+        showLightPath
+      />,
+    )
+
+    const rayLayer = document.querySelector('[class*="rayLayer"]')
+    const rayPath = rayLayer?.querySelector('polyline')
+
+    expect(rayLayer?.getAttribute('viewBox')).toBe('0 0 100 100')
+    expect(rayPath).not.toBeNull()
+
+    const pointValues = rayPath
+      ?.getAttribute('points')
+      ?.split(/[,\s]+/)
+      .filter(Boolean)
+      .map(Number)
+
+    expect(pointValues).toBeDefined()
+    expect(pointValues?.every((point) => point >= 0 && point <= 100)).toBe(
+      true,
+    )
+  })
 })
 
-function InteractiveGuessBoard() {
+function InteractiveGuessBoard({
+  currentRayPreview = null,
+  showLightPath = false,
+}: Readonly<{
+  currentRayPreview?: Extract<Answer, { mode: 'edge' }> | null
+  showLightPath?: boolean
+}>) {
   const [guess, setGuess] = useState(() => createEmptyGuess(puzzle))
 
   return (
     <GuessBoard
       answers={[]}
       currentAnswer={null}
-      currentRayPreview={null}
+      currentRayPreview={currentRayPreview}
       edgeAnswers={new Map()}
       guess={guess}
       onAskEdge={() => undefined}
@@ -186,7 +247,7 @@ function InteractiveGuessBoard() {
       onToggleLightPath={() => undefined}
       result={null}
       selectedMineralId="red-parallelogram"
-      showLightPath={false}
+      showLightPath={showLightPath}
       showSolution={false}
       solutionPlacements={puzzle.placements}
       voiceStatus="idle"
