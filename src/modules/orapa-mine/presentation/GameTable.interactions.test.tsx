@@ -3,7 +3,6 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { useState } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { ClueConsistency } from '../application/clueConsistency'
 import {
   createEmptyGuess,
   flipGuessMineral,
@@ -397,8 +396,8 @@ describe('GameTable piece interactions', () => {
     expect(onAskEdge).toHaveBeenCalledWith('T3')
   })
 
-  it('shows whether the family map is consistent with recorded clues', () => {
-    const answer: Extract<Answer, { mode: 'edge' }> = {
+  it('renders compact colored routes and a return arrow for self-returns', () => {
+    const directAnswer: Extract<Answer, { mode: 'edge' }> = {
       exitLabel: 'B2',
       id: 12,
       message: 'Exit B2 - Red',
@@ -407,41 +406,33 @@ describe('GameTable piece interactions', () => {
       query: 'T2',
       signalColor: 'red',
     }
-    const consistency: ClueConsistency = {
-      byAnswerId: new Map([
-        [
-          answer.id,
-          {
-            answer,
-            matches: true,
-            preview: { ...answer, id: -answer.id },
-          },
-        ],
-      ]),
-      matchedClues: 1,
-      totalClues: 1,
+    const returningAnswer: Extract<Answer, { mode: 'edge' }> = {
+      exitLabel: 'T6',
+      id: 13,
+      message: 'Exit T6 - Blue',
+      mode: 'edge',
+      path: [{ column: 5, row: 0 }],
+      query: 'T6',
+      signalColor: 'blue',
     }
 
-    render(
-      <InteractiveGameTable
-        answers={[answer]}
-        clueConsistency={consistency}
-        currentAnswer={answer}
-        currentRayPreview={{ ...answer, id: -answer.id }}
-      />,
-    )
+    render(<InteractiveGameTable answers={[returningAnswer, directAnswer]} />)
 
+    const directRoute = screen.getByLabelText('T2 to B2, Red')
+    const returnRoute = screen.getByLabelText('T6 returns to itself, Blue')
+
+    expect(directRoute.textContent).toBe('T2B2')
+    expect(directRoute.getAttribute('style')).toContain('#ef4f4a')
     expect(
-      screen.getByLabelText('1 of 1 clues match the family map'),
+      returnRoute.querySelector('[data-clue-return="true"]'),
     ).not.toBeNull()
-    expect(screen.getAllByLabelText('Matches family map')).toHaveLength(2)
+    expect(screen.queryByText('Exit B2 - Red')).toBeNull()
   })
 })
 
 function InteractiveGameTable({
   allRayPreviews = [],
   answers = [],
-  clueConsistency = emptyClueConsistency,
   currentAnswer = null,
   currentRayPreview = null,
   edgeAnswers = new Map(),
@@ -451,7 +442,6 @@ function InteractiveGameTable({
 }: Readonly<{
   allRayPreviews?: ReadonlyArray<Extract<Answer, { mode: 'edge' }>>
   answers?: ReadonlyArray<Answer>
-  clueConsistency?: ClueConsistency
   currentAnswer?: Answer | null
   currentRayPreview?: Extract<Answer, { mode: 'edge' }> | null
   edgeAnswers?: ReadonlyMap<string, Extract<Answer, { mode: 'edge' }>>
@@ -468,7 +458,6 @@ function InteractiveGameTable({
     <GameTable
       clues={{
         answers,
-        consistency: clueConsistency,
         currentAnswer,
         edgeAnswers,
         onAskEdge,
@@ -513,12 +502,6 @@ function InteractiveGameTable({
       }}
     />
   )
-}
-
-const emptyClueConsistency: ClueConsistency = {
-  byAnswerId: new Map(),
-  matchedClues: 0,
-  totalClues: 0,
 }
 
 function dragWithMouse(

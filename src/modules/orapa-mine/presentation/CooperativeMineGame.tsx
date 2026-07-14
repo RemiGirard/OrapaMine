@@ -39,7 +39,6 @@ export function CooperativeMineGame() {
         <GameTable
           clues={{
             answers: game.clues.answers,
-            consistency: game.clues.consistency,
             currentAnswer: game.clues.currentAnswer,
             edgeAnswers: game.clues.edgeAnswers,
             onAskEdge: game.clues.askEdge,

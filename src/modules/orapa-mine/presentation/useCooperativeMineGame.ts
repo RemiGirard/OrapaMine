@@ -61,7 +61,6 @@ export function useCooperativeMineGame() {
       answers: game.clueNotebook.answers,
       askEdge,
       askVoiceQuestion,
-      consistency: view.clueConsistency,
       currentAnswer: view.currentAnswer,
       edgeAnswers: view.edgeAnswers,
     },
