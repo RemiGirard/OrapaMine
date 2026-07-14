@@ -3,6 +3,7 @@ import { useId } from 'react'
 import type {
   MineralId,
   MineralShape,
+  MineralFace,
   OpticalCell,
   Orientation,
   ShapeCell,
@@ -13,18 +14,20 @@ import { colorValue } from './colorPalette'
 
 type PieceShapeProps = Readonly<{
   className?: string
+  face: MineralFace
   mineralId: MineralId
   orientation: Orientation
 }>
 
 export function PieceShape({
   className,
+  face,
   mineralId,
   orientation,
 }: PieceShapeProps) {
   const gradientId = useId().replace(/:/g, '')
   const mineral = minerals[mineralId]
-  const shape = getMineralShape(mineralId, orientation)
+  const shape = getMineralShape(mineralId, orientation, face)
   const isDiamond = mineral.color === 'white'
   const gradientStart = isDiamond ? '#ffffff' : colorValue(mineral.color)
   const gradientEnd =
@@ -39,6 +42,7 @@ export function PieceShape({
     <svg
       aria-hidden="true"
       className={className}
+      data-mineral-face={face}
       data-mineral-color={mineral.color}
       data-mineral-id={mineralId}
       preserveAspectRatio="none"

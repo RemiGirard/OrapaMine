@@ -36,8 +36,8 @@ export function CooperativeMineGame() {
           currentRayPreview={game.currentRayPreview}
           edgeAnswers={game.edgeAnswers}
           guess={game.guess}
+          onFlip={game.flipGuess}
           onAskEdge={game.askEdge}
-          onPlaceSelected={game.placeSelectedMineral}
           onPlace={game.placeGuessMineral}
           onRemove={game.removeGuess}
           onReset={game.resetGuess}

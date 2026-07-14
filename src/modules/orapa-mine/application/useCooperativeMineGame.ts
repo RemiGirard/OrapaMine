@@ -5,6 +5,7 @@ import type { Coordinate } from '../domain/coordinates'
 import {
   compareGuess,
   createEmptyGuess,
+  flipGuessMineral,
   moveGuessMineral,
   preparedPuzzles,
   removeGuessMineral,
@@ -109,16 +110,18 @@ export function useCooperativeMineGame() {
     setSubmittedResult(null)
   }
 
-  function placeSelectedMineral(origin: Coordinate) {
-    placeGuessMineral(selectedMineralId, origin)
-  }
-
   function selectGuessMineral(mineralId: MineralId) {
     setSelectedMineralId(mineralId)
   }
 
   function rotateGuess(mineralId: MineralId) {
     setGuess((currentGuess) => rotateGuessMineral(currentGuess, mineralId))
+    setSelectedMineralId(mineralId)
+    setSubmittedResult(null)
+  }
+
+  function flipGuess(mineralId: MineralId) {
+    setGuess((currentGuess) => flipGuessMineral(currentGuess, mineralId))
     setSelectedMineralId(mineralId)
     setSubmittedResult(null)
   }
@@ -138,6 +141,7 @@ export function useCooperativeMineGame() {
     askEdge,
     askVoiceQuestion,
     edgeAnswers,
+    flipGuess,
     guess,
     guessCells,
     lastAnswer,
@@ -145,7 +149,6 @@ export function useCooperativeMineGame() {
     nextPuzzle,
     placeGuessMineral,
     puzzle,
-    placeSelectedMineral,
     removeGuess,
     resetGuess,
     rotateGuess,

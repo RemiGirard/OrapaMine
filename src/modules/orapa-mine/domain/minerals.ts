@@ -12,6 +12,8 @@ export type OpticalCell =
 
 export type Orientation = 'north' | 'east' | 'south' | 'west'
 
+export type MineralFace = 'front' | 'back'
+
 export type MineralId =
   | 'red-parallelogram'
   | 'yellow-triangle'
@@ -37,16 +39,20 @@ export type Mineral = Readonly<{
   shortName: string
   color: GemColor
   defaultOrientation: Orientation
-  shapes: Readonly<Record<Orientation, MineralShape>>
+  shapes: Readonly<
+    Record<MineralFace, Readonly<Record<Orientation, MineralShape>>>
+  >
 }>
 
 export type MineralPlacement = Readonly<{
+  face?: MineralFace
   mineralId: MineralId
   origin: Coordinate
   orientation?: Orientation
 }>
 
 export type GuessPlacement = Readonly<{
+  face: MineralFace
   mineralId: MineralId
   origin: Coordinate | null
   orientation: Orientation
@@ -54,12 +60,19 @@ export type GuessPlacement = Readonly<{
 
 export type OccupiedCell = Readonly<{
   coordinate: Coordinate
+  face: MineralFace
   mineral: Mineral
   orientation: Orientation
   opticalCell: OpticalCell
 }>
 
-const orientationOrder: ReadonlyArray<Orientation> = ['north', 'east', 'south', 'west']
+const orientationOrder: ReadonlyArray<Orientation> = [
+  'north',
+  'east',
+  'south',
+  'west',
+]
+const faceOrder: ReadonlyArray<MineralFace> = ['front', 'back']
 
 const occupiedSides: Record<OpticalCell, ReadonlySet<Direction>> = {
   absorb: new Set(['north', 'east', 'south', 'west']),
@@ -79,6 +92,15 @@ const rotatedOpticalCell: Record<OpticalCell, OpticalCell> = {
   'triangle-tr': 'triangle-br',
 }
 
+const mirroredOpticalCell: Record<OpticalCell, OpticalCell> = {
+  absorb: 'absorb',
+  block: 'block',
+  'triangle-bl': 'triangle-br',
+  'triangle-br': 'triangle-bl',
+  'triangle-tl': 'triangle-tr',
+  'triangle-tr': 'triangle-tl',
+}
+
 function rotateCell(cell: ShapeCell, width: number, height: number): ShapeCell {
   void width
 
@@ -86,6 +108,30 @@ function rotateCell(cell: ShapeCell, width: number, height: number): ShapeCell {
     column: height - 1 - cell.row,
     opticalCell: rotatedOpticalCell[cell.opticalCell],
     row: cell.column,
+  }
+}
+
+function mirrorCell(cell: ShapeCell, width: number): ShapeCell {
+  return {
+    column: width - 1 - cell.column,
+    opticalCell: mirroredOpticalCell[cell.opticalCell],
+    row: cell.row,
+  }
+}
+
+function mirrorPoint(point: ShapePoint, width: number): ShapePoint {
+  return {
+    x: width - point.x,
+    y: point.y,
+  }
+}
+
+function mirrorShape(shape: MineralShape): MineralShape {
+  return {
+    cells: shape.cells.map((cell) => mirrorCell(cell, shape.width)),
+    height: shape.height,
+    polygon: shape.polygon.map((point) => mirrorPoint(point, shape.width)),
+    width: shape.width,
   }
 }
 
@@ -98,14 +144,18 @@ function rotatePoint(point: ShapePoint, height: number): ShapePoint {
 
 function rotateShape(shape: MineralShape): MineralShape {
   return {
-    cells: shape.cells.map((cell) => rotateCell(cell, shape.width, shape.height)),
+    cells: shape.cells.map((cell) =>
+      rotateCell(cell, shape.width, shape.height),
+    ),
     height: shape.width,
     polygon: shape.polygon.map((point) => rotatePoint(point, shape.height)),
     width: shape.height,
   }
 }
 
-function createOrientedShapes(baseShape: MineralShape): Record<Orientation, MineralShape> {
+function createOrientedShapes(
+  baseShape: MineralShape,
+): Record<Orientation, MineralShape> {
   const east = rotateShape(baseShape)
   const south = rotateShape(east)
   const west = rotateShape(south)
@@ -136,7 +186,10 @@ function defineMineral({
     defaultOrientation: 'north',
     id,
     name,
-    shapes: createOrientedShapes(baseShape),
+    shapes: {
+      back: createOrientedShapes(mirrorShape(baseShape)),
+      front: createOrientedShapes(baseShape),
+    },
     shortName,
   }
 }
@@ -307,8 +360,9 @@ export function getOccupiedCells(
 ): Array<OccupiedCell> {
   return placements.flatMap((placement) => {
     const mineral = minerals[placement.mineralId]
+    const face = placement.face ?? 'front'
     const orientation = placement.orientation ?? mineral.defaultOrientation
-    const shape = getMineralShape(placement.mineralId, orientation)
+    const shape = getMineralShape(placement.mineralId, orientation, face)
 
     return shape.cells.map((cell) => ({
       coordinate: {
@@ -316,6 +370,7 @@ export function getOccupiedCells(
         row: placement.origin.row + cell.row,
       },
       mineral,
+      face,
       opticalCell: cell.opticalCell,
       orientation,
     }))
@@ -327,7 +382,8 @@ export function findOccupant(
   coordinate: Coordinate,
 ) {
   return getOccupiedCells(placements).find(
-    (occupiedCell) => coordinateKey(occupiedCell.coordinate) === coordinateKey(coordinate),
+    (occupiedCell) =>
+      coordinateKey(occupiedCell.coordinate) === coordinateKey(coordinate),
   )
 }
 
@@ -343,8 +399,9 @@ export function canPlaceMineralWithOrientation(
   mineralId: MineralId,
   origin: Coordinate,
   orientation: Orientation,
+  face: MineralFace = 'front',
 ) {
-  return getMineralShape(mineralId, orientation).cells.every((cell) =>
+  return getMineralShape(mineralId, orientation, face).cells.every((cell) =>
     isInsideBoard({
       column: origin.column + cell.column,
       row: origin.row + cell.row,
@@ -355,14 +412,21 @@ export function canPlaceMineralWithOrientation(
 export function getMineralShape(
   mineralId: MineralId,
   orientation: Orientation = minerals[mineralId].defaultOrientation,
+  face: MineralFace = 'front',
 ) {
-  return minerals[mineralId].shapes[orientation]
+  return minerals[mineralId].shapes[face][orientation]
 }
 
 export function rotateOrientation(orientation: Orientation): Orientation {
   const currentIndex = orientationOrder.indexOf(orientation)
 
   return orientationOrder[(currentIndex + 1) % orientationOrder.length]
+}
+
+export function flipFace(face: MineralFace): MineralFace {
+  const currentIndex = faceOrder.indexOf(face)
+
+  return faceOrder[(currentIndex + 1) % faceOrder.length]
 }
 
 export function reflectsFrom(opticalCell: OpticalCell, direction: Direction) {
@@ -436,7 +500,9 @@ function placementCellsCollide(
 ) {
   for (const first of firstCells) {
     for (const second of secondCells) {
-      const columnDistance = Math.abs(first.coordinate.column - second.coordinate.column)
+      const columnDistance = Math.abs(
+        first.coordinate.column - second.coordinate.column,
+      )
       const rowDistance = Math.abs(first.coordinate.row - second.coordinate.row)
 
       if (columnDistance === 0 && rowDistance === 0) {

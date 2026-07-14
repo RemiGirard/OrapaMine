@@ -5,6 +5,7 @@ import { answerQuestion } from './questions'
 import {
   compareGuess,
   createEmptyGuess,
+  flipGuessMineral,
   moveGuessMineral,
   preparedPuzzles,
   rotateGuessMineral,
@@ -64,7 +65,9 @@ describe('Orapa Mine domain', () => {
       message: 'Signal absorbed',
       signalColor: 'absorbed',
     })
-    expect(answerQuestion(singleBlackPuzzle, 'coordinate', 'C1,R1', 2)).toMatchObject({
+    expect(
+      answerQuestion(singleBlackPuzzle, 'coordinate', 'C1,R1', 2),
+    ).toMatchObject({
       message: 'Signal absorbed',
       signalColor: 'absorbed',
     })
@@ -118,6 +121,34 @@ describe('Orapa Mine domain', () => {
 
     expect(compareGuess(puzzle, wrongOrientationGuess).solved).toBe(false)
     expect(compareGuess(puzzle, correctGuess).solved).toBe(true)
+  })
+
+  it('treats gemstone face as part of the family solution', () => {
+    const puzzle: Puzzle = {
+      id: 'test-flipped',
+      title: 'Test Flipped',
+      ruleset: 'basic',
+      placements: [
+        {
+          face: 'back',
+          mineralId: 'red-parallelogram',
+          orientation: 'north',
+          origin: { column: 1, row: 1 },
+        },
+      ],
+    }
+    const frontGuess = moveGuessMineral(
+      createEmptyGuess(puzzle).map((placement) => ({
+        ...placement,
+        face: 'front',
+      })),
+      'red-parallelogram',
+      { column: 1, row: 1 },
+    )
+    const flippedGuess = flipGuessMineral(frontGuess, 'red-parallelogram')
+
+    expect(compareGuess(puzzle, frontGuess).solved).toBe(false)
+    expect(compareGuess(puzzle, flippedGuess).solved).toBe(true)
   })
 
   it('keeps prepared puzzle pieces inside the board without overlap', () => {
