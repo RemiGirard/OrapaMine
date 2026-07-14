@@ -535,36 +535,105 @@
   stroke: none;
 }
 
-.dragPreviewShape[data-mineral-id='white-diamond'],
-.placedShape[data-mineral-id='white-diamond'],
-.placementGhostShape[data-mineral-id='white-diamond'],
-.stackShape[data-mineral-id='white-diamond'],
-.stackGhostShape[data-mineral-id='white-diamond'],
-.solutionShape[data-mineral-id='white-diamond'] {
-  filter: drop-shadow(0 0 10px rgb(255 255 255 / 0.65))
-    drop-shadow(0 0 18px rgb(142 208 237 / 0.32));
+.dragPreviewShape[data-mineral-color='white'],
+.placedShape[data-mineral-color='white'],
+.placementGhostShape[data-mineral-color='white'],
+.stackShape[data-mineral-color='white'],
+.stackGhostShape[data-mineral-color='white'],
+.solutionShape[data-mineral-color='white'] {
+  filter: drop-shadow(0 0 12px rgb(255 255 255 / 0.78))
+    drop-shadow(0 0 24px rgb(123 215 255 / 0.48))
+    drop-shadow(0 0 42px rgb(46 255 205 / 0.18));
 }
 
-.dragPreviewShape[data-mineral-id='white-diamond'] :global(.piece-facet),
-.placedShape[data-mineral-id='white-diamond'] :global(.piece-facet),
-.placementGhostShape[data-mineral-id='white-diamond'] :global(.piece-facet),
-.stackShape[data-mineral-id='white-diamond'] :global(.piece-facet),
-.stackGhostShape[data-mineral-id='white-diamond'] :global(.piece-facet),
-.solutionShape[data-mineral-id='white-diamond'] :global(.piece-facet) {
-  fill: transparent;
+.dragPreviewShape[data-mineral-color='white'] :global(.piece-facet),
+.placedShape[data-mineral-color='white'] :global(.piece-facet),
+.placementGhostShape[data-mineral-color='white'] :global(.piece-facet),
+.stackShape[data-mineral-color='white'] :global(.piece-facet),
+.stackGhostShape[data-mineral-color='white'] :global(.piece-facet),
+.solutionShape[data-mineral-color='white'] :global(.piece-facet) {
   opacity: 0.58;
   stroke: rgb(255 255 255 / 0.62);
   stroke-width: 0.035;
 }
 
-.dragPreviewShape[data-mineral-id='white-diamond'] :global(.piece-body),
-.placedShape[data-mineral-id='white-diamond'] :global(.piece-body),
-.placementGhostShape[data-mineral-id='white-diamond'] :global(.piece-body),
-.stackShape[data-mineral-id='white-diamond'] :global(.piece-body),
-.stackGhostShape[data-mineral-id='white-diamond'] :global(.piece-body),
-.solutionShape[data-mineral-id='white-diamond'] :global(.piece-body) {
+.dragPreviewShape[data-mineral-color='white'] :global(.piece-body),
+.placedShape[data-mineral-color='white'] :global(.piece-body),
+.placementGhostShape[data-mineral-color='white'] :global(.piece-body),
+.stackShape[data-mineral-color='white'] :global(.piece-body),
+.stackGhostShape[data-mineral-color='white'] :global(.piece-body),
+.solutionShape[data-mineral-color='white'] :global(.piece-body) {
   stroke: rgb(255 255 255 / 0.96);
   stroke-width: 0.075;
+}
+
+.dragPreviewShape[data-mineral-color='white'] :global(.piece-highlight),
+.placedShape[data-mineral-color='white'] :global(.piece-highlight),
+.stackShape[data-mineral-color='white'] :global(.piece-highlight),
+.solutionShape[data-mineral-color='white'] :global(.piece-highlight) {
+  opacity: 0.46;
+}
+
+.dragPreviewShape[data-mineral-color='white'] :global(.piece-crystal-grain),
+.placedShape[data-mineral-color='white'] :global(.piece-crystal-grain),
+.stackShape[data-mineral-color='white'] :global(.piece-crystal-grain),
+.solutionShape[data-mineral-color='white'] :global(.piece-crystal-grain) {
+  mix-blend-mode: normal;
+  opacity: 0.72;
+}
+
+.dragPreviewShape[data-mineral-color='white'] :global(.piece-caustics),
+.placedShape[data-mineral-color='white'] :global(.piece-caustics),
+.stackShape[data-mineral-color='white'] :global(.piece-caustics),
+.solutionShape[data-mineral-color='white'] :global(.piece-caustics) {
+  filter: drop-shadow(0 0 6px rgb(255 255 255 / 0.58));
+  mix-blend-mode: screen;
+  opacity: 0.84;
+}
+
+.dragPreviewShape[data-mineral-color='white'] :global(.piece-caustics path),
+.placedShape[data-mineral-color='white'] :global(.piece-caustics path),
+.stackShape[data-mineral-color='white'] :global(.piece-caustics path),
+.solutionShape[data-mineral-color='white'] :global(.piece-caustics path) {
+  fill: none;
+  stroke-linecap: square;
+  stroke-width: 0.15;
+}
+
+.dragPreviewShape[data-mineral-color='white'] :global(.piece-crystal-shards),
+.placedShape[data-mineral-color='white'] :global(.piece-crystal-shards),
+.stackShape[data-mineral-color='white'] :global(.piece-crystal-shards),
+.solutionShape[data-mineral-color='white'] :global(.piece-crystal-shards) {
+  filter: drop-shadow(0 0 3px rgb(123 215 255 / 0.28));
+  mix-blend-mode: normal;
+  opacity: 0.88;
+}
+
+.dragPreviewShape[data-mineral-color='white'] :global(.piece-crystal-shard),
+.placedShape[data-mineral-color='white'] :global(.piece-crystal-shard),
+.stackShape[data-mineral-color='white'] :global(.piece-crystal-shard),
+.solutionShape[data-mineral-color='white'] :global(.piece-crystal-shard) {
+  stroke: rgb(124 225 248 / 0.46);
+  stroke-linejoin: miter;
+  stroke-width: 0.032;
+}
+
+.dragPreviewShape[data-mineral-color='white'] :global(.piece-raw-facets),
+.placedShape[data-mineral-color='white'] :global(.piece-raw-facets),
+.stackShape[data-mineral-color='white'] :global(.piece-raw-facets),
+.solutionShape[data-mineral-color='white'] :global(.piece-raw-facets) {
+  filter: drop-shadow(0 0 3px rgb(255 255 255 / 0.5));
+  mix-blend-mode: normal;
+  opacity: 0.96;
+}
+
+.dragPreviewShape[data-mineral-color='white'] :global(.piece-raw-facets line),
+.placedShape[data-mineral-color='white'] :global(.piece-raw-facets line),
+.stackShape[data-mineral-color='white'] :global(.piece-raw-facets line),
+.solutionShape[data-mineral-color='white'] :global(.piece-raw-facets line) {
+  stroke: rgb(145 238 255 / 0.62);
+  stroke-linecap: square;
+  stroke-width: 0.058;
 }
 
 .solutionShape {
@@ -588,6 +657,17 @@
 .placementGhostShape :global(.piece-highlight) {
   fill: rgb(255 255 255 / 0.22) !important;
   opacity: 0.2;
+}
+
+.placementGhostShape :global(.piece-caustics),
+.placementGhostShape :global(.piece-crystal-grain),
+.placementGhostShape :global(.piece-crystal-shards),
+.placementGhostShape :global(.piece-raw-facets),
+.stackGhostShape :global(.piece-caustics),
+.stackGhostShape :global(.piece-crystal-grain),
+.stackGhostShape :global(.piece-crystal-shards),
+.stackGhostShape :global(.piece-raw-facets) {
+  display: none;
 }
 
 .dragPreview {
