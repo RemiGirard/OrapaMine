@@ -35,6 +35,7 @@ export function CooperativeMineGame() {
         <GuessBoard
           answers={game.answers}
           currentAnswer={game.lastAnswer}
+          currentRayPreview={game.currentRayPreview}
           edgeAnswers={game.edgeAnswers}
           guess={game.guess}
           highlightedPath={game.highlightedPath}

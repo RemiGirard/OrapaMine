@@ -17,6 +17,7 @@ export function PieceShape({ className, mineralId, orientation }: PieceShapeProp
   const isDiamond = mineralId === 'white-diamond'
   const gradientStart = isDiamond ? '#ffffff' : colorValue(mineral.color)
   const gradientEnd = mineral.color === 'black' ? '#0b1115' : colorValue(mineral.color)
+  const outlinePoints = shape.polygon.map((point) => `${point.x},${point.y}`).join(' ')
 
   return (
     <svg
@@ -46,7 +47,23 @@ export function PieceShape({ className, mineralId, orientation }: PieceShapeProp
           <stop offset="48%" stopColor="#ffffff" stopOpacity={isDiamond ? 0.72 : 0.28} />
           <stop offset="100%" stopColor="#ffffff" stopOpacity={0} />
         </linearGradient>
+        <radialGradient id={`${gradientId}-diamond-core`} cx="42%" cy="36%" r="68%">
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
+          <stop offset="48%" stopColor="#eefdff" stopOpacity="0.92" />
+          <stop offset="100%" stopColor="#b8efff" stopOpacity="0.62" />
+        </radialGradient>
       </defs>
+
+      <polygon
+        className="piece-body"
+        fill={
+          isDiamond
+            ? `url(#${gradientId}-diamond-core)`
+            : `url(#${gradientId}-glass)`
+        }
+        points={outlinePoints}
+        vectorEffect="non-scaling-stroke"
+      />
 
       {shape.cells.map((cell, index) => (
         <polygon

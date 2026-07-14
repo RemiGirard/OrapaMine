@@ -1,6 +1,6 @@
-import type { CSSProperties } from 'react'
-import { useState } from 'react'
-import { Mic, MousePointer2, RotateCcw, RotateCw, Trash2 } from 'lucide-react'
+import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react'
+import { useRef, useState } from 'react'
+import { Mic, MousePointer2, RotateCcw, RotateCw } from 'lucide-react'
 import {
   boardSize,
   bottomLabels,
@@ -45,6 +45,7 @@ type SpeechWindow = Window &
 type GuessBoardProps = Readonly<{
   answers: ReadonlyArray<Answer>
   currentAnswer: Answer | null
+  currentRayPreview: Extract<Answer, { mode: 'edge' }> | null
   edgeAnswers: ReadonlyMap<string, Answer>
   guess: ReadonlyArray<GuessPlacement>
   highlightedPath: ReadonlySet<string>
@@ -68,6 +69,7 @@ type GuessBoardProps = Readonly<{
 export function GuessBoard({
   answers,
   currentAnswer,
+  currentRayPreview,
   edgeAnswers,
   guess,
   highlightedPath,
@@ -90,9 +92,21 @@ export function GuessBoard({
   const [voiceState, setVoiceState] = useState<'idle' | 'listening' | 'error'>(
     'idle',
   )
+  const [draggingMineralId, setDraggingMineralId] = useState<MineralId | null>(null)
+  const boardRef = useRef<HTMLDivElement>(null)
   const selectedPlacement = guess.find(
     (placement) => placement.mineralId === selectedMineralId,
   )
+  const activeRayLabels = new Set(
+    currentRayPreview
+      ? [currentRayPreview.query, currentRayPreview.exitLabel].filter(
+          (label): label is string => Boolean(label),
+        )
+      : [],
+  )
+  const activeRayColor = currentRayPreview
+    ? colorValue(currentRayPreview.signalColor)
+    : undefined
 
   function listenForVoiceCommand() {
     const speechWindow = window as SpeechWindow
@@ -119,6 +133,58 @@ export function GuessBoard({
     }
     setVoiceState('listening')
     recognition.start()
+  }
+
+  function coordinateFromPointer(event: ReactPointerEvent) {
+    const boardRect = boardRef.current?.getBoundingClientRect()
+
+    if (!boardRect) {
+      return null
+    }
+
+    const column = Math.floor(
+      ((event.clientX - boardRect.left) / boardRect.width) * boardSize.columns,
+    )
+    const row = Math.floor(
+      ((event.clientY - boardRect.top) / boardRect.height) * boardSize.rows,
+    )
+
+    if (
+      column < 0 ||
+      column >= boardSize.columns ||
+      row < 0 ||
+      row >= boardSize.rows
+    ) {
+      return null
+    }
+
+    return { column, row }
+  }
+
+  function startMovingPlacedPiece(
+    event: ReactPointerEvent<HTMLDivElement>,
+    mineralId: MineralId,
+  ) {
+    event.preventDefault()
+    event.currentTarget.setPointerCapture(event.pointerId)
+    setDraggingMineralId(mineralId)
+    onSelect(mineralId)
+  }
+
+  function finishMovingPlacedPiece(
+    event: ReactPointerEvent<HTMLDivElement>,
+    mineralId: MineralId,
+  ) {
+    if (draggingMineralId !== mineralId) {
+      return
+    }
+
+    const coordinate = coordinateFromPointer(event)
+    setDraggingMineralId(null)
+
+    if (coordinate) {
+      onPlace(mineralId, coordinate)
+    }
   }
 
   return (
@@ -160,7 +226,9 @@ export function GuessBoard({
             <div className={styles.columnLabels}>
               {topLabels.map((label) => (
                 <EdgeButton
+                  activeColor={activeRayColor}
                   answer={edgeAnswers.get(label)}
+                  isActive={activeRayLabels.has(label)}
                   key={label}
                   label={label}
                   onAskEdge={onAskEdge}
@@ -172,7 +240,9 @@ export function GuessBoard({
             <div className={styles.rowLabels}>
               {leftLabels.map((label) => (
                 <EdgeButton
+                  activeColor={activeRayColor}
                   answer={edgeAnswers.get(label)}
+                  isActive={activeRayLabels.has(label)}
                   key={label}
                   label={label}
                   onAskEdge={onAskEdge}
@@ -180,7 +250,7 @@ export function GuessBoard({
               ))}
             </div>
 
-            <div className={styles.boardSurface}>
+            <div className={styles.boardSurface} ref={boardRef}>
               <div className={styles.cellLayer}>
                 {Array.from({ length: boardSize.rows }, (_rowValue, row) =>
                   Array.from(
@@ -215,8 +285,8 @@ export function GuessBoard({
                 )}
               </div>
 
-              {currentAnswer?.mode === 'edge' && showLightPath ? (
-                <RayOverlay answer={currentAnswer} />
+              {currentRayPreview && showLightPath ? (
+                <RayOverlay answer={currentRayPreview} />
               ) : null}
 
               <div className={styles.pieceLayer}>
@@ -232,8 +302,12 @@ export function GuessBoard({
                   placement.origin ? (
                     <PlacedPiece
                       isSelected={placement.mineralId === selectedMineralId}
+                      isDragging={draggingMineralId === placement.mineralId}
                       key={placement.mineralId}
+                      onMoveEnd={finishMovingPlacedPiece}
+                      onMoveStart={startMovingPlacedPiece}
                       onRotate={onRotate}
+                      onSelect={onSelect}
                       placement={placement}
                     />
                   ) : null,
@@ -244,7 +318,9 @@ export function GuessBoard({
             <div className={styles.rightLabels}>
               {rightLabels.map((label) => (
                 <EdgeButton
+                  activeColor={activeRayColor}
                   answer={edgeAnswers.get(label)}
+                  isActive={activeRayLabels.has(label)}
                   key={label}
                   label={label}
                   onAskEdge={onAskEdge}
@@ -256,7 +332,9 @@ export function GuessBoard({
             <div className={styles.bottomLabels}>
               {bottomLabels.map((label) => (
                 <EdgeButton
+                  activeColor={activeRayColor}
                   answer={edgeAnswers.get(label)}
+                  isActive={activeRayLabels.has(label)}
                   key={label}
                   label={label}
                   onAskEdge={onAskEdge}
@@ -284,6 +362,11 @@ export function GuessBoard({
                 <span>
                   {currentAnswer.query} - {currentAnswer.message}
                 </span>
+                {currentRayPreview ? (
+                  <small>
+                    Preview - {currentRayPreview.message}
+                  </small>
+                ) : null}
               </div>
               <label>
                 <input
@@ -316,64 +399,71 @@ export function GuessBoard({
             </ol>
           ) : null}
 
-          <div className={styles.toolbarHeader}>Available gems</div>
-          <div className={styles.rack}>
+          <div className={styles.toolbarHeader}>Glass stack</div>
+          <div className={styles.pieceStack} aria-label="Glass piece stack">
             {guess.map((placement) => {
               const mineral = minerals[placement.mineralId]
               const isSelected = placement.mineralId === selectedMineralId
+              const isPlaced = placement.origin !== null
 
               return (
                 <div
                   className={[
-                    styles.rackPiece,
-                    isSelected ? styles.selectedRackPiece : '',
+                    styles.stackSlot,
+                    isSelected ? styles.selectedStackSlot : '',
+                    isPlaced ? styles.usedStackSlot : '',
                   ].join(' ')}
-                  draggable
                   key={placement.mineralId}
-                  onDragStart={(event) =>
-                    event.dataTransfer.setData('text/plain', placement.mineralId)
-                  }
                 >
-                  <button
-                    aria-label={`Select ${mineral.name}`}
-                    className={styles.rackSelect}
-                    onClick={() => onSelect(placement.mineralId)}
-                    type="button"
-                  >
-                    <PieceShape
-                      className={styles.rackShape}
-                      mineralId={placement.mineralId}
-                      orientation={placement.orientation}
-                    />
-                    <span>
-                      {mineral.name}
-                      {' '}
-                      <small>
-                        {placement.origin
-                          ? formatGridCoordinate(placement.origin)
-                          : 'Not placed'}{' '}
-                        - {placement.orientation}
-                      </small>
-                    </span>
-                  </button>
-
-                  <button
-                    aria-label={`Rotate ${mineral.name}`}
-                    onClick={() => onRotate(placement.mineralId)}
-                    type="button"
-                  >
-                    <RotateCw size={15} />
-                  </button>
-
-                  {placement.origin ? (
+                  {isPlaced ? (
                     <button
-                      aria-label={`Remove ${mineral.name}`}
+                      aria-label={`Return ${mineral.name} to stack`}
+                      className={styles.stackResetButton}
                       onClick={() => onRemove(placement.mineralId)}
+                      title={`Return ${mineral.name}`}
                       type="button"
                     >
-                      <Trash2 size={15} />
+                      <PieceShape
+                        className={styles.stackGhostShape}
+                        mineralId={placement.mineralId}
+                        orientation={placement.orientation}
+                      />
+                      <RotateCcw size={18} />
                     </button>
-                  ) : null}
+                  ) : (
+                    <>
+                      <button
+                        aria-label={`Move ${mineral.name}`}
+                        className={styles.stackPieceButton}
+                        draggable
+                        onClick={() => onSelect(placement.mineralId)}
+                        onDragStart={(event) =>
+                          event.dataTransfer.setData(
+                            'text/plain',
+                            placement.mineralId,
+                          )
+                        }
+                        title={`${mineral.name} - ${placement.orientation}`}
+                        type="button"
+                      >
+                        <PieceShape
+                          className={styles.stackShape}
+                          mineralId={placement.mineralId}
+                          orientation={placement.orientation}
+                        />
+                      </button>
+
+                      <button
+                        aria-label={`Rotate ${mineral.name}`}
+                        className={styles.stackRotateButton}
+                        onClick={() => onRotate(placement.mineralId)}
+                        title={`Rotate ${mineral.name}`}
+                        type="button"
+                      >
+                        <RotateCw size={14} />
+                      </button>
+                    </>
+                  )}
                 </div>
               )
             })}
@@ -397,23 +487,33 @@ export function GuessBoard({
 }
 
 function EdgeButton({
+  activeColor,
   answer,
+  isActive,
   label,
   onAskEdge,
 }: Readonly<{
+  activeColor: string | undefined
   answer: Answer | undefined
+  isActive: boolean
   label: string
   onAskEdge: (edgeLabel: string) => void
 }>) {
   return (
     <button
       aria-label={`Send ray ${label}`}
-      className={answer ? styles.answeredEdge : ''}
+      className={[
+        answer ? styles.answeredEdge : '',
+        isActive ? styles.activeRayEdge : '',
+      ].join(' ')}
       onClick={() => onAskEdge(label)}
       style={
-        answer
+        answer || activeColor
           ? ({
-              '--edge-answer-color': colorValue(answer.signalColor),
+              '--edge-answer-color': answer
+                ? colorValue(answer.signalColor)
+                : activeColor,
+              '--edge-active-color': activeColor,
             } as CSSProperties)
           : undefined
       }
@@ -463,8 +563,7 @@ function rayPoints(answer: Answer & { mode: 'edge' }) {
     x: ((coordinate.column + 0.5) / boardSize.columns) * 100,
     y: ((coordinate.row + 0.5) / boardSize.rows) * 100,
   }))
-  const exitLabel = answer.message.match(/^Exit ([TBLR](?:10|[1-9]))/)?.[1]
-  const exitPoint = exitLabel ? edgePoint(exitLabel) : null
+  const exitPoint = answer.exitLabel ? edgePoint(answer.exitLabel) : null
 
   return [entryPoint, ...pathPoints, exitPoint].filter(
     (point): point is { x: number; y: number } => point !== null,
@@ -532,12 +631,26 @@ function SolutionPiece({
 }
 
 function PlacedPiece({
+  isDragging,
   isSelected,
+  onMoveEnd,
+  onMoveStart,
   onRotate,
+  onSelect,
   placement,
 }: Readonly<{
+  isDragging: boolean
   isSelected: boolean
+  onMoveEnd: (
+    event: ReactPointerEvent<HTMLDivElement>,
+    mineralId: MineralId,
+  ) => void
+  onMoveStart: (
+    event: ReactPointerEvent<HTMLDivElement>,
+    mineralId: MineralId,
+  ) => void
   onRotate: (mineralId: MineralId) => void
+  onSelect: (mineralId: MineralId) => void
   placement: GuessPlacement
 }>) {
   if (!placement.origin) {
@@ -548,17 +661,23 @@ function PlacedPiece({
   const mineral = minerals[placement.mineralId]
 
   return (
-    <button
-      aria-label={`Rotate ${mineral.name} at ${formatGridCoordinate(placement.origin)}`}
+    <div
+      aria-label={`${mineral.name} at ${formatGridCoordinate(placement.origin)}`}
       className={[
         styles.placedPiece,
         isSelected ? styles.selectedPlacedPiece : '',
+        isDragging ? styles.draggingPlacedPiece : '',
       ].join(' ')}
-      draggable
-      onClick={() => onRotate(placement.mineralId)}
-      onDragStart={(event) =>
-        event.dataTransfer.setData('text/plain', placement.mineralId)
-      }
+      onClick={() => onSelect(placement.mineralId)}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault()
+          onSelect(placement.mineralId)
+        }
+      }}
+      onPointerDown={(event) => onMoveStart(event, placement.mineralId)}
+      onPointerUp={(event) => onMoveEnd(event, placement.mineralId)}
+      role="button"
       style={
         {
           height: `${(shape.height / boardSize.rows) * 100}%`,
@@ -567,7 +686,7 @@ function PlacedPiece({
           width: `${(shape.width / boardSize.columns) * 100}%`,
         }
       }
-      type="button"
+      tabIndex={0}
     >
       <PieceShape
         className={styles.placedShape}
@@ -575,6 +694,18 @@ function PlacedPiece({
         orientation={placement.orientation}
       />
       <strong>{mineral.shortName}</strong>
-    </button>
+      <button
+        aria-label={`Rotate ${mineral.name}`}
+        className={styles.placedRotateButton}
+        onClick={(event) => {
+          event.stopPropagation()
+          onRotate(placement.mineralId)
+        }}
+        onPointerDown={(event) => event.stopPropagation()}
+        type="button"
+      >
+        <RotateCw size={12} />
+      </button>
+    </div>
   )
 }

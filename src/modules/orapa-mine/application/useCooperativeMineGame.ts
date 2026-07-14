@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { answerQuestion } from '../domain/questions'
+import { answerEdgeForPlacements, answerQuestion } from '../domain/questions'
 import type { QuestionMode } from '../domain/questions'
 import type { Coordinate } from '../domain/coordinates'
 import {
@@ -47,14 +47,23 @@ export function useCooperativeMineGame() {
 
     return answersByEdge
   }, [answers])
+  const currentRayPreview = useMemo(
+    () =>
+      lastAnswer?.mode === 'edge'
+        ? answerEdgeForPlacements(guessPlacements, lastAnswer.query, -lastAnswer.id)
+        : null,
+    [guessPlacements, lastAnswer],
+  )
   const highlightedPath = useMemo(
     () =>
       new Set(
-        lastAnswer
-          ? lastAnswer.path.map((coordinate) => `${coordinate.column}:${coordinate.row}`)
+        currentRayPreview
+          ? currentRayPreview.path.map(
+              (coordinate) => `${coordinate.column}:${coordinate.row}`,
+            )
           : [],
       ),
-    [lastAnswer],
+    [currentRayPreview],
   )
 
   function askQuestion(mode: QuestionMode, questionQuery: string) {
@@ -133,6 +142,7 @@ export function useCooperativeMineGame() {
     guessCells,
     highlightedPath: showLightPath ? highlightedPath : new Set<string>(),
     lastAnswer,
+    currentRayPreview,
     nextPuzzle,
     placeGuessMineral,
     puzzle,

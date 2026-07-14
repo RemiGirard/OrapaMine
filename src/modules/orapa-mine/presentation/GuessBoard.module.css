@@ -51,8 +51,7 @@
   font-size: 1rem;
 }
 
-.heading button,
-.rackPiece > button:not(.rackSelect) {
+.heading button {
   align-items: center;
   aspect-ratio: 1;
   background: rgb(255 255 255 / 0.07);
@@ -117,6 +116,15 @@
 .currentLight span {
   color: #aac0ce;
   font-size: 0.76rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.currentLight small {
+  color: #7bd7ff;
+  font-size: 0.72rem;
+  font-weight: 800;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -241,6 +249,26 @@
   border-color: color-mix(in srgb, var(--edge-answer-color) 70%, white);
   box-shadow: 0 0 12px color-mix(in srgb, var(--edge-answer-color) 45%, transparent);
   color: #061018;
+}
+
+.columnLabels .activeRayEdge,
+.bottomLabels .activeRayEdge,
+.rowLabels .activeRayEdge,
+.rightLabels .activeRayEdge {
+  border-color: #ffffff;
+  box-shadow:
+    inset 0 0 10px rgb(255 255 255 / 0.8),
+    0 0 16px var(--edge-active-color),
+    0 0 30px color-mix(in srgb, var(--edge-active-color) 55%, transparent);
+  color: #061018;
+  transform: translateY(-1px);
+}
+
+.columnLabels .activeRayEdge:not(.answeredEdge),
+.bottomLabels .activeRayEdge:not(.answeredEdge),
+.rowLabels .activeRayEdge:not(.answeredEdge),
+.rightLabels .activeRayEdge:not(.answeredEdge) {
+  background: color-mix(in srgb, var(--edge-active-color) 68%, white);
 }
 
 .columnLabels button:hover,
@@ -374,6 +402,12 @@
   cursor: grabbing;
 }
 
+.draggingPlacedPiece {
+  filter: drop-shadow(0 0 18px rgb(46 255 205 / 0.34));
+  opacity: 0.88;
+  z-index: 4;
+}
+
 .solutionPiece {
   opacity: 0.28;
   pointer-events: none;
@@ -401,15 +435,26 @@
 }
 
 .placedShape :global(.piece-facet),
-.rackShape :global(.piece-facet),
+.stackShape :global(.piece-facet),
+.stackGhostShape :global(.piece-facet),
 .solutionShape :global(.piece-facet) {
   stroke: color-mix(in srgb, var(--piece-stroke) 70%, white);
   stroke-linejoin: miter;
   stroke-width: 0.035;
 }
 
+.placedShape :global(.piece-body),
+.stackShape :global(.piece-body),
+.stackGhostShape :global(.piece-body),
+.solutionShape :global(.piece-body) {
+  stroke: color-mix(in srgb, var(--piece-stroke) 80%, white);
+  stroke-linejoin: miter;
+  stroke-width: 0.05;
+}
+
 .placedShape :global(.piece-highlight),
-.rackShape :global(.piece-highlight),
+.stackShape :global(.piece-highlight),
+.stackGhostShape :global(.piece-highlight),
 .solutionShape :global(.piece-highlight) {
   mix-blend-mode: screen;
   opacity: 0.34;
@@ -417,7 +462,8 @@
 }
 
 .placedShape[data-mineral-id="white-diamond"],
-.rackShape[data-mineral-id="white-diamond"],
+.stackShape[data-mineral-id="white-diamond"],
+.stackGhostShape[data-mineral-id="white-diamond"],
 .solutionShape[data-mineral-id="white-diamond"] {
   filter:
     drop-shadow(0 0 10px rgb(255 255 255 / 0.65))
@@ -425,10 +471,21 @@
 }
 
 .placedShape[data-mineral-id="white-diamond"] :global(.piece-facet),
-.rackShape[data-mineral-id="white-diamond"] :global(.piece-facet),
+.stackShape[data-mineral-id="white-diamond"] :global(.piece-facet),
+.stackGhostShape[data-mineral-id="white-diamond"] :global(.piece-facet),
 .solutionShape[data-mineral-id="white-diamond"] :global(.piece-facet) {
-  stroke: rgb(255 255 255 / 0.9);
-  stroke-width: 0.05;
+  fill: transparent;
+  opacity: 0.58;
+  stroke: rgb(255 255 255 / 0.62);
+  stroke-width: 0.035;
+}
+
+.placedShape[data-mineral-id="white-diamond"] :global(.piece-body),
+.stackShape[data-mineral-id="white-diamond"] :global(.piece-body),
+.stackGhostShape[data-mineral-id="white-diamond"] :global(.piece-body),
+.solutionShape[data-mineral-id="white-diamond"] :global(.piece-body) {
+  stroke: rgb(255 255 255 / 0.96);
+  stroke-width: 0.075;
 }
 
 .solutionShape {
@@ -442,9 +499,37 @@
 .placedPiece strong {
   font-size: 0.7rem;
   font-weight: 900;
+  pointer-events: none;
   position: relative;
   text-shadow: 0 1px 8px rgb(255 255 255 / 0.56);
   z-index: 1;
+}
+
+.placedRotateButton {
+  align-items: center;
+  aspect-ratio: 1;
+  background: rgb(5 11 16 / 0.72);
+  border: 1px solid rgb(255 255 255 / 0.42);
+  border-radius: 999px;
+  color: #f7fdff;
+  display: flex;
+  justify-content: center;
+  opacity: 0;
+  position: absolute;
+  right: -0.45rem;
+  top: -0.45rem;
+  transition:
+    opacity 120ms ease,
+    transform 120ms ease;
+  width: 1.35rem;
+  z-index: 2;
+}
+
+.placedPiece:hover .placedRotateButton,
+.placedPiece:focus-within .placedRotateButton,
+.selectedPlacedPiece .placedRotateButton {
+  opacity: 1;
+  transform: scale(1.02);
 }
 
 .toolbarHeader {
@@ -455,59 +540,119 @@
   text-transform: uppercase;
 }
 
-.rack {
+.pieceStack {
   display: grid;
-  gap: 0.45rem;
+  gap: 0.65rem;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
-.rackPiece {
+.stackSlot {
   align-items: center;
-  background: rgb(255 255 255 / 0.045);
+  aspect-ratio: 1;
+  background:
+    radial-gradient(circle at 50% 50%, rgb(255 255 255 / 0.06), transparent 62%),
+    rgb(255 255 255 / 0.035);
   border: 1px solid rgb(156 224 255 / 0.18);
   border-radius: 8px;
-  display: grid;
-  gap: 0.45rem;
-  grid-template-columns: minmax(0, 1fr) 2.2rem 2.2rem;
-  min-height: 3rem;
-  padding: 0.35rem;
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+  position: relative;
 }
 
-.selectedRackPiece {
+.selectedStackSlot {
   border-color: rgb(48 255 205 / 0.58);
-  box-shadow: 0 0 18px rgb(48 255 205 / 0.16);
+  box-shadow:
+    inset 0 0 18px rgb(48 255 205 / 0.08),
+    0 0 18px rgb(48 255 205 / 0.16);
 }
 
-.rackSelect {
+.usedStackSlot {
+  background:
+    radial-gradient(circle at 50% 50%, rgb(0 0 0 / 0.46), rgb(255 255 255 / 0.025) 58%),
+    rgb(0 0 0 / 0.12);
+  border-color: rgb(156 224 255 / 0.11);
+}
+
+.stackPieceButton,
+.stackResetButton {
   align-items: center;
   background: transparent;
   border: 0;
+  border-radius: 7px;
+  display: flex;
+  height: 100%;
+  justify-content: center;
+  padding: 0.45rem;
+  width: 100%;
+}
+
+.stackPieceButton {
+  cursor: grab;
+}
+
+.stackPieceButton:active {
+  cursor: grabbing;
+}
+
+.stackPieceButton:hover,
+.stackPieceButton:focus-visible,
+.stackResetButton:hover,
+.stackResetButton:focus-visible {
+  background: rgb(255 255 255 / 0.075);
+  outline: 1px solid rgb(46 255 205 / 0.34);
+}
+
+.stackResetButton {
+  color: #9fb4c2;
+  position: relative;
+}
+
+.stackResetButton > svg:not(.stackGhostShape) {
+  filter: drop-shadow(0 0 10px rgb(123 215 255 / 0.34));
+  position: relative;
+  z-index: 1;
+}
+
+.stackRotateButton {
+  align-items: center;
+  aspect-ratio: 1;
+  background: rgb(5 11 16 / 0.74);
+  border: 1px solid rgb(156 224 255 / 0.24);
+  border-radius: 999px;
   color: #ecf7ff;
-  display: grid;
-  gap: 0.55rem;
-  grid-template-columns: 3.4rem minmax(0, 1fr);
-  min-height: 2.5rem;
-  padding: 0;
-  text-align: left;
+  display: flex;
+  justify-content: center;
+  opacity: 0;
+  position: absolute;
+  right: 0.25rem;
+  top: 0.25rem;
+  transition:
+    opacity 120ms ease,
+    transform 120ms ease;
+  width: 1.55rem;
+  z-index: 2;
 }
 
-.rackSelect span {
-  display: grid;
-  font-size: 0.82rem;
-  font-weight: 900;
-  gap: 0.15rem;
+.stackSlot:hover .stackRotateButton,
+.stackSlot:focus-within .stackRotateButton,
+.selectedStackSlot .stackRotateButton {
+  opacity: 1;
+  transform: scale(1.02);
 }
 
-.rackSelect small {
-  color: #91a8b8;
-  font-size: 0.72rem;
-  font-weight: 800;
-  text-transform: capitalize;
+.stackShape {
+  filter: drop-shadow(0 0 12px rgb(255 255 255 / 0.18));
+  max-height: 76%;
+  width: 82%;
 }
 
-.rackShape {
-  filter: drop-shadow(0 0 10px rgb(255 255 255 / 0.15));
-  height: 2.25rem;
-  width: 3.15rem;
+.stackGhostShape {
+  filter: grayscale(1);
+  inset: 17%;
+  opacity: 0.16;
+  position: absolute;
+  width: 66%;
 }
 
 .submitButton {

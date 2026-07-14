@@ -2,6 +2,7 @@ import { formatGridCoordinate, parseEdgePort, parseGridCoordinate } from './coor
 import type { SignalColor } from './colors'
 import { gemColorLabels, signalColorLabels } from './colors'
 import type { Puzzle } from './puzzles'
+import type { MineralPlacement } from './minerals'
 import { findOccupant } from './minerals'
 import { traceWave } from './waves'
 
@@ -15,6 +16,7 @@ export type Answer =
       message: string
       signalColor: SignalColor | 'absorbed'
       path: ReturnType<typeof traceWave>['path']
+      exitLabel?: string
     }>
   | Readonly<{
       id: number
@@ -52,7 +54,28 @@ function answerEdgeQuestion(puzzle: Puzzle, rawQuery: string, id: number): Answe
     }
   }
 
-  const trace = traceWave(puzzle.placements, edgePort)
+  return answerEdgeForPlacements(puzzle.placements, rawQuery, id)
+}
+
+export function answerEdgeForPlacements(
+  placements: ReadonlyArray<MineralPlacement>,
+  rawQuery: string,
+  id: number,
+): Extract<Answer, { mode: 'edge' }> {
+  const edgePort = parseEdgePort(rawQuery)
+
+  if (!edgePort) {
+    return {
+      id,
+      mode: 'edge',
+      query: rawQuery,
+      message: 'Unknown edge',
+      signalColor: 'transparent',
+      path: [],
+    }
+  }
+
+  const trace = traceWave(placements, edgePort)
 
   if (trace.kind === 'absorbed') {
     return {
@@ -80,6 +103,7 @@ function answerEdgeQuestion(puzzle: Puzzle, rawQuery: string, id: number): Answe
     id,
     mode: 'edge',
     query: trace.entryLabel,
+    exitLabel: trace.exitLabel,
     message: `Exit ${trace.exitLabel} - ${signalColorLabels[trace.signalColor]}`,
     signalColor: trace.signalColor,
     path: trace.path,
