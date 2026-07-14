@@ -1,11 +1,20 @@
 import type {
   CSSProperties,
-  DragEvent as ReactDragEvent,
   MouseEvent as ReactMouseEvent,
   PointerEvent as ReactPointerEvent,
 } from 'react'
 import { useRef, useState } from 'react'
 import { Mic, RotateCcw } from 'lucide-react'
+import {
+  finishPieceMovement,
+  movePieceMovement,
+  startPieceMovement,
+} from '../application/pieceMovement'
+import type {
+  PieceMovementAnchor,
+  PieceMovementSession,
+  PieceMovementTarget,
+} from '../application/pieceMovement'
 import type { VoiceRecognitionStatus } from '../application/voiceRecognition'
 import {
   boardSize,
@@ -62,28 +71,7 @@ type GuessBoardProps = Readonly<{
   voiceStatus: VoiceRecognitionStatus
 }>
 
-type DragTarget =
-  | Readonly<{
-      kind: 'board'
-      origin: Coordinate
-    }>
-  | Readonly<{
-      kind: 'stack'
-    }>
-  | null
-
-type DragState = Readonly<{
-  anchor: {
-    column: number
-    row: number
-  }
-  mineralId: MineralId
-  pointer: {
-    x: number
-    y: number
-  }
-  target: DragTarget
-}>
+type DragState = PieceMovementSession
 
 export function GuessBoard({
   answers,
@@ -113,6 +101,7 @@ export function GuessBoard({
   >(null)
   const [dragState, setDragState] = useState<DragState | null>(null)
   const dragStateRef = useRef<DragState | null>(null)
+  const suppressedClickMineralIdRef = useRef<MineralId | null>(null)
   const boardRef = useRef<HTMLDivElement>(null)
   const draggedPlacement = dragState
     ? guess.find((placement) => placement.mineralId === dragState.mineralId)
@@ -190,7 +179,7 @@ export function GuessBoard({
     clientX: number,
     clientY: number,
     mineralId: MineralId,
-    anchor: DragState['anchor'],
+    anchor: PieceMovementAnchor,
   ) {
     const boardPoint = boardPointFromClientPoint(clientX, clientY)
 
@@ -210,8 +199,8 @@ export function GuessBoard({
     clientX: number,
     clientY: number,
     mineralId: MineralId,
-    anchor: DragState['anchor'],
-  ): DragTarget {
+    anchor: PieceMovementAnchor,
+  ): PieceMovementTarget {
     const boardOrigin = targetOriginFromClientPoint(
       clientX,
       clientY,
@@ -382,29 +371,31 @@ export function GuessBoard({
     clientX: number,
     clientY: number,
     placement: GuessPlacement,
-    anchor: DragState['anchor'],
+    anchor: PieceMovementAnchor,
   ) {
-    commitDragState({
-      anchor,
-      mineralId: placement.mineralId,
-      pointer: {
-        x: clientX,
-        y: clientY,
-      },
-      target: targetFromClientPoint(
-        clientX,
-        clientY,
-        placement.mineralId,
+    commitDragState(
+      startPieceMovement({
         anchor,
-      ),
-    })
+        mineralId: placement.mineralId,
+        pointer: {
+          x: clientX,
+          y: clientY,
+        },
+        target: targetFromClientPoint(
+          clientX,
+          clientY,
+          placement.mineralId,
+          anchor,
+        ),
+      }),
+    )
     onSelect(placement.mineralId)
   }
 
   function startMovingPiece(
     event: ReactPointerEvent<HTMLElement>,
     placement: GuessPlacement,
-    anchor: DragState['anchor'],
+    anchor: PieceMovementAnchor,
   ) {
     if (event.button !== 0) {
       return
@@ -423,7 +414,7 @@ export function GuessBoard({
   function startMovingPieceWithMouse(
     event: ReactMouseEvent<HTMLElement>,
     placement: GuessPlacement,
-    anchor: DragState['anchor'],
+    anchor: PieceMovementAnchor,
   ) {
     if (event.button !== 0 || dragStateRef.current) {
       return
@@ -449,19 +440,21 @@ export function GuessBoard({
       return
     }
 
-    commitDragState({
-      ...currentDragState,
-      pointer: {
-        x: clientX,
-        y: clientY,
-      },
-      target: targetFromClientPoint(
-        clientX,
-        clientY,
-        mineralId,
-        currentDragState.anchor,
+    commitDragState(
+      movePieceMovement(
+        currentDragState,
+        {
+          x: clientX,
+          y: clientY,
+        },
+        targetFromClientPoint(
+          clientX,
+          clientY,
+          mineralId,
+          currentDragState.anchor,
+        ),
       ),
-    })
+    )
   }
 
   function movePiecePreview(
@@ -484,43 +477,41 @@ export function GuessBoard({
     movePiecePreviewFromClientPoint(event.clientX, event.clientY, mineralId)
   }
 
-  function startNativePieceMove(
-    event: ReactDragEvent<HTMLElement>,
-    placement: GuessPlacement,
-    anchor: DragState['anchor'],
-  ) {
-    const transparentDragImage = document.createElement('span')
+  function suppressClickAfterDrag(mineralId: MineralId) {
+    suppressedClickMineralIdRef.current = mineralId
+    window.setTimeout(() => {
+      if (suppressedClickMineralIdRef.current === mineralId) {
+        suppressedClickMineralIdRef.current = null
+      }
+    }, 0)
+  }
 
-    transparentDragImage.style.height = '1px'
-    transparentDragImage.style.opacity = '0'
-    transparentDragImage.style.position = 'fixed'
-    transparentDragImage.style.width = '1px'
-    document.body.append(transparentDragImage)
-    event.dataTransfer.effectAllowed = 'move'
-    event.dataTransfer.setData('text/plain', placement.mineralId)
-    event.dataTransfer.setDragImage(transparentDragImage, 0, 0)
-    window.setTimeout(() => transparentDragImage.remove(), 0)
+  function shouldIgnoreClickAfterDrag(mineralId: MineralId) {
+    if (suppressedClickMineralIdRef.current !== mineralId) {
+      return false
+    }
+
+    suppressedClickMineralIdRef.current = null
+    return true
+  }
+
+  function pickPieceFromClick(
+    event: ReactMouseEvent<HTMLElement>,
+    placement: GuessPlacement,
+    anchor: PieceMovementAnchor,
+  ) {
+    event.preventDefault()
+    event.stopPropagation()
+
+    if (shouldIgnoreClickAfterDrag(placement.mineralId)) {
+      return
+    }
+
     startMovingPieceFromClientPoint(
       event.clientX,
       event.clientY,
       placement,
       anchor,
-    )
-  }
-
-  function moveNativePiecePreview(event: ReactDragEvent<HTMLElement>) {
-    const currentDragState = dragStateRef.current
-
-    if (!currentDragState || (event.clientX === 0 && event.clientY === 0)) {
-      return
-    }
-
-    event.preventDefault()
-    event.dataTransfer.dropEffect = 'move'
-    movePiecePreviewFromClientPoint(
-      event.clientX,
-      event.clientY,
-      currentDragState.mineralId,
     )
   }
 
@@ -541,49 +532,22 @@ export function GuessBoard({
       mineralId,
       currentDragState.anchor,
     )
-    commitDragState(null)
-
-    if (target?.kind === 'board') {
-      onPlace(mineralId, target.origin)
-    }
-
-    if (target?.kind === 'stack') {
-      onRemove(mineralId)
-    }
-  }
-
-  function finishNativePieceMove(event: ReactDragEvent<HTMLElement>) {
-    const currentDragState = dragStateRef.current
-
-    if (!currentDragState) {
-      return
-    }
-
-    event.preventDefault()
-    const target =
-      event.clientX === 0 && event.clientY === 0
-        ? currentDragState.target
-        : targetFromClientPoint(
-            event.clientX,
-            event.clientY,
-            currentDragState.mineralId,
-            currentDragState.anchor,
-          )
-    const mineralId = currentDragState.mineralId
+    const command = finishPieceMovement(currentDragState, target)
+    const wasPointerDrag = currentDragState.hasMoved
 
     commitDragState(null)
 
-    if (target?.kind === 'board') {
-      onPlace(mineralId, target.origin)
+    if (wasPointerDrag) {
+      suppressClickAfterDrag(mineralId)
     }
 
-    if (target?.kind === 'stack') {
-      onRemove(mineralId)
+    if (command?.kind === 'place') {
+      onPlace(command.mineralId, command.origin)
     }
-  }
 
-  function cancelNativePieceMove() {
-    commitDragState(null)
+    if (command?.kind === 'return') {
+      onRemove(command.mineralId)
+    }
   }
 
   function finishMovingPiece(
@@ -644,6 +608,22 @@ export function GuessBoard({
     if (activeDragState) {
       finishMovingPieceWithMouse(event, activeDragState.mineralId)
     }
+  }
+
+  function dropPickedPiece(event: ReactMouseEvent<HTMLElement>) {
+    const activeDragState = dragStateRef.current
+
+    if (!activeDragState) {
+      return
+    }
+
+    event.preventDefault()
+    event.stopPropagation()
+    finishMovingPieceFromClientPoint(
+      event.clientX,
+      event.clientY,
+      activeDragState.mineralId,
+    )
   }
 
   return (
@@ -707,8 +687,7 @@ export function GuessBoard({
 
             <div
               className={styles.boardSurface}
-              onDragOver={moveNativePiecePreview}
-              onDrop={finishNativePieceMove}
+              onClick={dropPickedPiece}
               ref={boardRef}
             >
               <div className={styles.cellLayer}>
@@ -776,9 +755,8 @@ export function GuessBoard({
                       }
                       onMouseEnd={finishMovingPieceWithMouse}
                       onFlip={onFlip}
-                      onNativeMoveCancel={cancelNativePieceMove}
-                      onNativeMoveStart={(event, piecePlacement) =>
-                        startNativePieceMove(
+                      onPick={(event, piecePlacement) =>
+                        pickPieceFromClick(
                           event,
                           piecePlacement,
                           placedDragAnchorFromClientPoint(
@@ -835,8 +813,7 @@ export function GuessBoard({
             <div
               className={styles.pieceStack}
               aria-label="Glass piece stack"
-              onDragOver={moveNativePiecePreview}
-              onDrop={finishNativePieceMove}
+              onClick={dropPickedPiece}
             >
               {guess.map((placement) => {
                 const mineral = minerals[placement.mineralId]
@@ -862,7 +839,11 @@ export function GuessBoard({
                       <button
                         aria-label={`Return ${mineral.name} to stack`}
                         className={styles.stackResetButton}
-                        onClick={() => onRemove(placement.mineralId)}
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          onRemove(placement.mineralId)
+                        }}
+                        onMouseDown={(event) => event.stopPropagation()}
                         title={`Return ${mineral.name}`}
                         type="button"
                       >
@@ -878,22 +859,21 @@ export function GuessBoard({
                       <button
                         aria-label={`Move ${mineral.name}`}
                         className={styles.stackPieceButton}
-                        draggable
-                        onDragEnd={cancelNativePieceMove}
-                        onDragStart={(event) =>
-                          startNativePieceMove(
+                        onClick={(event) =>
+                          pickPieceFromClick(
                             event,
                             placement,
                             stackDragAnchor(placement),
                           )
                         }
-                        onClick={() => onSelect(placement.mineralId)}
                         onDoubleClick={(event) => {
                           event.preventDefault()
+                          event.stopPropagation()
                           onFlip(placement.mineralId)
                         }}
                         onContextMenu={(event) => {
                           event.preventDefault()
+                          event.stopPropagation()
                           if (event.shiftKey) {
                             onFlip(placement.mineralId)
                             return
@@ -1272,9 +1252,8 @@ function PlacedPiece({
   onMoveEnd,
   onMovePreview,
   onMoveStart,
-  onNativeMoveCancel,
-  onNativeMoveStart,
   onFlip,
+  onPick,
   onRotate,
   onSelect,
   placement,
@@ -1306,12 +1285,11 @@ function PlacedPiece({
     event: ReactPointerEvent<HTMLElement>,
     placement: GuessPlacement,
   ) => void
-  onNativeMoveCancel: () => void
-  onNativeMoveStart: (
-    event: ReactDragEvent<HTMLElement>,
+  onFlip: (mineralId: MineralId) => void
+  onPick: (
+    event: ReactMouseEvent<HTMLElement>,
     placement: GuessPlacement,
   ) => void
-  onFlip: (mineralId: MineralId) => void
   onRotate: (mineralId: MineralId) => void
   onSelect: (mineralId: MineralId) => void
   placement: GuessPlacement
@@ -1335,14 +1313,15 @@ function PlacedPiece({
         isSelected ? styles.selectedPlacedPiece : '',
         isDragging ? styles.draggingPlacedPiece : '',
       ].join(' ')}
-      draggable
-      onClick={() => onSelect(placement.mineralId)}
+      onClick={(event) => onPick(event, placement)}
       onDoubleClick={(event) => {
         event.preventDefault()
+        event.stopPropagation()
         onFlip(placement.mineralId)
       }}
       onContextMenu={(event) => {
         event.preventDefault()
+        event.stopPropagation()
         if (event.shiftKey) {
           onFlip(placement.mineralId)
           return
@@ -1366,8 +1345,6 @@ function PlacedPiece({
           onFlip(placement.mineralId)
         }
       }}
-      onDragEnd={onNativeMoveCancel}
-      onDragStart={(event) => onNativeMoveStart(event, placement)}
       onMouseDown={(event) => onMouseStart(event, placement)}
       onMouseMove={(event) => onMouseMove(event, placement.mineralId)}
       onMouseUp={(event) => onMouseEnd(event, placement.mineralId)}

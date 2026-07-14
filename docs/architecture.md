@@ -14,8 +14,12 @@ Pure game concepts with no React imports:
 
 ## Application
 
-`useCooperativeMineGame` owns the current puzzle, ray history, reveal state,
-selected family piece, family guess board, rotations, and answer submission use cases.
+- `useCooperativeMineGame` owns the current puzzle, ray history, reveal state,
+  selected family piece, family guess board, rotations, and answer submission use cases.
+- `pieceMovement` owns the UI-independent movement session for a glass piece:
+  start movement, update pointer target, and finish as a place or return command.
+  Presentation code adapts DOM coordinates to this use case; it does not own the
+  movement state machine.
 
 ## Presentation
 

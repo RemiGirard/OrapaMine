@@ -1,6 +1,6 @@
 /* @vitest-environment jsdom */
 
-import { fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { useState } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
@@ -54,6 +54,7 @@ describe('GuessBoard piece interactions', () => {
   })
 
   afterEach(() => {
+    cleanup()
     HTMLElement.prototype.getBoundingClientRect = originalGetBoundingClientRect
     document.elementFromPoint = originalElementFromPoint
   })
@@ -128,6 +129,29 @@ describe('GuessBoard piece interactions', () => {
         .getAttribute('title'),
     ).toBe('Ruby parallelogram - east, back')
   })
+
+  it('places a picked glass piece on a board click', () => {
+    render(<InteractiveGuessBoard />)
+
+    const panel = document.querySelector('aside')
+    const board = document.querySelector('[class*="boardSurface"]')
+    const stackButton = screen.getByRole('button', {
+      name: 'Move Ruby parallelogram',
+    })
+
+    expect(panel).not.toBeNull()
+    expect(board).not.toBeNull()
+
+    fireEvent.click(stackButton, { clientX: 40, clientY: 40 })
+    fireEvent.mouseMove(panel!, toMouseEventPoint(boardPoint(2.5, 2.5)))
+    fireEvent.click(board!, toMouseEventPoint(boardPoint(2.5, 2.5)))
+
+    expect(
+      screen.getByRole('button', {
+        name: 'Ruby parallelogram at C2, R3',
+      }),
+    ).not.toBeNull()
+  })
 })
 
 function InteractiveGuessBoard() {
@@ -190,5 +214,12 @@ function boardPoint(column: number, row: number) {
   return {
     x: boardRect.left + (column / 8) * boardRect.width,
     y: boardRect.top + (row / 10) * boardRect.height,
+  }
+}
+
+function toMouseEventPoint(point: { x: number; y: number }) {
+  return {
+    clientX: point.x,
+    clientY: point.y,
   }
 }
