@@ -4,6 +4,7 @@ import type { GuessPlacement, MineralId } from '../../domain/minerals'
 import layoutStyles from '../GameTable.module.css'
 import { PieceShape } from '../PieceShape'
 import styles from './Glass.module.css'
+import { glassCaseSlotLayout } from './glassCaseLayout'
 import type { usePieceMovementInteraction } from './usePieceMovementInteraction'
 
 type MovementInteraction = ReturnType<typeof usePieceMovementInteraction>
@@ -67,6 +68,7 @@ function GlassCaseSlot({
   const isDragged = movement.movementState?.mineralId === placement.mineralId
   const isReturnTarget =
     isDragged && movement.movementState?.target?.kind === 'stack'
+  const slotLayout = glassCaseSlotLayout(placement)
 
   return (
     <div
@@ -77,8 +79,26 @@ function GlassCaseSlot({
         isDragged ? styles.draggingStackSlot : '',
         isReturnTarget ? styles.returnTargetStackSlot : '',
       ].join(' ')}
+      data-stack-height={slotLayout.height}
       data-stack-mineral-id={placement.mineralId}
+      data-stack-width={slotLayout.width}
+      style={{
+        gridColumn: `${slotLayout.column + 1} / span ${slotLayout.width}`,
+        gridRow: `${slotLayout.row + 1} / span ${slotLayout.height}`,
+      }}
     >
+      <div
+        aria-hidden="true"
+        className={styles.stackCavity}
+        data-stack-cavity-mineral-id={placement.mineralId}
+      >
+        <PieceShape
+          className={styles.stackCavityShape}
+          face={placement.face}
+          mineralId={placement.mineralId}
+          orientation={placement.orientation}
+        />
+      </div>
       {isPlaced ? (
         <button
           aria-label={`Return ${mineral.name} to stack`}
@@ -91,12 +111,6 @@ function GlassCaseSlot({
           title={`Return ${mineral.name}`}
           type="button"
         >
-          <PieceShape
-            className={styles.stackGhostShape}
-            face={placement.face}
-            mineralId={placement.mineralId}
-            orientation={placement.orientation}
-          />
           <RotateCcw size={18} />
         </button>
       ) : (

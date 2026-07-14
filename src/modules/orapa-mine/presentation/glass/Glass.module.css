@@ -70,7 +70,6 @@
 .placedShape :global(.piece-facet),
 .placementGhostShape :global(.piece-facet),
 .stackShape :global(.piece-facet),
-.stackGhostShape :global(.piece-facet),
 .solutionShape :global(.piece-facet) {
   stroke: color-mix(in srgb, var(--piece-stroke) 70%, white);
   stroke-linejoin: miter;
@@ -81,7 +80,6 @@
 .placedShape :global(.piece-body),
 .placementGhostShape :global(.piece-body),
 .stackShape :global(.piece-body),
-.stackGhostShape :global(.piece-body),
 .solutionShape :global(.piece-body) {
   stroke: color-mix(in srgb, var(--piece-stroke) 80%, white);
   stroke-linejoin: miter;
@@ -92,7 +90,6 @@
 .placedShape :global(.piece-highlight),
 .placementGhostShape :global(.piece-highlight),
 .stackShape :global(.piece-highlight),
-.stackGhostShape :global(.piece-highlight),
 .solutionShape :global(.piece-highlight) {
   mix-blend-mode: screen;
   opacity: 0.34;
@@ -103,7 +100,6 @@
 .placedShape[data-mineral-color='white'],
 .placementGhostShape[data-mineral-color='white'],
 .stackShape[data-mineral-color='white'],
-.stackGhostShape[data-mineral-color='white'],
 .solutionShape[data-mineral-color='white'] {
   filter: drop-shadow(0 0 12px rgb(255 255 255 / 0.78))
     drop-shadow(0 0 24px rgb(123 215 255 / 0.48))
@@ -114,7 +110,6 @@
 .placedShape[data-mineral-color='white'] :global(.piece-facet),
 .placementGhostShape[data-mineral-color='white'] :global(.piece-facet),
 .stackShape[data-mineral-color='white'] :global(.piece-facet),
-.stackGhostShape[data-mineral-color='white'] :global(.piece-facet),
 .solutionShape[data-mineral-color='white'] :global(.piece-facet) {
   opacity: 0.58;
   stroke: rgb(255 255 255 / 0.62);
@@ -125,7 +120,6 @@
 .placedShape[data-mineral-color='white'] :global(.piece-body),
 .placementGhostShape[data-mineral-color='white'] :global(.piece-body),
 .stackShape[data-mineral-color='white'] :global(.piece-body),
-.stackGhostShape[data-mineral-color='white'] :global(.piece-body),
 .solutionShape[data-mineral-color='white'] :global(.piece-body) {
   stroke: rgb(255 255 255 / 0.96);
   stroke-width: 0.075;
@@ -226,11 +220,7 @@
 .placementGhostShape :global(.piece-caustics),
 .placementGhostShape :global(.piece-crystal-grain),
 .placementGhostShape :global(.piece-crystal-shards),
-.placementGhostShape :global(.piece-raw-facets),
-.stackGhostShape :global(.piece-caustics),
-.stackGhostShape :global(.piece-crystal-grain),
-.stackGhostShape :global(.piece-crystal-shards),
-.stackGhostShape :global(.piece-raw-facets) {
+.placementGhostShape :global(.piece-raw-facets) {
   display: none;
 }
 
@@ -286,14 +276,15 @@
     linear-gradient(135deg, rgb(8 14 22 / 0.96), rgb(18 25 33 / 0.92));
   border: 1px solid rgb(156 224 255 / 0.2);
   border-radius: 8px;
+  box-sizing: border-box;
   box-shadow:
     inset 0 0 0 1px rgb(255 255 255 / 0.04),
     inset 0 18px 46px rgb(0 0 0 / 0.26),
     0 12px 28px rgb(0 0 0 / 0.18);
   display: grid;
-  gap: 0.55rem;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  grid-template-rows: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-rows: repeat(12, minmax(0, 1fr));
   max-height: 375px;
   overflow: hidden;
   padding: 0.8rem;
@@ -318,169 +309,78 @@
 }
 
 .stackSlot {
-  align-items: center;
   background: transparent;
-  display: flex;
-  justify-content: center;
   min-width: 0;
   overflow: visible;
   position: relative;
   z-index: 1;
 }
 
-.stackSlot::before,
-.stackSlot::after {
-  content: '';
-  inset: 0.18rem;
+.stackCavity {
+  inset: 0;
   pointer-events: none;
   position: absolute;
   transition:
-    box-shadow 160ms ease,
-    opacity 160ms ease,
-    transform 160ms ease;
+    filter 160ms ease,
+    opacity 160ms ease;
 }
 
-.stackSlot::before {
-  background:
-    radial-gradient(circle at 46% 44%, rgb(0 0 0 / 0.78), rgb(0 0 0 / 0.2) 67%),
-    linear-gradient(140deg, rgb(255 255 255 / 0.05), rgb(0 0 0 / 0.24));
-  box-shadow:
-    inset 0 13px 20px rgb(0 0 0 / 0.68),
-    inset 0 -1px 0 rgb(255 255 255 / 0.1),
-    0 1px 0 rgb(255 255 255 / 0.035),
-    0 0 18px rgb(0 0 0 / 0.2);
-  opacity: 0.94;
+.stackCavityShape,
+.stackShape {
+  height: 100%;
+  inset: 0;
+  position: absolute;
+  width: 100%;
 }
 
-.stackSlot::after {
-  background: linear-gradient(
-    135deg,
-    rgb(255 255 255 / 0.34),
-    transparent 36%,
-    rgb(123 215 255 / 0.18)
-  );
-  box-shadow:
-    inset 0 0 0 1px rgb(156 224 255 / 0.2),
-    inset 0 -6px 16px rgb(0 0 0 / 0.16);
-  opacity: 0.58;
+.stackCavityShape {
+  filter: drop-shadow(0 -1px 0 rgb(160 212 232 / 0.12))
+    drop-shadow(0 5px 5px rgb(0 0 0 / 0.72));
+  opacity: 0.78;
 }
 
-.stackSlot:nth-child(1) {
-  grid-column: 1 / 3;
-  grid-row: 1 / 3;
+.stackCavityShape :global(.piece-body),
+.stackCavityShape :global(.piece-facet) {
+  fill: rgb(1 5 9 / 0.92) !important;
+  stroke: rgb(138 186 204 / 0.16) !important;
+  stroke-width: 0.045;
 }
 
-.stackSlot:nth-child(1)::before,
-.stackSlot:nth-child(1)::after {
-  clip-path: polygon(24% 25%, 92% 25%, 74% 75%, 7% 75%);
+.stackCavityShape :global(.piece-highlight) {
+  fill: rgb(170 222 238 / 0.07) !important;
+  opacity: 0.18;
 }
 
-.stackSlot:nth-child(2) {
-  grid-column: 3 / 5;
-  grid-row: 1 / 3;
-}
-
-.stackSlot:nth-child(2)::before,
-.stackSlot:nth-child(2)::after {
-  clip-path: polygon(18% 16%, 18% 84%, 86% 84%);
-}
-
-.stackSlot:nth-child(3) {
-  grid-column: 5 / 7;
-  grid-row: 1 / 3;
-}
-
-.stackSlot:nth-child(3)::before,
-.stackSlot:nth-child(3)::after {
-  clip-path: polygon(50% 14%, 96% 84%, 4% 84%);
-}
-
-.stackSlot:nth-child(4) {
-  grid-column: 2 / 4;
-  grid-row: 3 / 5;
-}
-
-.stackSlot:nth-child(4)::before,
-.stackSlot:nth-child(4)::after {
-  clip-path: polygon(50% 7%, 93% 50%, 50% 93%, 7% 50%);
-}
-
-.stackSlot:nth-child(5) {
-  grid-column: 4 / 6;
-  grid-row: 3 / 5;
-}
-
-.stackSlot:nth-child(5)::before,
-.stackSlot:nth-child(5)::after {
-  clip-path: polygon(50% 14%, 96% 84%, 4% 84%);
+.stackCavityShape :global(.piece-caustics),
+.stackCavityShape :global(.piece-crystal-grain),
+.stackCavityShape :global(.piece-crystal-shards),
+.stackCavityShape :global(.piece-raw-facets) {
+  display: none;
 }
 
 .selectedStackSlot {
   z-index: 2;
 }
 
-.selectedStackSlot::before {
-  box-shadow:
-    inset 0 11px 18px rgb(0 0 0 / 0.42),
-    inset 0 0 26px rgb(48 255 205 / 0.12),
-    0 0 18px rgb(48 255 205 / 0.14);
-  opacity: 0.92;
-}
-
-.selectedStackSlot::after {
-  box-shadow: inset 0 0 0 1px rgb(48 255 205 / 0.28);
-  opacity: 0.62;
-}
-
-.draggingStackSlot::before {
-  opacity: 0.82;
+.selectedStackSlot .stackCavity,
+.returnTargetStackSlot .stackCavity {
+  filter: drop-shadow(0 0 12px rgb(46 255 205 / 0.28));
 }
 
 .draggingStackSlot .stackShape {
-  opacity: 0.16;
-  transform: translateY(2px) scale(0.94);
+  opacity: 0.12;
 }
 
-.returnTargetStackSlot::before {
-  box-shadow:
-    inset 0 10px 18px rgb(0 0 0 / 0.34),
-    inset 0 0 30px rgb(46 255 205 / 0.2),
-    0 0 22px rgb(46 255 205 / 0.22);
+.returnTargetStackSlot .stackCavityShape {
   opacity: 1;
-  transform: scale(1.03);
 }
 
-.returnTargetStackSlot::after {
-  box-shadow:
-    inset 0 0 0 1px rgb(46 255 205 / 0.38),
-    0 0 18px rgb(46 255 205 / 0.16);
-  opacity: 0.78;
-  transform: scale(1.03);
-}
-
-.usedStackSlot::before {
-  opacity: 0.68;
-}
-
-.usedStackSlot::after {
-  opacity: 0.24;
-}
-
-.stackSlot:hover::before,
-.stackSlot:focus-within::before {
-  box-shadow:
-    inset 0 10px 18px rgb(0 0 0 / 0.34),
-    inset 0 0 28px rgb(123 215 255 / 0.15),
-    0 0 18px rgb(46 255 205 / 0.12);
+.stackSlot:hover .stackCavityShape,
+.stackSlot:focus-within .stackCavityShape {
+  filter: drop-shadow(0 -1px 0 rgb(175 225 242 / 0.2))
+    drop-shadow(0 4px 5px rgb(0 0 0 / 0.6))
+    drop-shadow(0 0 13px rgb(123 215 255 / 0.16));
   opacity: 1;
-  transform: scale(1.02);
-}
-
-.stackSlot:hover::after,
-.stackSlot:focus-within::after {
-  box-shadow: inset 0 0 0 1px rgb(156 224 255 / 0.26);
-  opacity: 0.72;
-  transform: scale(1.02);
 }
 
 .stackPieceButton,
@@ -491,9 +391,10 @@
   border-radius: 7px;
   display: flex;
   height: 100%;
+  inset: 0;
   justify-content: center;
-  padding: 0.55rem;
-  position: relative;
+  padding: 0;
+  position: absolute;
   width: 100%;
   z-index: 1;
 }
@@ -525,7 +426,7 @@
   pointer-events: auto;
 }
 
-.stackResetButton > svg:not(.stackGhostShape) {
+.stackResetButton > svg {
   background: rgb(7 14 22 / 0.72);
   border: 1px solid rgb(156 224 255 / 0.34);
   border-radius: 999px;
@@ -544,9 +445,9 @@
   z-index: 1;
 }
 
-.usedStackSlot:hover .stackResetButton > svg:not(.stackGhostShape),
-.usedStackSlot:focus-within .stackResetButton > svg:not(.stackGhostShape),
-.stackResetButton:focus-visible > svg:not(.stackGhostShape) {
+.usedStackSlot:hover .stackResetButton > svg,
+.usedStackSlot:focus-within .stackResetButton > svg,
+.stackResetButton:focus-visible > svg {
   opacity: 1;
   transform: scale(1);
 }
@@ -554,11 +455,9 @@
 .stackShape {
   filter: drop-shadow(0 0 10px rgb(255 255 255 / 0.18))
     drop-shadow(0 6px 8px rgb(0 0 0 / 0.2));
-  max-height: 80%;
   transition:
     filter 160ms ease,
-    transform 160ms ease;
-  width: 86%;
+    opacity 160ms ease;
 }
 
 .pieceStack:hover .stackShape {
@@ -572,18 +471,4 @@
   filter: drop-shadow(0 0 16px rgb(255 255 255 / 0.42))
     drop-shadow(0 0 26px rgb(123 215 255 / 0.24))
     drop-shadow(0 0 38px rgb(46 255 205 / 0.14));
-  transform: translateY(-1px) scale(1.055);
-}
-
-.stackGhostShape {
-  filter: grayscale(1);
-  inset: 18%;
-  opacity: 0.1;
-  position: absolute;
-  width: 66%;
-}
-
-.usedStackSlot:hover .stackGhostShape,
-.usedStackSlot:focus-within .stackGhostShape {
-  opacity: 0.18;
 }

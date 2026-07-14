@@ -173,6 +173,27 @@ describe('GameTable piece interactions', () => {
     ).not.toBeNull()
   })
 
+  it('renders each foam cavity at exactly the held glass size', () => {
+    render(<InteractiveGameTable />)
+
+    const slot = document.querySelector<HTMLElement>(
+      '[data-stack-mineral-id="red-parallelogram"]',
+    )
+    const cavity = slot?.querySelector(
+      '[data-stack-cavity-mineral-id="red-parallelogram"] svg',
+    )
+    const heldPiece = slot?.querySelector('button svg')
+
+    expect(slot?.dataset.stackWidth).toBe('3')
+    expect(slot?.dataset.stackHeight).toBe('1')
+    expect(slot?.style.gridColumn).toContain('span 3')
+    expect(slot?.style.gridRow).toContain('span 1')
+    expect(cavity?.getAttribute('viewBox')).toBe('0 0 3 1')
+    expect(heldPiece?.getAttribute('viewBox')).toBe(
+      cavity?.getAttribute('viewBox'),
+    )
+  })
+
   it('keeps ray endpoints inside the board instead of spilling over edge labels', () => {
     const currentRayPreview: Extract<Answer, { mode: 'edge' }> = {
       exitLabel: 'B1',
