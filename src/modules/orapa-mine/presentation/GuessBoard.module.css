@@ -671,64 +671,100 @@
   aspect-ratio: 1;
   background:
     radial-gradient(
-      circle at 50% 42%,
-      rgb(255 255 255 / 0.055),
-      transparent 62%
+      circle at 48% 40%,
+      rgb(126 219 255 / 0.075),
+      transparent 58%
     ),
-    linear-gradient(135deg, rgb(8 14 22 / 0.88), rgb(19 25 34 / 0.82));
+    repeating-linear-gradient(
+      45deg,
+      rgb(255 255 255 / 0.022) 0 1px,
+      transparent 1px 14px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      rgb(0 0 0 / 0.14) 0 1px,
+      transparent 1px 16px
+    ),
+    linear-gradient(135deg, rgb(8 14 22 / 0.96), rgb(18 25 33 / 0.92));
   border: 1px solid rgb(156 224 255 / 0.2);
   border-radius: 8px;
   box-shadow:
-    inset 0 0 0 1px rgb(255 255 255 / 0.035),
-    inset 0 16px 40px rgb(0 0 0 / 0.18);
+    inset 0 0 0 1px rgb(255 255 255 / 0.04),
+    inset 0 18px 46px rgb(0 0 0 / 0.26),
+    0 12px 28px rgb(0 0 0 / 0.18);
   display: grid;
-  gap: 0.65rem;
+  gap: 0.55rem;
   grid-template-columns: repeat(6, minmax(0, 1fr));
   grid-template-rows: repeat(4, minmax(0, 1fr));
   max-height: 375px;
-  padding: 0.7rem;
+  overflow: hidden;
+  padding: 0.8rem;
   position: relative;
   width: 100%;
 }
 
 .pieceStack::before {
   background:
-    repeating-linear-gradient(
-      45deg,
-      rgb(255 255 255 / 0.026) 0 1px,
-      transparent 1px 11px
+    radial-gradient(
+      circle at 25% 18%,
+      rgb(255 255 255 / 0.04),
+      transparent 34%
     ),
-    repeating-linear-gradient(
-      -45deg,
-      rgb(0 0 0 / 0.1) 0 1px,
-      transparent 1px 13px
-    );
+    radial-gradient(circle at 75% 72%, rgb(46 255 205 / 0.035), transparent 36%);
   border-radius: 8px;
   content: '';
   inset: 0.45rem;
   pointer-events: none;
   position: absolute;
+  z-index: 0;
 }
 
 .stackSlot {
   align-items: center;
-  background:
-    radial-gradient(
-      circle at 50% 50%,
-      rgb(0 0 0 / 0.36),
-      rgb(0 0 0 / 0.12) 58%
-    ),
-    rgb(255 255 255 / 0.035);
-  border: 1px solid rgb(156 224 255 / 0.15);
-  border-radius: 8px;
-  box-shadow:
-    inset 0 9px 18px rgb(0 0 0 / 0.28),
-    inset 0 -1px 0 rgb(255 255 255 / 0.04);
+  background: transparent;
   display: flex;
   justify-content: center;
   min-width: 0;
+  overflow: visible;
   position: relative;
   z-index: 1;
+}
+
+.stackSlot::before,
+.stackSlot::after {
+  content: '';
+  inset: 0.18rem;
+  pointer-events: none;
+  position: absolute;
+  transition:
+    box-shadow 160ms ease,
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+
+.stackSlot::before {
+  background:
+    radial-gradient(circle at 46% 44%, rgb(0 0 0 / 0.78), rgb(0 0 0 / 0.2) 67%),
+    linear-gradient(140deg, rgb(255 255 255 / 0.05), rgb(0 0 0 / 0.24));
+  box-shadow:
+    inset 0 13px 20px rgb(0 0 0 / 0.68),
+    inset 0 -1px 0 rgb(255 255 255 / 0.1),
+    0 1px 0 rgb(255 255 255 / 0.035),
+    0 0 18px rgb(0 0 0 / 0.2);
+  opacity: 0.94;
+}
+
+.stackSlot::after {
+  background: linear-gradient(
+    135deg,
+    rgb(255 255 255 / 0.34),
+    transparent 36%,
+    rgb(123 215 255 / 0.18)
+  );
+  box-shadow:
+    inset 0 0 0 1px rgb(156 224 255 / 0.2),
+    inset 0 -6px 16px rgb(0 0 0 / 0.16);
+  opacity: 0.58;
 }
 
 .stackSlot:nth-child(1) {
@@ -736,9 +772,19 @@
   grid-row: 1 / 3;
 }
 
+.stackSlot:nth-child(1)::before,
+.stackSlot:nth-child(1)::after {
+  clip-path: polygon(24% 25%, 92% 25%, 74% 75%, 7% 75%);
+}
+
 .stackSlot:nth-child(2) {
   grid-column: 3 / 5;
   grid-row: 1 / 3;
+}
+
+.stackSlot:nth-child(2)::before,
+.stackSlot:nth-child(2)::after {
+  clip-path: polygon(18% 16%, 18% 84%, 86% 84%);
 }
 
 .stackSlot:nth-child(3) {
@@ -746,9 +792,19 @@
   grid-row: 1 / 3;
 }
 
+.stackSlot:nth-child(3)::before,
+.stackSlot:nth-child(3)::after {
+  clip-path: polygon(50% 14%, 96% 84%, 4% 84%);
+}
+
 .stackSlot:nth-child(4) {
   grid-column: 2 / 4;
   grid-row: 3 / 5;
+}
+
+.stackSlot:nth-child(4)::before,
+.stackSlot:nth-child(4)::after {
+  clip-path: polygon(50% 7%, 93% 50%, 50% 93%, 7% 50%);
 }
 
 .stackSlot:nth-child(5) {
@@ -756,22 +812,51 @@
   grid-row: 3 / 5;
 }
 
-.selectedStackSlot {
-  border-color: rgb(48 255 205 / 0.58);
-  box-shadow:
-    inset 0 0 18px rgb(48 255 205 / 0.08),
-    0 0 18px rgb(48 255 205 / 0.16);
+.stackSlot:nth-child(5)::before,
+.stackSlot:nth-child(5)::after {
+  clip-path: polygon(50% 14%, 96% 84%, 4% 84%);
 }
 
-.usedStackSlot {
-  background:
-    radial-gradient(
-      circle at 50% 50%,
-      rgb(0 0 0 / 0.58),
-      rgb(255 255 255 / 0.02) 62%
-    ),
-    rgb(0 0 0 / 0.16);
-  border-color: rgb(156 224 255 / 0.11);
+.selectedStackSlot {
+  z-index: 2;
+}
+
+.selectedStackSlot::before {
+  box-shadow:
+    inset 0 11px 18px rgb(0 0 0 / 0.42),
+    inset 0 0 26px rgb(48 255 205 / 0.12),
+    0 0 18px rgb(48 255 205 / 0.14);
+  opacity: 0.92;
+}
+
+.selectedStackSlot::after {
+  box-shadow: inset 0 0 0 1px rgb(48 255 205 / 0.28);
+  opacity: 0.62;
+}
+
+.usedStackSlot::before {
+  opacity: 0.68;
+}
+
+.usedStackSlot::after {
+  opacity: 0.24;
+}
+
+.stackSlot:hover::before,
+.stackSlot:focus-within::before {
+  box-shadow:
+    inset 0 10px 18px rgb(0 0 0 / 0.34),
+    inset 0 0 28px rgb(123 215 255 / 0.15),
+    0 0 18px rgb(46 255 205 / 0.12);
+  opacity: 1;
+  transform: scale(1.02);
+}
+
+.stackSlot:hover::after,
+.stackSlot:focus-within::after {
+  box-shadow: inset 0 0 0 1px rgb(156 224 255 / 0.26);
+  opacity: 0.72;
+  transform: scale(1.02);
 }
 
 .stackPieceButton,
@@ -784,7 +869,9 @@
   height: 100%;
   justify-content: center;
   padding: 0.55rem;
+  position: relative;
   width: 100%;
+  z-index: 1;
 }
 
 .stackPieceButton {
@@ -799,33 +886,81 @@
 .stackPieceButton:focus-visible,
 .stackResetButton:hover,
 .stackResetButton:focus-visible {
-  background: rgb(255 255 255 / 0.075);
-  outline: 1px solid rgb(46 255 205 / 0.34);
+  outline: 0;
 }
 
 .stackResetButton {
   color: #9fb4c2;
+  pointer-events: none;
   position: relative;
+}
+
+.usedStackSlot:hover .stackResetButton,
+.usedStackSlot:focus-within .stackResetButton {
+  pointer-events: auto;
 }
 
 .stackResetButton > svg:not(.stackGhostShape) {
+  background: rgb(7 14 22 / 0.72);
+  border: 1px solid rgb(156 224 255 / 0.34);
+  border-radius: 999px;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.12),
+    0 0 14px rgb(123 215 255 / 0.24);
+  color: #ecf7ff;
   filter: drop-shadow(0 0 10px rgb(123 215 255 / 0.34));
+  opacity: 0;
+  padding: 0.32rem;
   position: relative;
+  transform: scale(0.82);
+  transition:
+    opacity 140ms ease,
+    transform 140ms ease;
   z-index: 1;
 }
 
+.usedStackSlot:hover .stackResetButton > svg:not(.stackGhostShape),
+.usedStackSlot:focus-within .stackResetButton > svg:not(.stackGhostShape),
+.stackResetButton:focus-visible > svg:not(.stackGhostShape) {
+  opacity: 1;
+  transform: scale(1);
+}
+
 .stackShape {
-  filter: drop-shadow(0 0 12px rgb(255 255 255 / 0.18));
+  filter: drop-shadow(0 0 10px rgb(255 255 255 / 0.18))
+    drop-shadow(0 6px 8px rgb(0 0 0 / 0.2));
   max-height: 80%;
+  transition:
+    filter 160ms ease,
+    transform 160ms ease;
   width: 86%;
+}
+
+.pieceStack:hover .stackShape {
+  filter: drop-shadow(0 0 13px rgb(255 255 255 / 0.26))
+    drop-shadow(0 0 22px rgb(123 215 255 / 0.12))
+    drop-shadow(0 6px 8px rgb(0 0 0 / 0.18));
+}
+
+.stackSlot:hover .stackShape,
+.stackSlot:focus-within .stackShape {
+  filter: drop-shadow(0 0 16px rgb(255 255 255 / 0.42))
+    drop-shadow(0 0 26px rgb(123 215 255 / 0.24))
+    drop-shadow(0 0 38px rgb(46 255 205 / 0.14));
+  transform: translateY(-1px) scale(1.055);
 }
 
 .stackGhostShape {
   filter: grayscale(1);
-  inset: 17%;
-  opacity: 0.16;
+  inset: 18%;
+  opacity: 0.1;
   position: absolute;
   width: 66%;
+}
+
+.usedStackSlot:hover .stackGhostShape,
+.usedStackSlot:focus-within .stackGhostShape {
+  opacity: 0.18;
 }
 
 .submitButton {
