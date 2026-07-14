@@ -24,6 +24,15 @@ export function askForClue(
   request: AskForClue,
 ): ClueNotebook {
   const answer = answerQuestion(puzzle, request.mode, request.query, request.id)
+  const isAlreadyRecorded = notebook.answers.some(
+    (recordedAnswer) =>
+      recordedAnswer.mode === answer.mode &&
+      recordedAnswer.query === answer.query,
+  )
+
+  if (isAlreadyRecorded) {
+    return notebook
+  }
 
   return {
     answers: [answer, ...notebook.answers].slice(0, notebookCapacity),

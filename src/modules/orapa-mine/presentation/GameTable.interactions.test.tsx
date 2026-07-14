@@ -325,6 +325,33 @@ describe('GameTable piece interactions', () => {
     expect(latestOutput.getAttribute('data-edge-role')).toBe('receiver')
   })
 
+  it('previews an answered edge instead of asking for the clue again', () => {
+    const answer: Extract<Answer, { mode: 'edge' }> = {
+      exitLabel: 'B2',
+      id: 12,
+      message: 'Exit B2 - Red',
+      mode: 'edge',
+      path: [{ column: 1, row: 4 }],
+      query: 'T2',
+      signalColor: 'red',
+    }
+    const onAskEdge = vi.fn()
+
+    render(
+      <InteractiveGameTable
+        edgeAnswers={new Map([[answer.query, answer]])}
+        onAskEdge={onAskEdge}
+      />,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Send ray T2' }))
+    expect(onAskEdge).not.toHaveBeenCalled()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Send ray T3' }))
+    expect(onAskEdge).toHaveBeenCalledOnce()
+    expect(onAskEdge).toHaveBeenCalledWith('T3')
+  })
+
   it('shows whether the family map is consistent with recorded clues', () => {
     const answer: Extract<Answer, { mode: 'edge' }> = {
       exitLabel: 'B2',
@@ -374,6 +401,7 @@ function InteractiveGameTable({
   currentRayPreview = null,
   edgeAnswers = new Map(),
   initiallyShowAllLightPaths = false,
+  onAskEdge = () => undefined,
   showLightPath = false,
 }: Readonly<{
   allRayPreviews?: ReadonlyArray<Extract<Answer, { mode: 'edge' }>>
@@ -383,6 +411,7 @@ function InteractiveGameTable({
   currentRayPreview?: Extract<Answer, { mode: 'edge' }> | null
   edgeAnswers?: ReadonlyMap<string, Extract<Answer, { mode: 'edge' }>>
   initiallyShowAllLightPaths?: boolean
+  onAskEdge?: (edgeLabel: string) => void
   showLightPath?: boolean
 }>) {
   const [guess, setGuess] = useState(() => createEmptyGuess(puzzle))
@@ -397,7 +426,7 @@ function InteractiveGameTable({
         consistency: clueConsistency,
         currentAnswer,
         edgeAnswers,
-        onAskEdge: () => undefined,
+        onAskEdge,
       }}
       familySolution={{
         guess,

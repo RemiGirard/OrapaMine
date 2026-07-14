@@ -105,6 +105,15 @@ function EdgePort({
     }
   }
 
+  function askOrPreview() {
+    if (answer) {
+      onPreview(answer)
+      return
+    }
+
+    onAsk(label)
+  }
+
   return (
     <button
       aria-label={`Send ray ${label}`}
@@ -117,7 +126,7 @@ function EdgePort({
       data-edge-role={activeRole ?? undefined}
       data-edge-side={label.slice(0, 1)}
       onBlur={onClearPreview}
-      onClick={() => onAsk(label)}
+      onClick={askOrPreview}
       onFocus={previewKnownAnswer}
       onPointerEnter={previewKnownAnswer}
       onPointerLeave={onClearPreview}

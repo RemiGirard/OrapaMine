@@ -43,6 +43,25 @@ describe('cooperative game use cases', () => {
     })
   })
 
+  it('ignores a clue that is already recorded', () => {
+    const withClue = reduceCooperativeGame(createCooperativeGame(), {
+      id: 1,
+      mode: 'edge',
+      query: 'T3',
+      type: 'ask-clue',
+    })
+    const repeatedClue = reduceCooperativeGame(withClue, {
+      id: 2,
+      mode: 'edge',
+      query: 't3',
+      type: 'ask-clue',
+    })
+
+    expect(repeatedClue.clueNotebook).toBe(withClue.clueNotebook)
+    expect(repeatedClue.clueNotebook.answers).toHaveLength(1)
+    expect(repeatedClue.clueNotebook.answers[0].id).toBe(1)
+  })
+
   it('resets puzzle-scoped features when starting the next puzzle', () => {
     const withClue = reduceCooperativeGame(createCooperativeGame(), {
       id: 1,

@@ -29,7 +29,7 @@ describe('clue consistency', () => {
     })
   })
 
-  it('counts repeated questions once while retaining each notebook comparison', () => {
+  it('does not retain a repeated question', () => {
     const puzzle = preparedPuzzles[0]
     const firstQuestion = askForClue(createClueNotebook(), puzzle, {
       id: 1,
@@ -48,6 +48,9 @@ describe('clue consistency', () => {
 
     expect(consistency.totalClues).toBe(1)
     expect(consistency.matchedClues).toBe(1)
-    expect(consistency.byAnswerId.size).toBe(2)
+    expect(consistency.byAnswerId.size).toBe(1)
+    expect(repeatedQuestion).toBe(firstQuestion)
+    expect(repeatedQuestion.answers).toHaveLength(1)
+    expect(repeatedQuestion.answers[0].id).toBe(1)
   })
 })
