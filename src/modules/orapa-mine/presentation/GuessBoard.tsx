@@ -4,7 +4,7 @@ import type {
   PointerEvent as ReactPointerEvent,
 } from 'react'
 import { useRef, useState } from 'react'
-import { Mic, MousePointer2, RotateCcw } from 'lucide-react'
+import { Mic, RotateCcw } from 'lucide-react'
 import {
   boardSize,
   bottomLabels,
@@ -122,9 +122,6 @@ export function GuessBoard({
   const [dragState, setDragState] = useState<DragState | null>(null)
   const dragStateRef = useRef<DragState | null>(null)
   const boardRef = useRef<HTMLDivElement>(null)
-  const selectedPlacement = guess.find(
-    (placement) => placement.mineralId === selectedMineralId,
-  )
   const draggedPlacement = dragState
     ? guess.find((placement) => placement.mineralId === dragState.mineralId)
     : null
@@ -524,15 +521,6 @@ export function GuessBoard({
 
       <div className={styles.playSurface}>
         <div className={styles.boardColumn}>
-          <div className={styles.selectedStrip}>
-            <MousePointer2 size={15} />
-            <span>
-              {selectedPlacement
-                ? `${minerals[selectedPlacement.mineralId].name} - ${selectedPlacement.orientation}`
-                : 'Select a piece'}
-            </span>
-          </div>
-
           <div className={styles.gridShell} aria-label="Family solution board">
             <span className={styles.corner} />
             <div className={styles.columnLabels}>
