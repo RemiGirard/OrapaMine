@@ -5,6 +5,7 @@ import type {
 } from 'react'
 import { useRef, useState } from 'react'
 import { Mic, RotateCcw } from 'lucide-react'
+import type { VoiceRecognitionStatus } from '../application/voiceRecognition'
 import {
   boardSize,
   bottomLabels,
@@ -32,28 +33,6 @@ import { PieceShape } from './PieceShape'
 import { colorValue } from './colorPalette'
 import styles from './GuessBoard.module.css'
 
-type SpeechRecognitionLike = {
-  continuous: boolean
-  interimResults: boolean
-  lang: string
-  onend: (() => void) | null
-  onerror: (() => void) | null
-  onresult:
-    | ((event: {
-        results: ArrayLike<{ 0?: { transcript?: string } } | undefined>
-      }) => void)
-    | null
-  start: () => void
-}
-
-type SpeechRecognitionConstructor = new () => SpeechRecognitionLike
-
-type SpeechWindow = Window &
-  Readonly<{
-    SpeechRecognition?: SpeechRecognitionConstructor
-    webkitSpeechRecognition?: SpeechRecognitionConstructor
-  }>
-
 type GuessBoardProps = Readonly<{
   answers: ReadonlyArray<Answer>
   currentAnswer: Answer | null
@@ -67,9 +46,9 @@ type GuessBoardProps = Readonly<{
   onReset: () => void
   onRotate: (mineralId: MineralId) => void
   onSelect: (mineralId: MineralId) => void
+  onStartVoiceCommand: () => void
   onSubmit: () => void
   onToggleLightPath: (showLightPath: boolean) => void
-  onVoiceCommand: (transcript: string) => void
   result: {
     solved: boolean
     exactPlacements: number
@@ -79,6 +58,7 @@ type GuessBoardProps = Readonly<{
   showLightPath: boolean
   showSolution: boolean
   solutionPlacements: ReadonlyArray<MineralPlacement>
+  voiceStatus: VoiceRecognitionStatus
 }>
 
 type DragState = Readonly<{
@@ -107,18 +87,16 @@ export function GuessBoard({
   onReset,
   onRotate,
   onSelect,
+  onStartVoiceCommand,
   onSubmit,
   onToggleLightPath,
-  onVoiceCommand,
   result,
   selectedMineralId,
   showLightPath,
   showSolution,
   solutionPlacements,
+  voiceStatus,
 }: GuessBoardProps) {
-  const [voiceState, setVoiceState] = useState<'idle' | 'listening' | 'error'>(
-    'idle',
-  )
   const [hoveredLogbookAnswerId, setHoveredLogbookAnswerId] = useState<
     number | null
   >(null)
@@ -146,33 +124,6 @@ export function GuessBoard({
   const activeRayColor = activeEdgeLight
     ? colorValue(activeEdgeLight.signalColor)
     : undefined
-
-  function listenForVoiceCommand() {
-    const speechWindow = window as SpeechWindow
-    const Recognition =
-      speechWindow.SpeechRecognition ?? speechWindow.webkitSpeechRecognition
-
-    if (!Recognition) {
-      setVoiceState('error')
-      return
-    }
-
-    const recognition = new Recognition()
-    recognition.continuous = false
-    recognition.interimResults = false
-    recognition.lang = navigator.language || 'en-US'
-    recognition.onend = () => setVoiceState('idle')
-    recognition.onerror = () => setVoiceState('error')
-    recognition.onresult = (event) => {
-      const transcript = event.results[0]?.[0]?.transcript
-
-      if (transcript) {
-        onVoiceCommand(transcript)
-      }
-    }
-    setVoiceState('listening')
-    recognition.start()
-  }
 
   function activeRoleForEdge(label: string) {
     if (label === activeEmitterLabel) {
@@ -535,9 +486,9 @@ export function GuessBoard({
         <div className={styles.headingActions}>
           <button
             aria-label="Speak"
-            className={voiceState === 'listening' ? styles.listening : ''}
-            onClick={listenForVoiceCommand}
-            title={voiceState === 'error' ? 'Voice unavailable' : 'Speak'}
+            className={voiceStatus === 'listening' ? styles.listening : ''}
+            onClick={onStartVoiceCommand}
+            title={voiceStatus === 'error' ? 'Voice unavailable' : 'Speak'}
             type="button"
           >
             <Mic size={17} />

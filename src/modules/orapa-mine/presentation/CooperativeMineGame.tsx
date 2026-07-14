@@ -2,9 +2,13 @@ import { Eye, EyeOff, Shuffle } from 'lucide-react'
 import { useCooperativeMineGame } from '../application/useCooperativeMineGame'
 import { GuessBoard } from './GuessBoard'
 import styles from './CooperativeMineGame.module.css'
+import { useVoiceCommandRecognition } from './useVoiceCommandRecognition'
 
 export function CooperativeMineGame() {
   const game = useCooperativeMineGame()
+  const voiceCommand = useVoiceCommandRecognition({
+    onTranscript: game.askVoiceQuestion,
+  })
 
   return (
     <main className={styles.shell}>
@@ -39,14 +43,15 @@ export function CooperativeMineGame() {
           onReset={game.resetGuess}
           onRotate={game.rotateGuess}
           onSelect={game.selectGuessMineral}
+          onStartVoiceCommand={voiceCommand.startListening}
           onSubmit={game.submitGuess}
           onToggleLightPath={game.setShowLightPath}
-          onVoiceCommand={game.askVoiceQuestion}
           result={game.submittedResult}
           selectedMineralId={game.selectedMineralId}
           showLightPath={game.showLightPath}
           showSolution={game.showSolution}
           solutionPlacements={game.puzzle.placements}
+          voiceStatus={voiceCommand.status}
         />
       </section>
     </main>
