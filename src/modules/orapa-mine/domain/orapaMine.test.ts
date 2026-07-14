@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { parseEdgePort, parseGridCoordinate } from './coordinates'
 import { mixSignalColor } from './colors'
-import { answerQuestion } from './questions'
+import { answerAllEdgesForPlacements, answerQuestion } from './questions'
 import {
   compareGuess,
   createEmptyGuess,
@@ -70,6 +70,20 @@ describe('Orapa Mine domain', () => {
     ).toMatchObject({
       message: 'Signal absorbed',
       signalColor: 'absorbed',
+    })
+  })
+
+  it('derives every edge ray from the current placements', () => {
+    const answers = answerAllEdgesForPlacements(singleBlackPuzzle.placements)
+
+    expect(answers).toHaveLength(36)
+    expect(answers.find((answer) => answer.query === 'T1')).toMatchObject({
+      message: 'Signal absorbed',
+      signalColor: 'absorbed',
+    })
+    expect(answers.find((answer) => answer.query === 'T8')).toMatchObject({
+      exitLabel: 'B8',
+      signalColor: 'transparent',
     })
   })
 

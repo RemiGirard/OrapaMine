@@ -31,6 +31,7 @@ import styles from './GuessBoard.module.css'
 import { usePieceMovementInteraction } from './usePieceMovementInteraction'
 
 type GuessBoardProps = Readonly<{
+  allRayPreviews: ReadonlyArray<Extract<Answer, { mode: 'edge' }>>
   answers: ReadonlyArray<Answer>
   currentAnswer: Answer | null
   currentRayPreview: Extract<Answer, { mode: 'edge' }> | null
@@ -45,6 +46,7 @@ type GuessBoardProps = Readonly<{
   onSelect: (mineralId: MineralId) => void
   onStartVoiceCommand: () => void
   onSubmit: () => void
+  onToggleAllLightPaths: (showAllLightPaths: boolean) => void
   onToggleLightPath: (showLightPath: boolean) => void
   result: {
     solved: boolean
@@ -52,6 +54,7 @@ type GuessBoardProps = Readonly<{
     totalPlacements: number
   } | null
   selectedMineralId: MineralId
+  showAllLightPaths: boolean
   showLightPath: boolean
   showSolution: boolean
   solutionPlacements: ReadonlyArray<MineralPlacement>
@@ -61,6 +64,7 @@ type GuessBoardProps = Readonly<{
 type DragState = PieceMovementSession
 
 export function GuessBoard({
+  allRayPreviews,
   answers,
   currentAnswer,
   currentRayPreview,
@@ -75,17 +79,19 @@ export function GuessBoard({
   onSelect,
   onStartVoiceCommand,
   onSubmit,
+  onToggleAllLightPaths,
   onToggleLightPath,
   result,
   selectedMineralId,
+  showAllLightPaths,
   showLightPath,
   showSolution,
   solutionPlacements,
   voiceStatus,
 }: GuessBoardProps) {
-  const [hoveredLogbookAnswerId, setHoveredLogbookAnswerId] = useState<
-    number | null
-  >(null)
+  const [previewedAnswerId, setPreviewedAnswerId] = useState<number | null>(
+    null,
+  )
   const boardRef = useRef<HTMLDivElement>(null)
   const {
     cancelActiveMovement,
@@ -109,12 +115,13 @@ export function GuessBoard({
   const draggedPlacement = dragState
     ? guess.find((placement) => placement.mineralId === dragState.mineralId)
     : null
-  const hoveredLogbookAnswer =
+  const previewedAnswer =
     answers.find(
       (answer): answer is Extract<Answer, { mode: 'edge' }> =>
-        answer.id === hoveredLogbookAnswerId && answer.mode === 'edge',
+        answer.id === previewedAnswerId && answer.mode === 'edge',
     ) ?? null
-  const activeEdgeLight = hoveredLogbookAnswer ?? currentRayPreview
+  const currentAnswerRay = currentAnswer?.mode === 'edge' ? currentAnswer : null
+  const activeEdgeLight = previewedAnswer ?? currentAnswerRay
   const activeRayLabels = new Set(
     activeEdgeLight
       ? [activeEdgeLight.query, activeEdgeLight.exitLabel].filter(
@@ -140,14 +147,14 @@ export function GuessBoard({
     return null
   }
 
-  function previewLogbookAnswer(answer: Answer) {
+  function previewAnswer(answer: Answer) {
     if (answer.mode === 'edge') {
-      setHoveredLogbookAnswerId(answer.id)
+      setPreviewedAnswerId(answer.id)
     }
   }
 
-  function clearLogbookPreview() {
-    setHoveredLogbookAnswerId(null)
+  function clearAnswerPreview() {
+    setPreviewedAnswerId(null)
   }
 
   function dragPreviewStyle(
@@ -204,6 +211,8 @@ export function GuessBoard({
                   key={label}
                   label={label}
                   onAskEdge={onAskEdge}
+                  onClearPreview={clearAnswerPreview}
+                  onPreviewAnswer={previewAnswer}
                 />
               ))}
             </div>
@@ -219,6 +228,8 @@ export function GuessBoard({
                   key={label}
                   label={label}
                   onAskEdge={onAskEdge}
+                  onClearPreview={clearAnswerPreview}
+                  onPreviewAnswer={previewAnswer}
                 />
               ))}
             </div>
@@ -244,6 +255,15 @@ export function GuessBoard({
                   ),
                 )}
               </div>
+
+              {showAllLightPaths ? (
+                <AllRaysOverlay
+                  answers={allRayPreviews}
+                  excludedQuery={
+                    showLightPath ? currentRayPreview?.query : undefined
+                  }
+                />
+              ) : null}
 
               {currentRayPreview && showLightPath ? (
                 <RayOverlay answer={currentRayPreview} />
@@ -319,6 +339,8 @@ export function GuessBoard({
                   key={label}
                   label={label}
                   onAskEdge={onAskEdge}
+                  onClearPreview={clearAnswerPreview}
+                  onPreviewAnswer={previewAnswer}
                 />
               ))}
             </div>
@@ -334,6 +356,8 @@ export function GuessBoard({
                   key={label}
                   label={label}
                   onAskEdge={onAskEdge}
+                  onClearPreview={clearAnswerPreview}
+                  onPreviewAnswer={previewAnswer}
                 />
               ))}
             </div>
@@ -450,6 +474,32 @@ export function GuessBoard({
           </div>
 
           <div className={styles.statusRail}>
+            <div className={styles.lightControls} aria-label="Light display">
+              <strong>Light paths</strong>
+              <label>
+                <input
+                  checked={showAllLightPaths}
+                  onChange={(event) =>
+                    onToggleAllLightPaths(event.target.checked)
+                  }
+                  type="checkbox"
+                />
+                All rays
+              </label>
+              {currentRayPreview ? (
+                <label>
+                  <input
+                    checked={showLightPath}
+                    onChange={(event) =>
+                      onToggleLightPath(event.target.checked)
+                    }
+                    type="checkbox"
+                  />
+                  Current ray
+                </label>
+              ) : null}
+            </div>
+
             {currentAnswer ? (
               <div className={styles.currentLight}>
                 <ColorDot
@@ -472,16 +522,6 @@ export function GuessBoard({
                     <small>Preview - {currentRayPreview.message}</small>
                   ) : null}
                 </div>
-                <label>
-                  <input
-                    checked={showLightPath}
-                    onChange={(event) =>
-                      onToggleLightPath(event.target.checked)
-                    }
-                    type="checkbox"
-                  />
-                  Show light
-                </label>
               </div>
             ) : null}
 
@@ -491,15 +531,15 @@ export function GuessBoard({
                   <li
                     className={[
                       answer.mode === 'edge' ? styles.edgeLogEntry : '',
-                      answer.id === hoveredLogbookAnswerId
+                      answer.id === previewedAnswerId
                         ? styles.activeLogEntry
                         : '',
                     ].join(' ')}
                     key={answer.id}
-                    onBlur={clearLogbookPreview}
-                    onFocus={() => previewLogbookAnswer(answer)}
-                    onPointerEnter={() => previewLogbookAnswer(answer)}
-                    onPointerLeave={clearLogbookPreview}
+                    onBlur={clearAnswerPreview}
+                    onFocus={() => previewAnswer(answer)}
+                    onPointerEnter={() => previewAnswer(answer)}
+                    onPointerLeave={clearAnswerPreview}
                     style={
                       answer.mode === 'edge'
                         ? ({
@@ -573,6 +613,8 @@ function EdgeButton({
   isActive,
   label,
   onAskEdge,
+  onClearPreview,
+  onPreviewAnswer,
 }: Readonly<{
   activeRole: 'emitter' | 'receiver' | null
   activeColor: string | undefined
@@ -580,6 +622,8 @@ function EdgeButton({
   isActive: boolean
   label: string
   onAskEdge: (edgeLabel: string) => void
+  onClearPreview: () => void
+  onPreviewAnswer: (answer: Answer) => void
 }>) {
   return (
     <button
@@ -592,7 +636,19 @@ function EdgeButton({
         activeRole === 'emitter' ? styles.activeEmitterEdge : '',
         activeRole === 'receiver' ? styles.activeReceiverEdge : '',
       ].join(' ')}
+      onBlur={onClearPreview}
       onClick={() => onAskEdge(label)}
+      onFocus={() => {
+        if (answer) {
+          onPreviewAnswer(answer)
+        }
+      }}
+      onPointerEnter={() => {
+        if (answer) {
+          onPreviewAnswer(answer)
+        }
+      }}
+      onPointerLeave={onClearPreview}
       style={
         answer || activeColor
           ? ({
@@ -646,6 +702,56 @@ function RayOverlay({
         cy={points[points.length - 1].y}
         r="1.1"
       />
+    </svg>
+  )
+}
+
+function AllRaysOverlay({
+  answers,
+  excludedQuery,
+}: Readonly<{
+  answers: ReadonlyArray<Extract<Answer, { mode: 'edge' }>>
+  excludedQuery?: string
+}>) {
+  return (
+    <svg
+      aria-hidden="true"
+      className={`${styles.rayLayer} ${styles.allRaysLayer}`}
+      data-ray-layer="all"
+      preserveAspectRatio="none"
+      viewBox="0 0 100 100"
+    >
+      {answers.map((answer) => {
+        if (answer.query === excludedQuery) {
+          return null
+        }
+
+        const points = rayPoints(answer)
+
+        if (points.length < 2) {
+          return null
+        }
+
+        return (
+          <g
+            key={answer.query}
+            style={
+              {
+                '--ray-color': colorValue(answer.signalColor),
+              } as CSSProperties
+            }
+          >
+            <polyline
+              className={styles.allRayGlow}
+              points={toSvgPoints(points)}
+            />
+            <polyline
+              className={styles.allRayCore}
+              points={toSvgPoints(points)}
+            />
+          </g>
+        )
+      })}
     </svg>
   )
 }

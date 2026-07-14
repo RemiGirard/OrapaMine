@@ -1,4 +1,9 @@
-import { formatGridCoordinate, parseEdgePort, parseGridCoordinate } from './coordinates'
+import {
+  edgeLabels,
+  formatGridCoordinate,
+  parseEdgePort,
+  parseGridCoordinate,
+} from './coordinates'
 import type { SignalColor } from './colors'
 import { gemColorLabels, signalColorLabels } from './colors'
 import type { Puzzle } from './puzzles'
@@ -40,7 +45,11 @@ export function answerQuestion(
   return answerEdgeQuestion(puzzle, rawQuery, id)
 }
 
-function answerEdgeQuestion(puzzle: Puzzle, rawQuery: string, id: number): Answer {
+function answerEdgeQuestion(
+  puzzle: Puzzle,
+  rawQuery: string,
+  id: number,
+): Answer {
   const edgePort = parseEdgePort(rawQuery)
 
   if (!edgePort) {
@@ -110,7 +119,19 @@ export function answerEdgeForPlacements(
   }
 }
 
-function answerCoordinateQuestion(puzzle: Puzzle, rawQuery: string, id: number): Answer {
+export function answerAllEdgesForPlacements(
+  placements: ReadonlyArray<MineralPlacement>,
+): ReadonlyArray<Extract<Answer, { mode: 'edge' }>> {
+  return edgeLabels.map((edgeLabel, index) =>
+    answerEdgeForPlacements(placements, edgeLabel, -(index + 1)),
+  )
+}
+
+function answerCoordinateQuestion(
+  puzzle: Puzzle,
+  rawQuery: string,
+  id: number,
+): Answer {
   const coordinate = parseGridCoordinate(rawQuery)
 
   if (!coordinate) {
@@ -154,7 +175,9 @@ function answerCoordinateQuestion(puzzle: Puzzle, rawQuery: string, id: number):
     query: formatGridCoordinate(coordinate),
     message: `${gemColorLabels[occupant.mineral.color]} gem`,
     signalColor:
-      occupant.mineral.color === 'transparent' ? 'transparent' : occupant.mineral.color,
+      occupant.mineral.color === 'transparent'
+        ? 'transparent'
+        : occupant.mineral.color,
     path: [coordinate],
   }
 }

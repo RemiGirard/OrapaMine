@@ -203,27 +203,134 @@ describe('GuessBoard piece interactions', () => {
       .map(Number)
 
     expect(pointValues).toBeDefined()
-    expect(pointValues?.every((point) => point >= 0 && point <= 100)).toBe(
-      true,
+    expect(pointValues?.every((point) => point >= 0 && point <= 100)).toBe(true)
+  })
+
+  it('renders every placement-derived ray and lets the family hide them', () => {
+    const allRayPreviews: ReadonlyArray<Extract<Answer, { mode: 'edge' }>> = [
+      {
+        exitLabel: 'B1',
+        id: -1,
+        message: 'Exit B1 - Transparent',
+        mode: 'edge',
+        path: [{ column: 0, row: 4 }],
+        query: 'T1',
+        signalColor: 'transparent',
+      },
+      {
+        exitLabel: 'R1',
+        id: -2,
+        message: 'Exit R1 - Red',
+        mode: 'edge',
+        path: [{ column: 4, row: 0 }],
+        query: 'L1',
+        signalColor: 'red',
+      },
+    ]
+
+    render(
+      <InteractiveGuessBoard
+        allRayPreviews={allRayPreviews}
+        initiallyShowAllLightPaths
+      />,
     )
+
+    const allRaysToggle = screen.getByRole('checkbox', {
+      name: 'All rays',
+    })
+
+    expect(allRaysToggle).toHaveProperty('checked', true)
+    expect(
+      document.querySelectorAll('[data-ray-layer="all"] polyline'),
+    ).toHaveLength(4)
+
+    fireEvent.click(allRaysToggle)
+
+    expect(allRaysToggle).toHaveProperty('checked', false)
+    expect(document.querySelector('[data-ray-layer="all"]')).toBeNull()
+  })
+
+  it('brightens the real output of the latest answer and previews answered labels on hover', () => {
+    const latestAnswer: Extract<Answer, { mode: 'edge' }> = {
+      exitLabel: 'B2',
+      id: 10,
+      message: 'Exit B2 - Red',
+      mode: 'edge',
+      path: [{ column: 1, row: 4 }],
+      query: 'T2',
+      signalColor: 'red',
+    }
+    const hoveredAnswer: Extract<Answer, { mode: 'edge' }> = {
+      exitLabel: 'R4',
+      id: 11,
+      message: 'Exit R4 - Blue',
+      mode: 'edge',
+      path: [{ column: 4, row: 3 }],
+      query: 'L4',
+      signalColor: 'blue',
+    }
+
+    render(
+      <InteractiveGuessBoard
+        answers={[latestAnswer, hoveredAnswer]}
+        currentAnswer={latestAnswer}
+        edgeAnswers={
+          new Map([
+            [latestAnswer.query, latestAnswer],
+            [hoveredAnswer.query, hoveredAnswer],
+          ])
+        }
+      />,
+    )
+
+    const latestOutput = screen.getByRole('button', { name: 'Send ray B2' })
+    const hoveredInput = screen.getByRole('button', { name: 'Send ray L4' })
+    const hoveredOutput = screen.getByRole('button', { name: 'Send ray R4' })
+
+    expect(latestOutput.getAttribute('data-edge-role')).toBe('receiver')
+    expect(latestOutput.className).toContain('activeReceiverEdge')
+
+    fireEvent.pointerEnter(hoveredInput)
+
+    expect(latestOutput.getAttribute('data-edge-role')).toBeNull()
+    expect(hoveredOutput.getAttribute('data-edge-role')).toBe('receiver')
+    expect(hoveredOutput.className).toContain('activeReceiverEdge')
+
+    fireEvent.pointerLeave(hoveredInput)
+
+    expect(latestOutput.getAttribute('data-edge-role')).toBe('receiver')
   })
 })
 
 function InteractiveGuessBoard({
+  allRayPreviews = [],
+  answers = [],
+  currentAnswer = null,
   currentRayPreview = null,
+  edgeAnswers = new Map(),
+  initiallyShowAllLightPaths = false,
   showLightPath = false,
 }: Readonly<{
+  allRayPreviews?: ReadonlyArray<Extract<Answer, { mode: 'edge' }>>
+  answers?: ReadonlyArray<Answer>
+  currentAnswer?: Answer | null
   currentRayPreview?: Extract<Answer, { mode: 'edge' }> | null
+  edgeAnswers?: ReadonlyMap<string, Answer>
+  initiallyShowAllLightPaths?: boolean
   showLightPath?: boolean
 }>) {
   const [guess, setGuess] = useState(() => createEmptyGuess(puzzle))
+  const [showAllLightPaths, setShowAllLightPaths] = useState(
+    initiallyShowAllLightPaths,
+  )
 
   return (
     <GuessBoard
-      answers={[]}
-      currentAnswer={null}
+      allRayPreviews={allRayPreviews}
+      answers={answers}
+      currentAnswer={currentAnswer}
       currentRayPreview={currentRayPreview}
-      edgeAnswers={new Map()}
+      edgeAnswers={edgeAnswers}
       guess={guess}
       onAskEdge={() => undefined}
       onFlip={(mineralId) =>
@@ -244,9 +351,11 @@ function InteractiveGuessBoard({
       onSelect={() => undefined}
       onStartVoiceCommand={() => undefined}
       onSubmit={() => undefined}
+      onToggleAllLightPaths={setShowAllLightPaths}
       onToggleLightPath={() => undefined}
       result={null}
       selectedMineralId="red-parallelogram"
+      showAllLightPaths={showAllLightPaths}
       showLightPath={showLightPath}
       showSolution={false}
       solutionPlacements={puzzle.placements}

@@ -36,6 +36,13 @@ export const rightLabels = Array.from(
   (_, index) => `R${index + 1}`,
 )
 
+export const edgeLabels: ReadonlyArray<string> = [
+  ...topLabels,
+  ...rightLabels,
+  ...bottomLabels,
+  ...leftLabels,
+]
+
 export function coordinateKey(coordinate: Coordinate) {
   return `${coordinate.column}:${coordinate.row}`
 }
@@ -131,7 +138,10 @@ function edgePortFromSide(side: string, index: number): EdgePort | null {
 }
 
 export function parseGridCoordinate(rawInput: string): Coordinate | null {
-  const input = rawInput.trim().toUpperCase().replace(/[(),\s]/g, '')
+  const input = rawInput
+    .trim()
+    .toUpperCase()
+    .replace(/[(),\s]/g, '')
   const columnRow = input.match(/^(?:C)?([1-8])(?:R)?(10|[1-9])$/)
   const rowColumn = input.match(/^R(10|[1-9])C([1-8])$/)
 

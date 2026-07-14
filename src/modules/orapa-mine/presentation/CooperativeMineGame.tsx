@@ -31,6 +31,7 @@ export function CooperativeMineGame() {
 
       <section className={styles.layout}>
         <GuessBoard
+          allRayPreviews={game.allRayPreviews}
           answers={game.answers}
           currentAnswer={game.lastAnswer}
           currentRayPreview={game.currentRayPreview}
@@ -45,9 +46,11 @@ export function CooperativeMineGame() {
           onSelect={game.selectGuessMineral}
           onStartVoiceCommand={voiceCommand.startListening}
           onSubmit={game.submitGuess}
+          onToggleAllLightPaths={game.setShowAllLightPaths}
           onToggleLightPath={game.setShowLightPath}
           result={game.submittedResult}
           selectedMineralId={game.selectedMineralId}
+          showAllLightPaths={game.showAllLightPaths}
           showLightPath={game.showLightPath}
           showSolution={game.showSolution}
           solutionPlacements={game.puzzle.placements}

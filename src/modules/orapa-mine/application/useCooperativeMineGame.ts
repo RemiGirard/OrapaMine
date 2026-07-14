@@ -1,5 +1,9 @@
 import { useMemo, useState } from 'react'
-import { answerEdgeForPlacements, answerQuestion } from '../domain/questions'
+import {
+  answerAllEdgesForPlacements,
+  answerEdgeForPlacements,
+  answerQuestion,
+} from '../domain/questions'
 import type { QuestionMode } from '../domain/questions'
 import type { Coordinate } from '../domain/coordinates'
 import {
@@ -20,6 +24,7 @@ export function useCooperativeMineGame() {
   const [puzzleIndex, setPuzzleIndex] = useState(0)
   const [showSolution, setShowSolution] = useState(false)
   const [showLightPath, setShowLightPath] = useState(true)
+  const [showAllLightPaths, setShowAllLightPaths] = useState(true)
   const [answers, setAnswers] = useState<
     Array<ReturnType<typeof answerQuestion>>
   >([])
@@ -65,6 +70,10 @@ export function useCooperativeMineGame() {
         : null,
     [guessPlacements, lastAnswer],
   )
+  const allRayPreviews = useMemo(
+    () => answerAllEdgesForPlacements(guessPlacements),
+    [guessPlacements],
+  )
   function askQuestion(mode: QuestionMode, questionQuery: string) {
     const answer = answerQuestion(puzzle, mode, questionQuery, Date.now())
 
@@ -90,6 +99,7 @@ export function useCooperativeMineGame() {
     setPuzzleIndex(nextIndex)
     setShowSolution(false)
     setShowLightPath(true)
+    setShowAllLightPaths(true)
     setAnswers([])
     setGuess(createEmptyGuess(preparedPuzzles[nextIndex]))
     setSelectedMineralId(preparedPuzzles[nextIndex].placements[0].mineralId)
@@ -137,6 +147,7 @@ export function useCooperativeMineGame() {
   }
 
   return {
+    allRayPreviews,
     answers,
     askEdge,
     askVoiceQuestion,
@@ -154,8 +165,10 @@ export function useCooperativeMineGame() {
     rotateGuess,
     selectGuessMineral,
     selectedMineralId,
+    setShowAllLightPaths,
     setShowLightPath,
     setShowSolution,
+    showAllLightPaths,
     showLightPath,
     showSolution,
     solutionCells,

@@ -89,7 +89,7 @@
   color: #ecf7ff;
   display: grid;
   gap: 0.65rem;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr);
   min-height: 2.65rem;
   padding: 0.45rem 0.6rem;
 }
@@ -121,14 +121,37 @@
   white-space: nowrap;
 }
 
-.currentLight label {
+.lightControls {
   align-items: center;
+  background: rgb(255 255 255 / 0.035);
+  border: 1px solid rgb(156 224 255 / 0.14);
+  border-radius: 8px;
   color: #91a8b8;
   display: flex;
+  flex-wrap: wrap;
   font-size: 0.72rem;
+  gap: 0.75rem;
+  min-height: 2.45rem;
+  padding: 0.45rem 0.6rem;
+}
+
+.lightControls strong {
+  color: #ecf7ff;
+  font-size: 0.76rem;
+  margin-right: auto;
+}
+
+.lightControls label {
+  align-items: center;
+  display: flex;
   font-weight: 800;
   gap: 0.35rem;
   white-space: nowrap;
+}
+
+.lightControls input {
+  accent-color: #2effcd;
+  margin: 0;
 }
 
 .logbook {
@@ -386,6 +409,30 @@
   text-shadow: 0 1px 2px rgb(0 0 0 / 0.54);
 }
 
+.columnLabels .answeredEdge.activeRayEdge,
+.bottomLabels .answeredEdge.activeRayEdge,
+.rowLabels .answeredEdge.activeRayEdge,
+.rightLabels .answeredEdge.activeRayEdge {
+  background:
+    radial-gradient(
+      circle at 30% 24%,
+      rgb(255 255 255 / 0.62),
+      transparent 34%
+    ),
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--edge-active-color) 72%, white),
+      color-mix(in srgb, var(--edge-active-color) 76%, #06111a)
+    );
+  border-color: color-mix(in srgb, var(--edge-active-color) 38%, white);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.42),
+    inset 0 -10px 13px rgb(0 0 0 / 0.12),
+    0 0 15px var(--edge-active-color),
+    0 0 28px color-mix(in srgb, var(--edge-active-color) 48%, transparent);
+  color: #ffffff;
+}
+
 .columnLabels .activeRayEdge:not(.answeredEdge)::after,
 .bottomLabels .activeRayEdge:not(.answeredEdge)::before,
 .rowLabels .activeRayEdge:not(.answeredEdge)::after,
@@ -394,6 +441,17 @@
   box-shadow:
     0 0 12px var(--edge-active-color),
     0 0 24px color-mix(in srgb, var(--edge-active-color) 46%, transparent);
+  opacity: 1;
+}
+
+.columnLabels .answeredEdge.activeRayEdge::after,
+.bottomLabels .answeredEdge.activeRayEdge::before,
+.rowLabels .answeredEdge.activeRayEdge::after,
+.rightLabels .answeredEdge.activeRayEdge::before {
+  background: color-mix(in srgb, var(--edge-active-color) 42%, white);
+  box-shadow:
+    0 0 12px var(--edge-active-color),
+    0 0 24px color-mix(in srgb, var(--edge-active-color) 58%, transparent);
   opacity: 1;
 }
 
@@ -411,17 +469,17 @@
   transform: scale(1.08);
 }
 
-.columnLabels .activeReceiverEdge:not(.answeredEdge),
-.bottomLabels .activeReceiverEdge:not(.answeredEdge),
-.rowLabels .activeReceiverEdge:not(.answeredEdge),
-.rightLabels .activeReceiverEdge:not(.answeredEdge) {
+.columnLabels .activeReceiverEdge,
+.bottomLabels .activeReceiverEdge,
+.rowLabels .activeReceiverEdge,
+.rightLabels .activeReceiverEdge {
   animation: receiverLamp 1800ms ease-in-out infinite;
 }
 
-.columnLabels .activeReceiverEdge:not(.answeredEdge)::after,
-.bottomLabels .activeReceiverEdge:not(.answeredEdge)::before,
-.rowLabels .activeReceiverEdge:not(.answeredEdge)::after,
-.rightLabels .activeReceiverEdge:not(.answeredEdge)::before {
+.columnLabels .activeReceiverEdge::after,
+.bottomLabels .activeReceiverEdge::before,
+.rowLabels .activeReceiverEdge::after,
+.rightLabels .activeReceiverEdge::before {
   animation: receiverLead 1800ms ease-in-out infinite;
 }
 
@@ -521,11 +579,30 @@
 }
 
 .rayCore,
-.rayGlow {
+.rayGlow,
+.allRayCore,
+.allRayGlow {
   fill: none;
   stroke-linecap: square;
   stroke-linejoin: miter;
   vector-effect: non-scaling-stroke;
+}
+
+.allRaysLayer {
+  filter: none;
+  z-index: 2;
+}
+
+.allRayGlow {
+  opacity: 0.09;
+  stroke: var(--ray-color);
+  stroke-width: 4;
+}
+
+.allRayCore {
+  opacity: 0.28;
+  stroke: var(--ray-color);
+  stroke-width: 0.85;
 }
 
 .rayGlow {
