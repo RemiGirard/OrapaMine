@@ -1,0 +1,102 @@
+.currentLight {
+  align-items: center;
+  background: rgb(255 255 255 / 0.045);
+  border: 1px solid rgb(156 224 255 / 0.18);
+  border-radius: 8px;
+  color: #ecf7ff;
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: auto minmax(0, 1fr);
+  min-height: 2.65rem;
+  padding: 0.45rem 0.6rem;
+}
+
+.currentLight div {
+  display: grid;
+  gap: 0.12rem;
+  min-width: 0;
+}
+
+.currentLight strong {
+  font-size: 0.78rem;
+}
+
+.currentLight span {
+  color: #aac0ce;
+  font-size: 0.76rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.currentLight small {
+  color: #7bd7ff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.logbook {
+  display: grid;
+  gap: 0.35rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.logbook li {
+  align-items: center;
+  background: rgb(255 255 255 / 0.035);
+  border: 1px solid rgb(156 224 255 / 0.12);
+  border-radius: 8px;
+  color: #ecf7ff;
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: auto 4.8rem minmax(0, 1fr);
+  min-height: 2rem;
+  padding: 0 0.6rem;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.edgeLogEntry {
+  cursor: crosshair;
+}
+
+.edgeLogEntry:hover,
+.edgeLogEntry:focus-visible,
+.activeLogEntry {
+  background: color-mix(
+    in srgb,
+    var(--logbook-active-color) 11%,
+    rgb(255 255 255 / 0.045)
+  );
+  border-color: color-mix(
+    in srgb,
+    var(--logbook-active-color) 46%,
+    rgb(156 224 255 / 0.18)
+  );
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.1),
+    0 0 18px color-mix(in srgb, var(--logbook-active-color) 26%, transparent);
+  outline: 0;
+  transform: translateX(-2px);
+}
+
+.logbook span {
+  color: #91a8b8;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.logbook strong {
+  font-size: 0.82rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

@@ -9,10 +9,10 @@ import {
   moveGuessMineral,
   removeGuessMineral,
   rotateGuessMineral,
-} from '../domain/puzzles'
+} from '../domain/familySolution'
 import type { Puzzle } from '../domain/puzzles'
 import type { Answer } from '../domain/questions'
-import { GuessBoard } from './GuessBoard'
+import { GameTable } from './GameTable'
 
 const puzzle: Puzzle = {
   id: 'interaction-test',
@@ -48,7 +48,7 @@ const stackSlotRect = {
   y: 20,
 } as DOMRect
 
-describe('GuessBoard piece interactions', () => {
+describe('GameTable piece interactions', () => {
   const originalGetBoundingClientRect =
     HTMLElement.prototype.getBoundingClientRect
   const originalElementFromPoint = document.elementFromPoint
@@ -76,7 +76,7 @@ describe('GuessBoard piece interactions', () => {
   })
 
   it('moves a glass piece from tray to grid, around the grid, flips it, and returns it to the tray', () => {
-    render(<InteractiveGuessBoard />)
+    render(<InteractiveGameTable />)
 
     const panel = document.querySelector('aside')
     const stackButton = screen.getByRole('button', {
@@ -150,7 +150,7 @@ describe('GuessBoard piece interactions', () => {
   })
 
   it('places a picked glass piece on a board click', () => {
-    render(<InteractiveGuessBoard />)
+    render(<InteractiveGameTable />)
 
     const panel = document.querySelector('aside')
     const board = document.querySelector('[class*="boardSurface"]')
@@ -184,7 +184,7 @@ describe('GuessBoard piece interactions', () => {
     }
 
     render(
-      <InteractiveGuessBoard
+      <InteractiveGameTable
         currentRayPreview={currentRayPreview}
         showLightPath
       />,
@@ -229,7 +229,7 @@ describe('GuessBoard piece interactions', () => {
     ]
 
     render(
-      <InteractiveGuessBoard
+      <InteractiveGameTable
         allRayPreviews={allRayPreviews}
         initiallyShowAllLightPaths
       />,
@@ -271,7 +271,7 @@ describe('GuessBoard piece interactions', () => {
     }
 
     render(
-      <InteractiveGuessBoard
+      <InteractiveGameTable
         answers={[latestAnswer, hoveredAnswer]}
         currentAnswer={latestAnswer}
         edgeAnswers={
@@ -302,7 +302,7 @@ describe('GuessBoard piece interactions', () => {
   })
 })
 
-function InteractiveGuessBoard({
+function InteractiveGameTable({
   allRayPreviews = [],
   answers = [],
   currentAnswer = null,
@@ -315,7 +315,7 @@ function InteractiveGuessBoard({
   answers?: ReadonlyArray<Answer>
   currentAnswer?: Answer | null
   currentRayPreview?: Extract<Answer, { mode: 'edge' }> | null
-  edgeAnswers?: ReadonlyMap<string, Answer>
+  edgeAnswers?: ReadonlyMap<string, Extract<Answer, { mode: 'edge' }>>
   initiallyShowAllLightPaths?: boolean
   showLightPath?: boolean
 }>) {
@@ -325,41 +325,51 @@ function InteractiveGuessBoard({
   )
 
   return (
-    <GuessBoard
-      allRayPreviews={allRayPreviews}
-      answers={answers}
-      currentAnswer={currentAnswer}
-      currentRayPreview={currentRayPreview}
-      edgeAnswers={edgeAnswers}
-      guess={guess}
-      onAskEdge={() => undefined}
-      onFlip={(mineralId) =>
-        setGuess((currentGuess) => flipGuessMineral(currentGuess, mineralId))
-      }
-      onPlace={(mineralId, origin) =>
-        setGuess((currentGuess) =>
-          moveGuessMineral(currentGuess, mineralId, origin),
-        )
-      }
-      onRemove={(mineralId) =>
-        setGuess((currentGuess) => removeGuessMineral(currentGuess, mineralId))
-      }
-      onReset={() => setGuess(createEmptyGuess(puzzle))}
-      onRotate={(mineralId) =>
-        setGuess((currentGuess) => rotateGuessMineral(currentGuess, mineralId))
-      }
-      onSelect={() => undefined}
-      onStartVoiceCommand={() => undefined}
-      onSubmit={() => undefined}
-      onToggleAllLightPaths={setShowAllLightPaths}
-      onToggleLightPath={() => undefined}
-      result={null}
-      selectedMineralId="red-parallelogram"
-      showAllLightPaths={showAllLightPaths}
-      showLightPath={showLightPath}
-      showSolution={false}
-      solutionPlacements={puzzle.placements}
-      voiceStatus="idle"
+    <GameTable
+      clues={{
+        answers,
+        currentAnswer,
+        edgeAnswers,
+        onAskEdge: () => undefined,
+      }}
+      familySolution={{
+        guess,
+        onFlip: (mineralId) =>
+          setGuess((currentGuess) => flipGuessMineral(currentGuess, mineralId)),
+        onPlace: (mineralId, origin) =>
+          setGuess((currentGuess) =>
+            moveGuessMineral(currentGuess, mineralId, origin),
+          ),
+        onRemove: (mineralId) =>
+          setGuess((currentGuess) =>
+            removeGuessMineral(currentGuess, mineralId),
+          ),
+        onReset: () => setGuess(createEmptyGuess(puzzle)),
+        onRotate: (mineralId) =>
+          setGuess((currentGuess) =>
+            rotateGuessMineral(currentGuess, mineralId),
+          ),
+        onSelect: () => undefined,
+        onSubmit: () => undefined,
+        result: null,
+        selectedMineralId: 'red-parallelogram',
+      }}
+      light={{
+        allRays: allRayPreviews,
+        currentRay: currentRayPreview,
+        onShowAllRaysChange: setShowAllLightPaths,
+        onShowCurrentRayChange: () => undefined,
+        showAllRays: showAllLightPaths,
+        showCurrentRay: showLightPath,
+      }}
+      puzzle={{
+        showSolution: false,
+        solutionPlacements: puzzle.placements,
+      }}
+      voice={{
+        onStart: () => undefined,
+        status: 'idle',
+      }}
     />
   )
 }

@@ -1,0 +1,28 @@
+.submitButton {
+  background: linear-gradient(90deg, #1af0c2, #7bd7ff);
+  border: 0;
+  border-radius: 8px;
+  color: #061018;
+  font-weight: 900;
+  min-height: 2.65rem;
+  width: 100%;
+}
+
+.solved,
+.notSolved {
+  border-radius: 8px;
+  font-weight: 900;
+  margin: 0.75rem 0 0;
+  padding: 0.65rem 0.75rem;
+  text-align: center;
+}
+
+.solved {
+  background: rgb(26 240 194 / 0.14);
+  color: #8fffe9;
+}
+
+.notSolved {
+  background: rgb(255 194 91 / 0.14);
+  color: #ffd492;
+}

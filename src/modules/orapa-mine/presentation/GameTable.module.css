@@ -1,0 +1,95 @@
+.panel {
+  background: rgb(9 16 25 / 0.82);
+  border: 1px solid rgb(126 219 255 / 0.2);
+  border-radius: 8px;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.06),
+    0 18px 44px rgb(0 0 0 / 0.3);
+  padding: 0.75rem;
+}
+
+.playSurface {
+  align-items: start;
+  display: grid;
+  gap: 0.9rem;
+  grid-template-columns: minmax(290px, 365px) minmax(0, 492px) minmax(
+      290px,
+      365px
+    );
+  justify-content: center;
+}
+
+.boardColumn,
+.sideRail {
+  min-width: 0;
+}
+
+.boardColumn {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.sideRail {
+  display: contents;
+}
+
+.stackCase,
+.statusRail {
+  align-content: start;
+  display: grid;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.stackCase {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.statusRail {
+  grid-column: 3;
+  grid-row: 1;
+}
+
+.heading {
+  align-items: center;
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.35rem;
+}
+
+.heading button {
+  align-items: center;
+  aspect-ratio: 1;
+  background: rgb(255 255 255 / 0.07);
+  border: 1px solid rgb(156 224 255 / 0.22);
+  border-radius: 8px;
+  color: #ecf7ff;
+  display: flex;
+  justify-content: center;
+  width: 2.15rem;
+}
+
+.headingActions {
+  display: flex;
+  gap: 0.45rem;
+}
+
+.headingActions .listening {
+  border-color: rgb(46 255 205 / 0.72);
+  box-shadow: 0 0 18px rgb(46 255 205 / 0.2);
+  color: #8fffe9;
+}
+
+@media (max-width: 900px) {
+  .playSurface {
+    grid-template-columns: 1fr;
+  }
+
+  .boardColumn,
+  .stackCase,
+  .statusRail {
+    grid-column: 1;
+    grid-row: auto;
+  }
+}

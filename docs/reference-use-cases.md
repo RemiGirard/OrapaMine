@@ -1,35 +1,62 @@
 # Reference App Use Cases
 
-Source inspected in Chrome: https://theapo.github.io/orapa/
+Source inspected interactively in Chrome: https://theapo.github.io/orapa/
 
-## Observed Reference Behaviors
+## Reference Behaviors
 
-- The playable surface uses one board for the family answer.
-- Edge labels around the board are clickable ray emitters.
-- `Send Ray` mode records an entry such as `T1 -> T1` with the resulting color.
-- `Query Cell` mode lets the player click a board cell and records whether it is empty
-  or which gem color is present.
-- Training mode can show the current light path on the same board.
-- The logbook keeps the recent ray and cell answers.
-- Pieces are whole shapes from a toolbar. Position and orientation both matter.
-- The white diamond is a 2 by 2 faceted piece, not a square token.
-- Clicking a placed piece rotates it 90 degrees; pieces can be dragged from the toolbar.
+- A single 8 by 10 board represents the family's proposed solution.
+- The 36 perimeter labels are clickable ray emitters.
+- Sending a ray records its entry, exit or absorption, and resulting color.
+- Training mode can draw the current light path on the same board.
+- The logbook retains recent ray and coordinate answers.
+- Pieces are whole polygonal shapes. Their grid position, orientation, and face matter.
+- The white diamond occupies a 2 by 2 area and is not a square token.
+- The reference supports coordinate queries, but its piece manipulation is less direct than the
+  physical glass-case interaction required here.
 
-## Use Cases For This App
+## Cooperative Session Use Cases
 
-- A player clicks an edge label on the answer grid and immediately gets a ray answer.
-- The latest edge ray draws a visible light path on the answer grid.
-- A player can hide or show the current light path without losing the logbook entry.
-- A player selects a gemstone, rotates it, and clicks the answer grid to place the whole
-  oriented piece.
-- A player clicks a placed piece to rotate it directly on the board.
-- A player can reveal the solution as a ghost overlay on the same answer grid.
-- A player can speak a short ray question, such as `top four` or `right six`.
+### Ask for a clue
+
+1. A player clicks any top, right, bottom, or left edge label.
+2. The actual puzzle answers with an exit/absorption and color.
+3. The clicked emitter and resulting receiver become the brightest labels.
+4. The answer is added to the notebook and can be previewed again by hovering it.
+
+The same use case can start from a spoken command such as `top four` or `right six`.
+
+### Inspect the current family optics
+
+1. Every ray for the current family placement is visible by default.
+2. The family may independently hide all live rays or the latest selected ray.
+3. Moving, rotating, flipping, or returning a glass piece recomputes the live rays from derived
+   state; no light result is stored separately.
+
+Actual clue colors remain puzzle answers. Live-ray previews show what the current family placement
+would produce and never overwrite the clue notebook.
+
+### Build the family solution
+
+1. Pick a glass piece directly from its fitted foam slot.
+2. Move it with the cursor; the piece follows the grabbed point and a grey ghost marks an exact,
+   valid board placement.
+3. Release on the board to place it. Invalid or overlapping positions are not targets.
+4. Drag a placed piece to move it again.
+5. Right-click to rotate 90 degrees. Double-click or Shift-right-click flips the piece face.
+6. Drag a placed piece back to its matching foam slot, or use the reset control revealed in the
+   empty slot, to return it.
+7. Submit only when the family wants an exact position/orientation/face comparison.
+
+### Manage the puzzle session
+
+- Reset clears only the family solution for the current puzzle.
+- Reveal overlays the prepared solution without replacing the family placement.
+- New advances to another prepared puzzle and resets clues, family solution, reveal state, and
+  light-display preferences as one session transition.
 
 ## Deliberate Differences
 
-- The reference app is useful but visually close to a utility board. This app keeps a
-  darker science/light theme with animated ambient beams.
-- Voice entry is added here because the cooperative family workflow needs spoken tries.
-- Cell query exists in the reference app, but this app currently keeps clicks focused on
-  row and column rays; coordinate query can be reintroduced after the base clone is solid.
+- This app uses a dark science-and-light table with glass reflections and animated rays.
+- Voice entry supports a family gathered around one landscape display.
+- Coordinate query is intentionally absent from the current UI so direct row/column play stays
+  primary. The domain still supports it for a later feature.

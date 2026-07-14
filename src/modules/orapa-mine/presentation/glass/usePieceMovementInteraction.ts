@@ -8,24 +8,19 @@ import {
   finishPieceMovement,
   movePieceMovement,
   startPieceMovement,
-} from '../application/pieceMovement'
+} from '../../application/pieceMovement'
 import type {
   PieceMovementAnchor,
   PieceMovementSession,
   PieceMovementTarget,
-} from '../application/pieceMovement'
-import { boardSize } from '../domain/coordinates'
-import type { Coordinate } from '../domain/coordinates'
+} from '../../application/pieceMovement'
+import type { Coordinate } from '../../domain/coordinates'
+import type { GuessPlacement, MineralId } from '../../domain/minerals'
 import {
-  canPlaceMineralWithOrientation,
-  getMineralShape,
-  placementsOverlap,
-} from '../domain/minerals'
-import type {
-  GuessPlacement,
-  MineralId,
-  MineralPlacement,
-} from '../domain/minerals'
+  movementTargetFromClientPoint,
+  placedDragAnchorFromClientPoint as resolvePlacedDragAnchor,
+  stackDragAnchor,
+} from './pieceDropTargets'
 
 type PieceMovementInteractionOptions = Readonly<{
   boardRef: RefObject<HTMLDivElement | null>
@@ -61,146 +56,6 @@ export function usePieceMovementInteraction({
     cleanupDocumentListenersRef.current = null
   }, [])
 
-  const boardPointFromClientPoint = useCallback(
-    (clientX: number, clientY: number) => {
-      const boardRect = boardRef.current?.getBoundingClientRect()
-
-      if (!boardRect) {
-        return null
-      }
-
-      const column =
-        ((clientX - boardRect.left) / boardRect.width) * boardSize.columns
-      const row =
-        ((clientY - boardRect.top) / boardRect.height) * boardSize.rows
-
-      if (
-        column < 0 ||
-        column > boardSize.columns ||
-        row < 0 ||
-        row > boardSize.rows
-      ) {
-        return null
-      }
-
-      return { column, row }
-    },
-    [boardRef],
-  )
-
-  const canDropMineral = useCallback(
-    (mineralId: MineralId, origin: Coordinate) => {
-      const targetPlacement = guess.find(
-        (placement) => placement.mineralId === mineralId,
-      )
-
-      if (!targetPlacement) {
-        return false
-      }
-
-      if (
-        !canPlaceMineralWithOrientation(
-          mineralId,
-          origin,
-          targetPlacement.orientation,
-          targetPlacement.face,
-        )
-      ) {
-        return false
-      }
-
-      const nextPlacements = guess.flatMap<MineralPlacement>((placement) => {
-        if (placement.mineralId === mineralId) {
-          return [
-            {
-              face: targetPlacement.face,
-              mineralId,
-              orientation: targetPlacement.orientation,
-              origin,
-            },
-          ]
-        }
-
-        return placement.origin
-          ? [
-              {
-                face: placement.face,
-                mineralId: placement.mineralId,
-                orientation: placement.orientation,
-                origin: placement.origin,
-              },
-            ]
-          : []
-      })
-
-      return !placementsOverlap(nextPlacements)
-    },
-    [guess],
-  )
-
-  const targetOriginFromClientPoint = useCallback(
-    (
-      clientX: number,
-      clientY: number,
-      mineralId: MineralId,
-      anchor: PieceMovementAnchor,
-    ) => {
-      const boardPoint = boardPointFromClientPoint(clientX, clientY)
-
-      if (!boardPoint) {
-        return null
-      }
-
-      const origin = {
-        column: Math.round(boardPoint.column - anchor.column),
-        row: Math.round(boardPoint.row - anchor.row),
-      }
-
-      return canDropMineral(mineralId, origin) ? origin : null
-    },
-    [boardPointFromClientPoint, canDropMineral],
-  )
-
-  const isPointerOverStackSlot = useCallback(
-    (clientX: number, clientY: number, mineralId: MineralId) => {
-      const stackSlots = document.querySelectorAll('[data-stack-mineral-id]')
-
-      for (const stackSlot of stackSlots) {
-        if (!(stackSlot instanceof HTMLElement)) {
-          continue
-        }
-
-        if (stackSlot.dataset.stackMineralId !== mineralId) {
-          continue
-        }
-
-        const stackSlotRect = stackSlot.getBoundingClientRect()
-
-        if (
-          clientX >= stackSlotRect.left &&
-          clientX <= stackSlotRect.right &&
-          clientY >= stackSlotRect.top &&
-          clientY <= stackSlotRect.bottom
-        ) {
-          return true
-        }
-      }
-
-      let currentElement = document.elementFromPoint(clientX, clientY)
-
-      while (currentElement instanceof HTMLElement) {
-        if (currentElement.dataset.stackMineralId === mineralId) {
-          return true
-        }
-
-        currentElement = currentElement.parentElement
-      }
-
-      return false
-    },
-    [],
-  )
-
   const targetFromClientPoint = useCallback(
     (
       clientX: number,
@@ -208,63 +63,27 @@ export function usePieceMovementInteraction({
       mineralId: MineralId,
       anchor: PieceMovementAnchor,
     ): PieceMovementTarget => {
-      const boardOrigin = targetOriginFromClientPoint(
-        clientX,
-        clientY,
-        mineralId,
+      return movementTargetFromClientPoint({
         anchor,
-      )
-
-      if (boardOrigin) {
-        return {
-          kind: 'board',
-          origin: boardOrigin,
-        }
-      }
-
-      const placement = guess.find(
-        (guessPlacement) => guessPlacement.mineralId === mineralId,
-      )
-
-      if (
-        placement?.origin &&
-        isPointerOverStackSlot(clientX, clientY, mineralId)
-      ) {
-        return { kind: 'stack' }
-      }
-
-      return null
+        boardRect: boardRef.current?.getBoundingClientRect() ?? null,
+        documentRoot: document,
+        guess,
+        mineralId,
+        point: { x: clientX, y: clientY },
+      })
     },
-    [guess, isPointerOverStackSlot, targetOriginFromClientPoint],
+    [boardRef, guess],
   )
-
-  const stackDragAnchor = useCallback((placement: GuessPlacement) => {
-    const shape = getMineralShape(
-      placement.mineralId,
-      placement.orientation,
-      placement.face,
-    )
-
-    return {
-      column: shape.width / 2,
-      row: shape.height / 2,
-    }
-  }, [])
 
   const placedDragAnchorFromClientPoint = useCallback(
     (clientX: number, clientY: number, placement: GuessPlacement) => {
-      const boardPoint = boardPointFromClientPoint(clientX, clientY)
-
-      if (!boardPoint || !placement.origin) {
-        return stackDragAnchor(placement)
-      }
-
-      return {
-        column: boardPoint.column - placement.origin.column,
-        row: boardPoint.row - placement.origin.row,
-      }
+      return resolvePlacedDragAnchor(
+        boardRef.current?.getBoundingClientRect() ?? null,
+        { x: clientX, y: clientY },
+        placement,
+      )
     },
-    [boardPointFromClientPoint, stackDragAnchor],
+    [boardRef],
   )
 
   const placedPointerDragAnchor = useCallback(

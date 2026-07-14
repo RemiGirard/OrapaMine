@@ -1,0 +1,295 @@
+.columnLabels,
+.bottomLabels,
+.rowLabels,
+.rightLabels {
+  align-items: center;
+  color: #91a8b8;
+  display: grid;
+  font-size: 0.66rem;
+  font-weight: 900;
+  justify-items: center;
+}
+
+.columnLabels,
+.bottomLabels {
+  grid-column: 2;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+}
+
+.columnLabels {
+  grid-row: 1;
+}
+
+.bottomLabels {
+  grid-row: 3;
+}
+
+.rowLabels,
+.rightLabels {
+  grid-template-rows: repeat(10, minmax(0, 1fr));
+}
+
+.rowLabels {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.rightLabels {
+  grid-column: 3;
+  grid-row: 2;
+}
+
+.columnLabels button,
+.bottomLabels button,
+.rowLabels button,
+.rightLabels button {
+  align-items: center;
+  aspect-ratio: 1;
+  background:
+    radial-gradient(
+      circle at 28% 24%,
+      rgb(255 255 255 / 0.28),
+      transparent 30%
+    ),
+    linear-gradient(145deg, rgb(123 215 255 / 0.15), rgb(6 14 22 / 0.92));
+  border: 1px solid rgb(156 224 255 / 0.24);
+  border-radius: 6px;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.16),
+    inset 0 -10px 14px rgb(0 0 0 / 0.22),
+    0 0 10px rgb(123 215 255 / 0.08);
+  color: inherit;
+  display: flex;
+  font-size: 0.64rem;
+  font-weight: inherit;
+  justify-content: center;
+  min-width: 0;
+  padding: 0;
+  position: relative;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+  width: 1.7rem;
+}
+
+.columnLabels button::after,
+.bottomLabels button::before,
+.rowLabels button::after,
+.rightLabels button::before {
+  background: rgb(156 224 255 / 0.24);
+  box-shadow: 0 0 8px rgb(123 215 255 / 0.16);
+  content: '';
+  pointer-events: none;
+  position: absolute;
+  transition:
+    background 180ms ease,
+    box-shadow 180ms ease,
+    opacity 180ms ease;
+}
+
+.columnLabels button::after,
+.bottomLabels button::before {
+  height: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1px;
+}
+
+.columnLabels button::after {
+  bottom: -7px;
+}
+
+.bottomLabels button::before {
+  top: -7px;
+}
+
+.rowLabels button::after,
+.rightLabels button::before {
+  height: 1px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 9px;
+}
+
+.rowLabels button::after {
+  right: -8px;
+}
+
+.rightLabels button::before {
+  left: -8px;
+}
+
+.columnLabels .answeredEdge,
+.bottomLabels .answeredEdge,
+.rowLabels .answeredEdge,
+.rightLabels .answeredEdge {
+  background:
+    radial-gradient(
+      circle at 30% 24%,
+      rgb(255 255 255 / 0.36),
+      transparent 32%
+    ),
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--edge-answer-color) 68%, white),
+      color-mix(in srgb, var(--edge-answer-color) 70%, #06111a)
+    );
+  border-color: color-mix(in srgb, var(--edge-answer-color) 48%, white);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.24),
+    inset 0 -10px 13px rgb(0 0 0 / 0.16),
+    0 0 14px color-mix(in srgb, var(--edge-answer-color) 36%, transparent);
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.52);
+}
+
+.columnLabels .answeredEdge::after,
+.bottomLabels .answeredEdge::before,
+.rowLabels .answeredEdge::after,
+.rightLabels .answeredEdge::before {
+  background: color-mix(in srgb, var(--edge-answer-color) 58%, #ffffff);
+  box-shadow: 0 0 11px
+    color-mix(in srgb, var(--edge-answer-color) 42%, transparent);
+  opacity: 0.75;
+}
+
+.columnLabels .activeRayEdge:not(.answeredEdge),
+.bottomLabels .activeRayEdge:not(.answeredEdge),
+.rowLabels .activeRayEdge:not(.answeredEdge),
+.rightLabels .activeRayEdge:not(.answeredEdge) {
+  background:
+    radial-gradient(
+      circle at 30% 24%,
+      rgb(255 255 255 / 0.38),
+      transparent 32%
+    ),
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--edge-active-color) 68%, white),
+      color-mix(in srgb, var(--edge-active-color) 62%, #06111a)
+    );
+  border-color: color-mix(in srgb, var(--edge-active-color) 42%, white);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.26),
+    inset 0 -10px 13px rgb(0 0 0 / 0.14),
+    0 0 16px color-mix(in srgb, var(--edge-active-color) 42%, transparent);
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.54);
+}
+
+.columnLabels .answeredEdge.activeRayEdge,
+.bottomLabels .answeredEdge.activeRayEdge,
+.rowLabels .answeredEdge.activeRayEdge,
+.rightLabels .answeredEdge.activeRayEdge {
+  background:
+    radial-gradient(
+      circle at 30% 24%,
+      rgb(255 255 255 / 0.62),
+      transparent 34%
+    ),
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--edge-active-color) 72%, white),
+      color-mix(in srgb, var(--edge-active-color) 76%, #06111a)
+    );
+  border-color: color-mix(in srgb, var(--edge-active-color) 38%, white);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.42),
+    inset 0 -10px 13px rgb(0 0 0 / 0.12),
+    0 0 15px var(--edge-active-color),
+    0 0 28px color-mix(in srgb, var(--edge-active-color) 48%, transparent);
+  color: #ffffff;
+}
+
+.columnLabels .activeRayEdge:not(.answeredEdge)::after,
+.bottomLabels .activeRayEdge:not(.answeredEdge)::before,
+.rowLabels .activeRayEdge:not(.answeredEdge)::after,
+.rightLabels .activeRayEdge:not(.answeredEdge)::before {
+  background: color-mix(in srgb, var(--edge-active-color) 60%, white);
+  box-shadow:
+    0 0 12px var(--edge-active-color),
+    0 0 24px color-mix(in srgb, var(--edge-active-color) 46%, transparent);
+  opacity: 1;
+}
+
+.columnLabels .answeredEdge.activeRayEdge::after,
+.bottomLabels .answeredEdge.activeRayEdge::before,
+.rowLabels .answeredEdge.activeRayEdge::after,
+.rightLabels .answeredEdge.activeRayEdge::before {
+  background: color-mix(in srgb, var(--edge-active-color) 42%, white);
+  box-shadow:
+    0 0 12px var(--edge-active-color),
+    0 0 24px color-mix(in srgb, var(--edge-active-color) 58%, transparent);
+  opacity: 1;
+}
+
+.columnLabels .activeEmitterEdge,
+.bottomLabels .activeEmitterEdge,
+.rowLabels .activeEmitterEdge,
+.rightLabels .activeEmitterEdge {
+  transform: scale(1.06);
+}
+
+.columnLabels .activeReceiverEdge,
+.bottomLabels .activeReceiverEdge,
+.rowLabels .activeReceiverEdge,
+.rightLabels .activeReceiverEdge {
+  animation: receiverLamp 1800ms ease-in-out infinite;
+  transform: scale(1.08);
+}
+
+.columnLabels .activeReceiverEdge::after,
+.bottomLabels .activeReceiverEdge::before,
+.rowLabels .activeReceiverEdge::after,
+.rightLabels .activeReceiverEdge::before {
+  animation: receiverLead 1800ms ease-in-out infinite;
+}
+
+.columnLabels button:hover:not(.answeredEdge):not(.activeRayEdge),
+.bottomLabels button:hover:not(.answeredEdge):not(.activeRayEdge),
+.rowLabels button:hover:not(.answeredEdge):not(.activeRayEdge),
+.rightLabels button:hover:not(.answeredEdge):not(.activeRayEdge),
+.columnLabels button:focus-visible:not(.answeredEdge):not(.activeRayEdge),
+.bottomLabels button:focus-visible:not(.answeredEdge):not(.activeRayEdge),
+.rowLabels button:focus-visible:not(.answeredEdge):not(.activeRayEdge),
+.rightLabels button:focus-visible:not(.answeredEdge):not(.activeRayEdge) {
+  border-color: rgb(46 255 205 / 0.62);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.16),
+    inset 0 -10px 13px rgb(0 0 0 / 0.12),
+    0 0 18px rgb(46 255 205 / 0.22);
+  color: #ecf7ff;
+  outline: 0;
+  transform: scale(1.06);
+}
+
+@keyframes receiverLamp {
+  0%,
+  100% {
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.18),
+      inset 0 -8px 12px rgb(0 0 0 / 0.14),
+      0 0 12px color-mix(in srgb, var(--edge-active-color) 30%, transparent);
+  }
+
+  48% {
+    box-shadow:
+      inset 0 0 12px rgb(255 255 255 / 0.86),
+      inset 0 -8px 12px rgb(0 0 0 / 0.08),
+      0 0 18px var(--edge-active-color),
+      0 0 36px color-mix(in srgb, var(--edge-active-color) 62%, transparent);
+  }
+}
+
+@keyframes receiverLead {
+  0%,
+  100% {
+    opacity: 0.62;
+  }
+
+  48% {
+    opacity: 1;
+  }
+}

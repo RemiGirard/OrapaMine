@@ -1,0 +1,100 @@
+.rayLayer {
+  display: block;
+  filter: drop-shadow(0 0 8px var(--ray-color));
+  height: 100%;
+  inset: 0;
+  left: 0;
+  mix-blend-mode: screen;
+  overflow: hidden;
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  width: 100%;
+  z-index: 2;
+}
+
+.rayCore,
+.rayGlow,
+.allRayCore,
+.allRayGlow {
+  fill: none;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+  vector-effect: non-scaling-stroke;
+}
+
+.allRaysLayer {
+  filter: none;
+  z-index: 2;
+}
+
+.allRayGlow {
+  opacity: 0.09;
+  stroke: var(--ray-color);
+  stroke-width: 4;
+}
+
+.allRayCore {
+  opacity: 0.28;
+  stroke: var(--ray-color);
+  stroke-width: 0.85;
+}
+
+.rayGlow {
+  animation: rayBreathe 1800ms ease-in-out infinite;
+  opacity: 0.36;
+  stroke: var(--ray-color);
+  stroke-width: 7;
+}
+
+.rayCore {
+  animation: rayCoreBreathe 1800ms ease-in-out infinite;
+  opacity: 0.94;
+  stroke: #ffffff;
+  stroke-width: 1.55;
+}
+
+.raySpark {
+  animation: receiverSpark 1800ms ease-in-out infinite;
+  fill: #ffffff;
+  stroke: var(--ray-color);
+  stroke-width: 0.45;
+  transform-box: fill-box;
+  transform-origin: center;
+  vector-effect: non-scaling-stroke;
+}
+
+@keyframes rayBreathe {
+  0%,
+  100% {
+    opacity: 0.28;
+  }
+
+  48% {
+    opacity: 0.48;
+  }
+}
+
+@keyframes rayCoreBreathe {
+  0%,
+  100% {
+    opacity: 0.78;
+  }
+
+  48% {
+    opacity: 1;
+  }
+}
+
+@keyframes receiverSpark {
+  0%,
+  100% {
+    opacity: 0.65;
+    transform: scale(0.86);
+  }
+
+  48% {
+    opacity: 1;
+    transform: scale(1.18);
+  }
+}

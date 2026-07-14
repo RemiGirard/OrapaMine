@@ -1,17 +1,17 @@
 import { describe, expect, it } from 'vitest'
 import { parseEdgePort, parseGridCoordinate } from './coordinates'
 import { mixSignalColor } from './colors'
-import { answerAllEdgesForPlacements, answerQuestion } from './questions'
 import {
   compareGuess,
   createEmptyGuess,
   flipGuessMineral,
   moveGuessMineral,
-  preparedPuzzles,
   rotateGuessMineral,
-} from './puzzles'
-import type { Puzzle } from './puzzles'
+} from './familySolution'
 import { canPlaceMineralWithOrientation, placementsOverlap } from './minerals'
+import { preparedPuzzles } from './puzzles'
+import type { Puzzle } from './puzzles'
+import { answerAllEdgesForPlacements, answerQuestion } from './questions'
 import { parseVoiceQuestion } from './voiceCommands'
 
 const singleBlackPuzzle: Puzzle = {
