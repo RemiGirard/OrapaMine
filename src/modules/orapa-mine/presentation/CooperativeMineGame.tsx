@@ -9,13 +9,7 @@ export function CooperativeMineGame() {
   return (
     <main className={styles.shell}>
       <header className={styles.header}>
-        <div>
-          <p>Cooperative deduction</p>
-          <h1>Orapa Mine</h1>
-          <span>
-            {game.puzzle.title} - {game.puzzle.ruleset}
-          </span>
-        </div>
+        <h1 className={styles.title}>Orapa Mine</h1>
         <div className={styles.actions}>
           <button onClick={game.nextPuzzle} type="button">
             <Shuffle size={18} />
