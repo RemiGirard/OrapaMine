@@ -26,14 +26,20 @@ export function useCooperativeMineGame() {
   const [selectedMineralId, setSelectedMineralId] = useState<MineralId>(
     preparedPuzzles[0].placements[0].mineralId,
   )
-  const [submittedResult, setSubmittedResult] = useState<
-    ReturnType<typeof compareGuess> | null
-  >(null)
+  const [submittedResult, setSubmittedResult] = useState<ReturnType<
+    typeof compareGuess
+  > | null>(null)
 
   const puzzle = preparedPuzzles[puzzleIndex]
-  const solutionCells = useMemo(() => getOccupiedCells(puzzle.placements), [puzzle])
+  const solutionCells = useMemo(
+    () => getOccupiedCells(puzzle.placements),
+    [puzzle],
+  )
   const guessPlacements = useMemo(() => toPlacedMinerals(guess), [guess])
-  const guessCells = useMemo(() => getOccupiedCells(guessPlacements), [guessPlacements])
+  const guessCells = useMemo(
+    () => getOccupiedCells(guessPlacements),
+    [guessPlacements],
+  )
 
   const lastAnswer = answers.length > 0 ? answers[0] : null
   const edgeAnswers = useMemo(() => {
@@ -50,22 +56,14 @@ export function useCooperativeMineGame() {
   const currentRayPreview = useMemo(
     () =>
       lastAnswer?.mode === 'edge'
-        ? answerEdgeForPlacements(guessPlacements, lastAnswer.query, -lastAnswer.id)
+        ? answerEdgeForPlacements(
+            guessPlacements,
+            lastAnswer.query,
+            -lastAnswer.id,
+          )
         : null,
     [guessPlacements, lastAnswer],
   )
-  const highlightedPath = useMemo(
-    () =>
-      new Set(
-        currentRayPreview
-          ? currentRayPreview.path.map(
-              (coordinate) => `${coordinate.column}:${coordinate.row}`,
-            )
-          : [],
-      ),
-    [currentRayPreview],
-  )
-
   function askQuestion(mode: QuestionMode, questionQuery: string) {
     const answer = answerQuestion(puzzle, mode, questionQuery, Date.now())
 
@@ -104,7 +102,9 @@ export function useCooperativeMineGame() {
   }
 
   function placeGuessMineral(mineralId: MineralId, origin: Coordinate) {
-    setGuess((currentGuess) => moveGuessMineral(currentGuess, mineralId, origin))
+    setGuess((currentGuess) =>
+      moveGuessMineral(currentGuess, mineralId, origin),
+    )
     setSelectedMineralId(mineralId)
     setSubmittedResult(null)
   }
@@ -140,7 +140,6 @@ export function useCooperativeMineGame() {
     edgeAnswers,
     guess,
     guessCells,
-    highlightedPath: showLightPath ? highlightedPath : new Set<string>(),
     lastAnswer,
     currentRayPreview,
     nextPuzzle,

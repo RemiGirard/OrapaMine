@@ -38,7 +38,6 @@ export function CooperativeMineGame() {
           currentRayPreview={game.currentRayPreview}
           edgeAnswers={game.edgeAnswers}
           guess={game.guess}
-          highlightedPath={game.highlightedPath}
           onAskEdge={game.askEdge}
           onPlaceSelected={game.placeSelectedMineral}
           onPlace={game.placeGuessMineral}

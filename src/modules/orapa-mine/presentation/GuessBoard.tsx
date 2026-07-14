@@ -4,7 +4,6 @@ import { Mic, MousePointer2, RotateCcw } from 'lucide-react'
 import {
   boardSize,
   bottomLabels,
-  coordinateKey,
   formatGridCoordinate,
   leftLabels,
   parseEdgePort,
@@ -52,7 +51,6 @@ type GuessBoardProps = Readonly<{
   currentRayPreview: Extract<Answer, { mode: 'edge' }> | null
   edgeAnswers: ReadonlyMap<string, Answer>
   guess: ReadonlyArray<GuessPlacement>
-  highlightedPath: ReadonlySet<string>
   onAskEdge: (edgeLabel: string) => void
   onPlaceSelected: (origin: Coordinate) => void
   onPlace: (mineralId: MineralId, origin: Coordinate) => void
@@ -80,7 +78,6 @@ export function GuessBoard({
   currentRayPreview,
   edgeAnswers,
   guess,
-  highlightedPath,
   onAskEdge,
   onPlaceSelected,
   onPlace,
@@ -271,16 +268,12 @@ export function GuessBoard({
                     { length: boardSize.columns },
                     (_columnValue, column) => {
                       const coordinate = { column, row }
-                      const key = coordinateKey(coordinate)
 
                       return (
                         <button
                           aria-label={`Place ${minerals[selectedMineralId].name} at ${formatGridCoordinate(coordinate)}`}
-                          className={[
-                            styles.cell,
-                            highlightedPath.has(key) ? styles.pathCell : '',
-                          ].join(' ')}
-                          key={key}
+                          className={styles.cell}
+                          key={`${column}:${row}`}
                           onClick={() => onPlaceSelected(coordinate)}
                           onDragOver={(event) => event.preventDefault()}
                           onDrop={(event) => {

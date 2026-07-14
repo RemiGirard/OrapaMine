@@ -238,8 +238,8 @@
 .rowLabels button,
 .rightLabels button {
   align-items: center;
-  background: rgb(255 255 255 / 0.06);
-  border: 1px solid rgb(156 224 255 / 0.12);
+  background: transparent;
+  border: 1px solid transparent;
   border-radius: 4px;
   color: inherit;
   display: flex;
@@ -248,6 +248,49 @@
   justify-content: center;
   min-width: 0;
   padding: 0;
+  position: relative;
+}
+
+.columnLabels button::after,
+.bottomLabels button::before,
+.rowLabels button::after,
+.rightLabels button::before {
+  background: rgb(156 224 255 / 0.32);
+  content: '';
+  pointer-events: none;
+  position: absolute;
+}
+
+.columnLabels button::after,
+.bottomLabels button::before {
+  height: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1px;
+}
+
+.columnLabels button::after {
+  bottom: -3px;
+}
+
+.bottomLabels button::before {
+  top: -3px;
+}
+
+.rowLabels button::after,
+.rightLabels button::before {
+  height: 1px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 5px;
+}
+
+.rowLabels button::after {
+  right: -3px;
+}
+
+.rightLabels button::before {
+  left: -3px;
 }
 
 .columnLabels .answeredEdge,
@@ -298,15 +341,37 @@
 .boardSurface {
   aspect-ratio: 8 / 10;
   background:
-    linear-gradient(90deg, rgb(119 216 255 / 0.08) 1px, transparent 1px),
-    linear-gradient(0deg, rgb(119 216 255 / 0.08) 1px, transparent 1px), #08111a;
-  background-size: 12.5% 10%;
+    radial-gradient(
+      circle at 52% 46%,
+      rgb(46 255 205 / 0.045),
+      transparent 58%
+    ),
+    #08111a;
   border: 1px solid rgb(145 196 226 / 0.24);
   border-radius: 8px;
   grid-column: 2;
   grid-row: 2;
   overflow: hidden;
   position: relative;
+}
+
+.boardSurface::before {
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 calc(12.5% - 1px),
+      rgb(145 196 226 / 0.16) calc(12.5% - 1px) 12.5%
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 calc(10% - 1px),
+      rgb(145 196 226 / 0.16) calc(10% - 1px) 10%
+    );
+  content: '';
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 0;
 }
 
 .cellLayer,
@@ -318,36 +383,23 @@
 
 .cellLayer {
   display: grid;
-  gap: 3px;
+  gap: 0;
   grid-template-columns: repeat(8, minmax(0, 1fr));
   grid-template-rows: repeat(10, minmax(0, 1fr));
-  padding: 3px;
   z-index: 1;
 }
 
 .cell {
-  background: rgb(255 255 255 / 0.018);
-  border: 1px solid rgb(185 226 255 / 0.1);
-  border-radius: 4px;
+  background: transparent;
+  border: 0;
+  cursor: crosshair;
   min-width: 0;
   padding: 0;
 }
 
 .cell:hover,
 .cell:focus-visible {
-  border-color: rgb(48 255 205 / 0.82);
-  box-shadow:
-    inset 0 0 16px rgb(48 255 205 / 0.16),
-    0 0 14px rgb(48 255 205 / 0.18);
   outline: 0;
-}
-
-.pathCell {
-  animation: pulsePath 1.45s ease-in-out infinite;
-  border-color: rgb(255 242 164 / 0.64);
-  box-shadow:
-    inset 0 0 18px rgb(255 242 164 / 0.12),
-    0 0 14px rgb(255 242 164 / 0.18);
 }
 
 .rayLayer {
@@ -707,17 +759,6 @@
 .notSolved {
   background: rgb(255 194 91 / 0.14);
   color: #ffd492;
-}
-
-@keyframes pulsePath {
-  0%,
-  100% {
-    opacity: 0.72;
-  }
-
-  50% {
-    opacity: 1;
-  }
 }
 
 @media (max-width: 900px) {
