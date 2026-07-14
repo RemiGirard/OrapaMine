@@ -12,6 +12,7 @@ import {
   rotateGuessMineral,
 } from '../domain/familySolution'
 import type { Puzzle } from '../domain/puzzles'
+import { reverseEdgeAnswer } from '../domain/questions'
 import type { Answer } from '../domain/questions'
 import { GameTable } from './GameTable'
 
@@ -336,16 +337,31 @@ describe('GameTable piece interactions', () => {
       signalColor: 'red',
     }
     const onAskEdge = vi.fn()
+    const reverseAnswer = reverseEdgeAnswer(answer)
 
     render(
       <InteractiveGameTable
-        edgeAnswers={new Map([[answer.query, answer]])}
+        answers={[answer]}
+        edgeAnswers={
+          new Map([
+            [answer.query, answer],
+            [reverseAnswer.query, reverseAnswer],
+          ])
+        }
         onAskEdge={onAskEdge}
       />,
     )
 
-    fireEvent.click(screen.getByRole('button', { name: 'Send ray T2' }))
+    const input = screen.getByRole('button', { name: 'Send ray T2' })
+    const output = screen.getByRole('button', { name: 'Send ray B2' })
+
+    expect(input.className).toContain('answeredEdge')
+    expect(output.className).toContain('answeredEdge')
+
+    fireEvent.click(output)
     expect(onAskEdge).not.toHaveBeenCalled()
+    expect(output.getAttribute('data-edge-role')).toBe('emitter')
+    expect(input.getAttribute('data-edge-role')).toBe('receiver')
 
     fireEvent.click(screen.getByRole('button', { name: 'Send ray T3' }))
     expect(onAskEdge).toHaveBeenCalledOnce()

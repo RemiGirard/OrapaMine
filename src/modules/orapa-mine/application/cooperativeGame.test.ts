@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { toPlacedMinerals } from '../domain/familySolution'
+import type { Answer, EdgeAnswer } from '../domain/questions'
 import { createCooperativeGame, reduceCooperativeGame } from './cooperativeGame'
 import { createCooperativeGameView } from './gameView'
 
@@ -41,25 +42,45 @@ describe('cooperative game use cases', () => {
       mode: 'edge',
       query: 'T3',
     })
+    const recordedClue = withClue.clueNotebook.answers[0]
+
+    assertTraversingEdge(recordedClue)
+    expect(view.edgeAnswers.get(recordedClue.query)).toBe(recordedClue)
+    expect(view.edgeAnswers.get(recordedClue.exitLabel)).toMatchObject({
+      exitLabel: recordedClue.query,
+      query: recordedClue.exitLabel,
+      signalColor: recordedClue.signalColor,
+    })
   })
 
-  it('ignores a clue that is already recorded', () => {
+  it('ignores a clue that is already recorded in either direction', () => {
     const withClue = reduceCooperativeGame(createCooperativeGame(), {
       id: 1,
       mode: 'edge',
-      query: 'T3',
+      query: 'T1',
       type: 'ask-clue',
     })
+    const recordedClue = withClue.clueNotebook.answers[0]
+
+    assertTraversingEdge(recordedClue)
+
     const repeatedClue = reduceCooperativeGame(withClue, {
       id: 2,
       mode: 'edge',
-      query: 't3',
+      query: 't1',
+      type: 'ask-clue',
+    })
+    const reversedClue = reduceCooperativeGame(withClue, {
+      id: 3,
+      mode: 'edge',
+      query: recordedClue.exitLabel,
       type: 'ask-clue',
     })
 
     expect(repeatedClue.clueNotebook).toBe(withClue.clueNotebook)
-    expect(repeatedClue.clueNotebook.answers).toHaveLength(1)
-    expect(repeatedClue.clueNotebook.answers[0].id).toBe(1)
+    expect(reversedClue.clueNotebook).toBe(withClue.clueNotebook)
+    expect(withClue.clueNotebook.answers).toHaveLength(1)
+    expect(withClue.clueNotebook.answers[0].id).toBe(1)
   })
 
   it('resets puzzle-scoped features when starting the next puzzle', () => {
@@ -81,3 +102,11 @@ describe('cooperative game use cases', () => {
     expect(toPlacedMinerals(nextGame.familySolution.guess)).toEqual([])
   })
 })
+
+function assertTraversingEdge(
+  answer: Answer,
+): asserts answer is EdgeAnswer & { exitLabel: string } {
+  if (answer.mode !== 'edge' || !answer.exitLabel) {
+    throw new Error('Expected a traversing edge clue')
+  }
+}

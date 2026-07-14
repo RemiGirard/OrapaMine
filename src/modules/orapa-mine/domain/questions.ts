@@ -45,6 +45,23 @@ export function edgeAnswersMatch(
   )
 }
 
+export function reverseEdgeAnswer(answer: EdgeAnswer): EdgeAnswer {
+  if (!answer.exitLabel) {
+    return answer
+  }
+
+  return {
+    ...answer,
+    exitLabel: answer.query,
+    message:
+      answer.signalColor === 'absorbed'
+        ? answer.message
+        : `Exit ${answer.query} - ${signalColorLabels[answer.signalColor]}`,
+    path: [...answer.path].reverse(),
+    query: answer.exitLabel,
+  }
+}
+
 export function answerQuestion(
   puzzle: Puzzle,
   mode: QuestionMode,

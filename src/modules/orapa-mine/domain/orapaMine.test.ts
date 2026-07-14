@@ -87,6 +87,26 @@ describe('Orapa Mine domain', () => {
     })
   })
 
+  it('keeps every traversing edge answer reciprocal', () => {
+    for (const puzzle of preparedPuzzles) {
+      const answers = answerAllEdgesForPlacements(puzzle.placements)
+      const answersByQuery = new Map(
+        answers.map((answer) => [answer.query, answer]),
+      )
+
+      for (const answer of answers) {
+        if (!answer.exitLabel) {
+          continue
+        }
+
+        expect(answersByQuery.get(answer.exitLabel)).toMatchObject({
+          exitLabel: answer.query,
+          signalColor: answer.signalColor,
+        })
+      }
+    }
+  })
+
   it('compares a family guess against the puzzle solution', () => {
     const puzzle: Puzzle = {
       id: 'test-basic',
