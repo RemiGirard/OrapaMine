@@ -37,6 +37,8 @@ UI-only representation of a game piece.
 ## Application Use Cases
 
 - `clueNotebook`: ask a clue, retain the latest 18 answers, and index known edge clues.
+- `clueConsistency`: compare every recorded edge clue with the rays produced by the current
+  family placement, counting repeated questions once in the summary.
 - `familySolution`: start, select, place, rotate, flip, return, reset, and submit the family map.
 - `cooperativeGame`: the puzzle-session aggregate and command reducer. Starting a new puzzle
   resets all puzzle-scoped features together.

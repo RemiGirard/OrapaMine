@@ -3,6 +3,7 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { useState } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { ClueConsistency } from '../application/clueConsistency'
 import {
   createEmptyGuess,
   flipGuessMineral,
@@ -300,11 +301,52 @@ describe('GameTable piece interactions', () => {
 
     expect(latestOutput.getAttribute('data-edge-role')).toBe('receiver')
   })
+
+  it('shows whether the family map is consistent with recorded clues', () => {
+    const answer: Extract<Answer, { mode: 'edge' }> = {
+      exitLabel: 'B2',
+      id: 12,
+      message: 'Exit B2 - Red',
+      mode: 'edge',
+      path: [{ column: 1, row: 4 }],
+      query: 'T2',
+      signalColor: 'red',
+    }
+    const consistency: ClueConsistency = {
+      byAnswerId: new Map([
+        [
+          answer.id,
+          {
+            answer,
+            matches: true,
+            preview: { ...answer, id: -answer.id },
+          },
+        ],
+      ]),
+      matchedClues: 1,
+      totalClues: 1,
+    }
+
+    render(
+      <InteractiveGameTable
+        answers={[answer]}
+        clueConsistency={consistency}
+        currentAnswer={answer}
+        currentRayPreview={{ ...answer, id: -answer.id }}
+      />,
+    )
+
+    expect(
+      screen.getByLabelText('1 of 1 clues match the family map'),
+    ).not.toBeNull()
+    expect(screen.getAllByLabelText('Matches family map')).toHaveLength(2)
+  })
 })
 
 function InteractiveGameTable({
   allRayPreviews = [],
   answers = [],
+  clueConsistency = emptyClueConsistency,
   currentAnswer = null,
   currentRayPreview = null,
   edgeAnswers = new Map(),
@@ -313,6 +355,7 @@ function InteractiveGameTable({
 }: Readonly<{
   allRayPreviews?: ReadonlyArray<Extract<Answer, { mode: 'edge' }>>
   answers?: ReadonlyArray<Answer>
+  clueConsistency?: ClueConsistency
   currentAnswer?: Answer | null
   currentRayPreview?: Extract<Answer, { mode: 'edge' }> | null
   edgeAnswers?: ReadonlyMap<string, Extract<Answer, { mode: 'edge' }>>
@@ -328,6 +371,7 @@ function InteractiveGameTable({
     <GameTable
       clues={{
         answers,
+        consistency: clueConsistency,
         currentAnswer,
         edgeAnswers,
         onAskEdge: () => undefined,
@@ -372,6 +416,12 @@ function InteractiveGameTable({
       }}
     />
   )
+}
+
+const emptyClueConsistency: ClueConsistency = {
+  byAnswerId: new Map(),
+  matchedClues: 0,
+  totalClues: 0,
 }
 
 function dragWithMouse(

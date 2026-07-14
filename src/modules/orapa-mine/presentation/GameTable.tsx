@@ -1,5 +1,6 @@
 import { Mic, RotateCcw } from 'lucide-react'
 import { useRef } from 'react'
+import type { ClueConsistency } from '../application/clueConsistency'
 import type { VoiceRecognitionStatus } from '../application/voiceRecognition'
 import type { GuessResult } from '../domain/familySolution'
 import type { Coordinate } from '../domain/coordinates'
@@ -24,6 +25,7 @@ type RayAnswer = Extract<Answer, { mode: 'edge' }>
 export type GameTableProps = Readonly<{
   clues: Readonly<{
     answers: ReadonlyArray<Answer>
+    consistency: ClueConsistency
     currentAnswer: Answer | null
     edgeAnswers: ReadonlyMap<string, RayAnswer>
     onAskEdge: (edgeLabel: string) => void
@@ -152,6 +154,7 @@ export function GameTable({
             />
             <ClueNotebook
               answers={clues.answers}
+              consistency={clues.consistency}
               currentAnswer={clues.currentAnswer}
               currentRayPreview={light.currentRay}
               onClearPreview={cluePreview.clearPreview}

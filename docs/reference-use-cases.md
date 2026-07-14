@@ -31,9 +31,12 @@ The same use case can start from a spoken command such as `top four` or `right s
 2. The family may independently hide all live rays or the latest selected ray.
 3. Moving, rotating, flipping, or returning a glass piece recomputes the live rays from derived
    state; no light result is stored separately.
+4. Each notebook ray shows whether the current family map produces the same exit and color, while
+   a compact meter counts the distinct clues currently matched.
 
 Actual clue colors remain puzzle answers. Live-ray previews show what the current family placement
-would produce and never overwrite the clue notebook.
+would produce and never overwrite the clue notebook. Consistency feedback compares only information
+the family has already discovered; it does not inspect undiscovered rays or reveal piece positions.
 
 ### Build the family solution
 

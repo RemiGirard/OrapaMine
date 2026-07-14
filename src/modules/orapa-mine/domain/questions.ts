@@ -32,6 +32,19 @@ export type Answer =
       path: ReturnType<typeof traceWave>['path']
     }>
 
+export type EdgeAnswer = Extract<Answer, { mode: 'edge' }>
+
+export function edgeAnswersMatch(
+  expected: EdgeAnswer,
+  candidate: EdgeAnswer,
+): boolean {
+  return (
+    expected.query === candidate.query &&
+    expected.exitLabel === candidate.exitLabel &&
+    expected.signalColor === candidate.signalColor
+  )
+}
+
 export function answerQuestion(
   puzzle: Puzzle,
   mode: QuestionMode,
@@ -70,7 +83,7 @@ export function answerEdgeForPlacements(
   placements: ReadonlyArray<MineralPlacement>,
   rawQuery: string,
   id: number,
-): Extract<Answer, { mode: 'edge' }> {
+): EdgeAnswer {
   const edgePort = parseEdgePort(rawQuery)
 
   if (!edgePort) {
@@ -121,7 +134,7 @@ export function answerEdgeForPlacements(
 
 export function answerAllEdgesForPlacements(
   placements: ReadonlyArray<MineralPlacement>,
-): ReadonlyArray<Extract<Answer, { mode: 'edge' }>> {
+): ReadonlyArray<EdgeAnswer> {
   return edgeLabels.map((edgeLabel, index) =>
     answerEdgeForPlacements(placements, edgeLabel, -(index + 1)),
   )

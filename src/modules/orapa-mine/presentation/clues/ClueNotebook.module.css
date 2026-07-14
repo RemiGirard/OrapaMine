@@ -38,6 +38,54 @@
   white-space: nowrap;
 }
 
+.previewLine {
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.currentLight .previewLine > span:first-child {
+  color: #7bd7ff;
+  flex: 1;
+  font-size: inherit;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.consistencySummary {
+  align-items: center;
+  color: #91a8b8;
+  display: grid;
+  font-size: 0.7rem;
+  font-weight: 800;
+  gap: 0.55rem;
+  grid-template-columns: auto minmax(2rem, 1fr) auto;
+  padding: 0.05rem 0.2rem;
+}
+
+.consistencySummary > strong {
+  color: #dff9f3;
+  font-size: 0.72rem;
+}
+
+.consistencyTrack {
+  background: rgb(156 224 255 / 0.12);
+  display: block;
+  height: 3px;
+  overflow: hidden;
+  position: relative;
+}
+
+.consistencyFill {
+  background: #2effcd;
+  box-shadow: 0 0 8px rgb(46 255 205 / 0.5);
+  display: block;
+  height: 100%;
+  transition: width 180ms ease;
+}
+
 .logbook {
   display: grid;
   gap: 0.35rem;
@@ -54,7 +102,7 @@
   color: #ecf7ff;
   display: grid;
   gap: 0.5rem;
-  grid-template-columns: auto 4.8rem minmax(0, 1fr);
+  grid-template-columns: auto 4.2rem minmax(0, 1fr) auto;
   min-height: 2rem;
   padding: 0 0.6rem;
   transition:
@@ -62,6 +110,14 @@
     border-color 160ms ease,
     box-shadow 160ms ease,
     transform 160ms ease;
+}
+
+.matchingLogEntry {
+  border-left-color: rgb(46 255 205 / 0.48);
+}
+
+.differentLogEntry {
+  border-left-color: rgb(255 194 91 / 0.38);
 }
 
 .edgeLogEntry {
@@ -99,4 +155,28 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.consistencyMark {
+  align-items: center;
+  display: inline-flex;
+  justify-content: center;
+  width: 1rem;
+}
+
+.logbook .matchMark,
+.currentLight .matchMark {
+  color: #5fffd9;
+}
+
+.logbook .differentMark,
+.currentLight .differentMark {
+  color: #ffc26a;
+}
+
+.compactMark {
+  flex: none;
+  font-size: 0.68rem;
+  gap: 0.22rem;
+  width: auto;
 }
