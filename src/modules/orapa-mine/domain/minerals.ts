@@ -1,120 +1,304 @@
-import type { Coordinate } from './coordinates'
+import type { Coordinate, Direction } from './coordinates'
 import { coordinateKey, isInsideBoard } from './coordinates'
 import type { GemColor } from './colors'
 
-export type Reflector = 'slash' | 'backslash' | 'vertical' | 'horizontal'
+export type OpticalCell =
+  | 'block'
+  | 'triangle-tl'
+  | 'triangle-tr'
+  | 'triangle-br'
+  | 'triangle-bl'
+  | 'absorb'
+
+export type Orientation = 'north' | 'east' | 'south' | 'west'
 
 export type MineralId =
   | 'red-parallelogram'
   | 'yellow-triangle'
-  | 'blue-diamond'
-  | 'white-large-triangle'
-  | 'white-small-square'
+  | 'blue-big-triangle'
+  | 'white-big-triangle'
+  | 'white-diamond'
   | 'transparent-prism'
-  | 'black-body'
+  | 'black-absorber'
 
-export type ShapeCell = Readonly<Coordinate & { reflector: Reflector }>
+export type ShapeCell = Readonly<Coordinate & { opticalCell: OpticalCell }>
+export type ShapePoint = Readonly<{ x: number; y: number }>
+
+export type MineralShape = Readonly<{
+  cells: ReadonlyArray<ShapeCell>
+  height: number
+  polygon: ReadonlyArray<ShapePoint>
+  width: number
+}>
 
 export type Mineral = Readonly<{
   id: MineralId
   name: string
   shortName: string
   color: GemColor
-  cells: ReadonlyArray<ShapeCell>
+  defaultOrientation: Orientation
+  shapes: Readonly<Record<Orientation, MineralShape>>
 }>
 
 export type MineralPlacement = Readonly<{
   mineralId: MineralId
   origin: Coordinate
+  orientation?: Orientation
 }>
 
 export type GuessPlacement = Readonly<{
   mineralId: MineralId
   origin: Coordinate | null
+  orientation: Orientation
 }>
 
 export type OccupiedCell = Readonly<{
   coordinate: Coordinate
   mineral: Mineral
-  reflector: Reflector
+  orientation: Orientation
+  opticalCell: OpticalCell
 }>
 
+const orientationOrder: ReadonlyArray<Orientation> = ['north', 'east', 'south', 'west']
+
+const occupiedSides: Record<OpticalCell, ReadonlySet<Direction>> = {
+  absorb: new Set(['north', 'east', 'south', 'west']),
+  block: new Set(['north', 'east', 'south', 'west']),
+  'triangle-bl': new Set(['south', 'west']),
+  'triangle-br': new Set(['east', 'south']),
+  'triangle-tl': new Set(['north', 'west']),
+  'triangle-tr': new Set(['north', 'east']),
+}
+
+const rotatedOpticalCell: Record<OpticalCell, OpticalCell> = {
+  absorb: 'absorb',
+  block: 'block',
+  'triangle-bl': 'triangle-tl',
+  'triangle-br': 'triangle-bl',
+  'triangle-tl': 'triangle-tr',
+  'triangle-tr': 'triangle-br',
+}
+
+function rotateCell(cell: ShapeCell, width: number, height: number): ShapeCell {
+  void width
+
+  return {
+    column: height - 1 - cell.row,
+    opticalCell: rotatedOpticalCell[cell.opticalCell],
+    row: cell.column,
+  }
+}
+
+function rotatePoint(point: ShapePoint, height: number): ShapePoint {
+  return {
+    x: height - point.y,
+    y: point.x,
+  }
+}
+
+function rotateShape(shape: MineralShape): MineralShape {
+  return {
+    cells: shape.cells.map((cell) => rotateCell(cell, shape.width, shape.height)),
+    height: shape.width,
+    polygon: shape.polygon.map((point) => rotatePoint(point, shape.height)),
+    width: shape.height,
+  }
+}
+
+function createOrientedShapes(baseShape: MineralShape): Record<Orientation, MineralShape> {
+  const east = rotateShape(baseShape)
+  const south = rotateShape(east)
+  const west = rotateShape(south)
+
+  return {
+    east,
+    north: baseShape,
+    south,
+    west,
+  }
+}
+
+function defineMineral({
+  baseShape,
+  color,
+  id,
+  name,
+  shortName,
+}: Readonly<{
+  baseShape: MineralShape
+  color: GemColor
+  id: MineralId
+  name: string
+  shortName: string
+}>): Mineral {
+  return {
+    color,
+    defaultOrientation: 'north',
+    id,
+    name,
+    shapes: createOrientedShapes(baseShape),
+    shortName,
+  }
+}
+
 export const minerals: Record<MineralId, Mineral> = {
-  'red-parallelogram': {
-    id: 'red-parallelogram',
-    name: 'Ruby',
-    shortName: 'R',
+  'red-parallelogram': defineMineral({
+    baseShape: {
+      cells: [
+        { column: 0, opticalCell: 'triangle-br', row: 0 },
+        { column: 1, opticalCell: 'block', row: 0 },
+        { column: 2, opticalCell: 'triangle-tl', row: 0 },
+      ],
+      height: 1,
+      polygon: [
+        { x: 1, y: 0 },
+        { x: 3, y: 0 },
+        { x: 2, y: 1 },
+        { x: 0, y: 1 },
+      ],
+      width: 3,
+    },
     color: 'red',
-    cells: [
-      { column: 0, row: 0, reflector: 'backslash' },
-      { column: 1, row: 0, reflector: 'backslash' },
-    ],
-  },
-  'yellow-triangle': {
-    id: 'yellow-triangle',
-    name: 'Topaz',
-    shortName: 'Y',
+    id: 'red-parallelogram',
+    name: 'Ruby parallelogram',
+    shortName: 'R',
+  }),
+  'yellow-triangle': defineMineral({
+    baseShape: {
+      cells: [
+        { column: 0, opticalCell: 'triangle-bl', row: 0 },
+        { column: 0, opticalCell: 'block', row: 1 },
+        { column: 1, opticalCell: 'triangle-bl', row: 1 },
+      ],
+      height: 2,
+      polygon: [
+        { x: 0, y: 0 },
+        { x: 0, y: 2 },
+        { x: 2, y: 2 },
+      ],
+      width: 2,
+    },
     color: 'yellow',
-    cells: [
-      { column: 0, row: 0, reflector: 'slash' },
-      { column: 0, row: 1, reflector: 'slash' },
-      { column: 1, row: 1, reflector: 'horizontal' },
-    ],
-  },
-  'blue-diamond': {
-    id: 'blue-diamond',
-    name: 'Sapphire',
-    shortName: 'B',
+    id: 'yellow-triangle',
+    name: 'Topaz triangle',
+    shortName: 'Y',
+  }),
+  'blue-big-triangle': defineMineral({
+    baseShape: {
+      cells: [
+        { column: 1, opticalCell: 'triangle-br', row: 0 },
+        { column: 2, opticalCell: 'triangle-bl', row: 0 },
+        { column: 0, opticalCell: 'triangle-br', row: 1 },
+        { column: 1, opticalCell: 'block', row: 1 },
+        { column: 2, opticalCell: 'block', row: 1 },
+        { column: 3, opticalCell: 'triangle-bl', row: 1 },
+      ],
+      height: 2,
+      polygon: [
+        { x: 2, y: 0 },
+        { x: 4, y: 2 },
+        { x: 0, y: 2 },
+      ],
+      width: 4,
+    },
     color: 'blue',
-    cells: [
-      { column: 0, row: 0, reflector: 'vertical' },
-      { column: 1, row: 0, reflector: 'slash' },
-      { column: 0, row: 1, reflector: 'backslash' },
-      { column: 1, row: 1, reflector: 'vertical' },
-    ],
-  },
-  'white-large-triangle': {
-    id: 'white-large-triangle',
-    name: 'Diamond',
+    id: 'blue-big-triangle',
+    name: 'Sapphire big triangle',
+    shortName: 'B',
+  }),
+  'white-big-triangle': defineMineral({
+    baseShape: {
+      cells: [
+        { column: 1, opticalCell: 'triangle-br', row: 0 },
+        { column: 2, opticalCell: 'triangle-bl', row: 0 },
+        { column: 0, opticalCell: 'triangle-br', row: 1 },
+        { column: 1, opticalCell: 'block', row: 1 },
+        { column: 2, opticalCell: 'block', row: 1 },
+        { column: 3, opticalCell: 'triangle-bl', row: 1 },
+      ],
+      height: 2,
+      polygon: [
+        { x: 2, y: 0 },
+        { x: 4, y: 2 },
+        { x: 0, y: 2 },
+      ],
+      width: 4,
+    },
+    color: 'white',
+    id: 'white-big-triangle',
+    name: 'Diamond big triangle',
     shortName: 'W',
+  }),
+  'white-diamond': defineMineral({
+    baseShape: {
+      cells: [
+        { column: 0, opticalCell: 'triangle-br', row: 0 },
+        { column: 1, opticalCell: 'triangle-bl', row: 0 },
+        { column: 0, opticalCell: 'triangle-tr', row: 1 },
+        { column: 1, opticalCell: 'triangle-tl', row: 1 },
+      ],
+      height: 2,
+      polygon: [
+        { x: 1, y: 0 },
+        { x: 2, y: 1 },
+        { x: 1, y: 2 },
+        { x: 0, y: 1 },
+      ],
+      width: 2,
+    },
     color: 'white',
-    cells: [
-      { column: 0, row: 0, reflector: 'slash' },
-      { column: 1, row: 0, reflector: 'horizontal' },
-      { column: 2, row: 0, reflector: 'backslash' },
-      { column: 1, row: 1, reflector: 'slash' },
-    ],
-  },
-  'white-small-square': {
-    id: 'white-small-square',
-    name: 'Quartz',
-    shortName: 'Q',
-    color: 'white',
-    cells: [{ column: 0, row: 0, reflector: 'vertical' }],
-  },
-  'transparent-prism': {
-    id: 'transparent-prism',
-    name: 'Prism',
-    shortName: 'T',
+    id: 'white-diamond',
+    name: 'Diamond',
+    shortName: 'D',
+  }),
+  'transparent-prism': defineMineral({
+    baseShape: {
+      cells: [
+        { column: 0, opticalCell: 'triangle-br', row: 0 },
+        { column: 1, opticalCell: 'triangle-bl', row: 0 },
+      ],
+      height: 1,
+      polygon: [
+        { x: 1, y: 0 },
+        { x: 2, y: 1 },
+        { x: 0, y: 1 },
+      ],
+      width: 2,
+    },
     color: 'transparent',
-    cells: [{ column: 0, row: 0, reflector: 'slash' }],
-  },
-  'black-body': {
-    id: 'black-body',
-    name: 'Blackbody',
-    shortName: 'K',
+    id: 'transparent-prism',
+    name: 'Transparent prism',
+    shortName: 'T',
+  }),
+  'black-absorber': defineMineral({
+    baseShape: {
+      cells: [
+        { column: 0, opticalCell: 'absorb', row: 0 },
+        { column: 1, opticalCell: 'absorb', row: 0 },
+      ],
+      height: 1,
+      polygon: [
+        { x: 0, y: 0 },
+        { x: 2, y: 0 },
+        { x: 2, y: 1 },
+        { x: 0, y: 1 },
+      ],
+      width: 2,
+    },
     color: 'black',
-    cells: [{ column: 0, row: 0, reflector: 'horizontal' }],
-  },
+    id: 'black-absorber',
+    name: 'Black absorber',
+    shortName: 'K',
+  }),
 }
 
 export function mineralIdsForBasicGame(): Array<MineralId> {
   return [
     'red-parallelogram',
     'yellow-triangle',
-    'blue-diamond',
-    'white-large-triangle',
-    'white-small-square',
+    'blue-big-triangle',
+    'white-diamond',
+    'white-big-triangle',
   ]
 }
 
@@ -123,14 +307,17 @@ export function getOccupiedCells(
 ): Array<OccupiedCell> {
   return placements.flatMap((placement) => {
     const mineral = minerals[placement.mineralId]
+    const orientation = placement.orientation ?? mineral.defaultOrientation
+    const shape = getMineralShape(placement.mineralId, orientation)
 
-    return mineral.cells.map((cell) => ({
+    return shape.cells.map((cell) => ({
       coordinate: {
         column: placement.origin.column + cell.column,
         row: placement.origin.row + cell.row,
       },
       mineral,
-      reflector: cell.reflector,
+      opticalCell: cell.opticalCell,
+      orientation,
     }))
   })
 }
@@ -145,10 +332,162 @@ export function findOccupant(
 }
 
 export function canPlaceMineral(mineralId: MineralId, origin: Coordinate) {
-  return minerals[mineralId].cells.every((cell) =>
+  return canPlaceMineralWithOrientation(
+    mineralId,
+    origin,
+    minerals[mineralId].defaultOrientation,
+  )
+}
+
+export function canPlaceMineralWithOrientation(
+  mineralId: MineralId,
+  origin: Coordinate,
+  orientation: Orientation,
+) {
+  return getMineralShape(mineralId, orientation).cells.every((cell) =>
     isInsideBoard({
       column: origin.column + cell.column,
       row: origin.row + cell.row,
     }),
   )
+}
+
+export function getMineralShape(
+  mineralId: MineralId,
+  orientation: Orientation = minerals[mineralId].defaultOrientation,
+) {
+  return minerals[mineralId].shapes[orientation]
+}
+
+export function rotateOrientation(orientation: Orientation): Orientation {
+  const currentIndex = orientationOrder.indexOf(orientation)
+
+  return orientationOrder[(currentIndex + 1) % orientationOrder.length]
+}
+
+export function reflectsFrom(opticalCell: OpticalCell, direction: Direction) {
+  const reflections: Record<OpticalCell, Record<Direction, Direction>> = {
+    absorb: {
+      east: 'west',
+      north: 'south',
+      south: 'north',
+      west: 'east',
+    },
+    block: {
+      east: 'west',
+      north: 'south',
+      south: 'north',
+      west: 'east',
+    },
+    'triangle-bl': {
+      east: 'west',
+      north: 'south',
+      south: 'east',
+      west: 'north',
+    },
+    'triangle-br': {
+      east: 'north',
+      north: 'south',
+      south: 'west',
+      west: 'east',
+    },
+    'triangle-tl': {
+      east: 'west',
+      north: 'east',
+      south: 'north',
+      west: 'south',
+    },
+    'triangle-tr': {
+      east: 'south',
+      north: 'west',
+      south: 'north',
+      west: 'east',
+    },
+  }
+
+  return reflections[opticalCell][direction]
+}
+
+export function placementsOverlap(placements: ReadonlyArray<MineralPlacement>) {
+  for (let firstIndex = 0; firstIndex < placements.length; firstIndex += 1) {
+    const firstPlacement = placements[firstIndex]
+    const firstCells = getOccupiedCells([firstPlacement])
+
+    for (
+      let secondIndex = firstIndex + 1;
+      secondIndex < placements.length;
+      secondIndex += 1
+    ) {
+      const secondPlacement = placements[secondIndex]
+      const secondCells = getOccupiedCells([secondPlacement])
+
+      if (placementCellsCollide(firstCells, secondCells)) {
+        return true
+      }
+    }
+  }
+
+  return false
+}
+
+function placementCellsCollide(
+  firstCells: ReadonlyArray<OccupiedCell>,
+  secondCells: ReadonlyArray<OccupiedCell>,
+) {
+  for (const first of firstCells) {
+    for (const second of secondCells) {
+      const columnDistance = Math.abs(first.coordinate.column - second.coordinate.column)
+      const rowDistance = Math.abs(first.coordinate.row - second.coordinate.row)
+
+      if (columnDistance === 0 && rowDistance === 0) {
+        return true
+      }
+
+      if (
+        (first.mineral.color === 'black' || second.mineral.color === 'black') &&
+        columnDistance <= 1 &&
+        rowDistance <= 1
+      ) {
+        return true
+      }
+
+      if (columnDistance + rowDistance !== 1) {
+        continue
+      }
+
+      if (
+        first.coordinate.column < second.coordinate.column &&
+        occupiedSides[first.opticalCell].has('east') &&
+        occupiedSides[second.opticalCell].has('west')
+      ) {
+        return true
+      }
+
+      if (
+        first.coordinate.column > second.coordinate.column &&
+        occupiedSides[first.opticalCell].has('west') &&
+        occupiedSides[second.opticalCell].has('east')
+      ) {
+        return true
+      }
+
+      if (
+        first.coordinate.row < second.coordinate.row &&
+        occupiedSides[first.opticalCell].has('south') &&
+        occupiedSides[second.opticalCell].has('north')
+      ) {
+        return true
+      }
+
+      if (
+        first.coordinate.row > second.coordinate.row &&
+        occupiedSides[first.opticalCell].has('north') &&
+        occupiedSides[second.opticalCell].has('south')
+      ) {
+        return true
+      }
+    }
+  }
+
+  return false
 }

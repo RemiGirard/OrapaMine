@@ -8,22 +8,22 @@ Pure game concepts with no React imports:
 
 - Coordinates, board dimensions, edge labels, and coordinate parsing.
 - Gem colors and signal color mixing.
-- Mineral shapes, reflectors, and occupied grid cells.
+- Mineral optical-cell shapes, orientations, occupied grid cells, and contact rules.
 - Prepared puzzles and solution comparison.
 - Wave tracing and question answering.
 
 ## Application
 
-`useCooperativeMineGame` owns the current puzzle, question history, reveal state,
-family guess board, and answer submission use cases.
+`useCooperativeMineGame` owns the current puzzle, ray history, reveal state,
+selected family piece, family guess board, rotations, and answer submission use cases.
 
 ## Presentation
 
 React components render the current application state declaratively:
 
 - `CooperativeMineGame`
-- `QuestionConsole`
-- `BoardView`
 - `GuessBoard`
+- `PieceShape`
+- `ColorDot`
 
 All presentation styling is colocated in CSS modules.

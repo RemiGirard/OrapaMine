@@ -1,6 +1,16 @@
 import type { Coordinate } from './coordinates'
-import type { GuessPlacement, MineralId, MineralPlacement } from './minerals'
-import { canPlaceMineral } from './minerals'
+import type {
+  GuessPlacement,
+  MineralId,
+  MineralPlacement,
+  Orientation,
+} from './minerals'
+import {
+  canPlaceMineralWithOrientation,
+  minerals,
+  placementsOverlap,
+  rotateOrientation,
+} from './minerals'
 
 export type Puzzle = Readonly<{
   id: string
@@ -21,11 +31,31 @@ export const preparedPuzzles: ReadonlyArray<Puzzle> = [
     title: 'Resting Place',
     ruleset: 'basic',
     placements: [
-      { mineralId: 'red-parallelogram', origin: { column: 6, row: 0 } },
-      { mineralId: 'yellow-triangle', origin: { column: 1, row: 1 } },
-      { mineralId: 'blue-diamond', origin: { column: 3, row: 4 } },
-      { mineralId: 'white-large-triangle', origin: { column: 6, row: 3 } },
-      { mineralId: 'white-small-square', origin: { column: 8, row: 6 } },
+      {
+        mineralId: 'red-parallelogram',
+        orientation: 'north',
+        origin: { column: 4, row: 0 },
+      },
+      {
+        mineralId: 'yellow-triangle',
+        orientation: 'north',
+        origin: { column: 0, row: 0 },
+      },
+      {
+        mineralId: 'blue-big-triangle',
+        orientation: 'north',
+        origin: { column: 2, row: 4 },
+      },
+      {
+        mineralId: 'white-diamond',
+        orientation: 'north',
+        origin: { column: 6, row: 3 },
+      },
+      {
+        mineralId: 'white-big-triangle',
+        orientation: 'north',
+        origin: { column: 1, row: 7 },
+      },
     ],
   },
   {
@@ -33,11 +63,31 @@ export const preparedPuzzles: ReadonlyArray<Puzzle> = [
     title: 'Deep Vein',
     ruleset: 'basic',
     placements: [
-      { mineralId: 'red-parallelogram', origin: { column: 2, row: 0 } },
-      { mineralId: 'yellow-triangle', origin: { column: 7, row: 1 } },
-      { mineralId: 'blue-diamond', origin: { column: 0, row: 5 } },
-      { mineralId: 'white-large-triangle', origin: { column: 5, row: 4 } },
-      { mineralId: 'white-small-square', origin: { column: 4, row: 2 } },
+      {
+        mineralId: 'red-parallelogram',
+        orientation: 'east',
+        origin: { column: 0, row: 2 },
+      },
+      {
+        mineralId: 'yellow-triangle',
+        orientation: 'west',
+        origin: { column: 6, row: 0 },
+      },
+      {
+        mineralId: 'blue-big-triangle',
+        orientation: 'south',
+        origin: { column: 2, row: 0 },
+      },
+      {
+        mineralId: 'white-diamond',
+        orientation: 'north',
+        origin: { column: 5, row: 4 },
+      },
+      {
+        mineralId: 'white-big-triangle',
+        orientation: 'east',
+        origin: { column: 1, row: 6 },
+      },
     ],
   },
   {
@@ -45,13 +95,41 @@ export const preparedPuzzles: ReadonlyArray<Puzzle> = [
     title: 'Expert Shaft',
     ruleset: 'expansion',
     placements: [
-      { mineralId: 'red-parallelogram', origin: { column: 0, row: 2 } },
-      { mineralId: 'yellow-triangle', origin: { column: 8, row: 1 } },
-      { mineralId: 'blue-diamond', origin: { column: 5, row: 0 } },
-      { mineralId: 'white-large-triangle', origin: { column: 2, row: 5 } },
-      { mineralId: 'white-small-square', origin: { column: 7, row: 6 } },
-      { mineralId: 'transparent-prism', origin: { column: 2, row: 1 } },
-      { mineralId: 'black-body', origin: { column: 5, row: 4 } },
+      {
+        mineralId: 'red-parallelogram',
+        orientation: 'south',
+        origin: { column: 0, row: 1 },
+      },
+      {
+        mineralId: 'yellow-triangle',
+        orientation: 'south',
+        origin: { column: 6, row: 0 },
+      },
+      {
+        mineralId: 'blue-big-triangle',
+        orientation: 'west',
+        origin: { column: 4, row: 3 },
+      },
+      {
+        mineralId: 'white-diamond',
+        orientation: 'north',
+        origin: { column: 2, row: 4 },
+      },
+      {
+        mineralId: 'white-big-triangle',
+        orientation: 'east',
+        origin: { column: 0, row: 6 },
+      },
+      {
+        mineralId: 'transparent-prism',
+        orientation: 'north',
+        origin: { column: 3, row: 0 },
+      },
+      {
+        mineralId: 'black-absorber',
+        orientation: 'north',
+        origin: { column: 6, row: 8 },
+      },
     ],
   },
 ]
@@ -60,6 +138,8 @@ export function createEmptyGuess(puzzle: Puzzle): Array<GuessPlacement> {
   return puzzle.placements.map((placement) => ({
     mineralId: placement.mineralId,
     origin: null,
+    orientation:
+      placement.orientation ?? minerals[placement.mineralId].defaultOrientation,
   }))
 }
 
@@ -67,14 +147,27 @@ export function moveGuessMineral(
   guess: ReadonlyArray<GuessPlacement>,
   mineralId: MineralId,
   origin: Coordinate,
+  orientation?: Orientation,
 ): Array<GuessPlacement> {
-  if (!canPlaceMineral(mineralId, origin)) {
+  const currentPlacement = guess.find((placement) => placement.mineralId === mineralId)
+  const nextOrientation =
+    orientation ?? currentPlacement?.orientation ?? minerals[mineralId].defaultOrientation
+
+  if (!canPlaceMineralWithOrientation(mineralId, origin, nextOrientation)) {
     return [...guess]
   }
 
-  return guess.map((placement) =>
-    placement.mineralId === mineralId ? { ...placement, origin } : placement,
+  const nextGuess = guess.map((placement) =>
+    placement.mineralId === mineralId
+      ? { ...placement, orientation: nextOrientation, origin }
+      : placement,
   )
+
+  if (placementsOverlap(toPlacedMinerals(nextGuess))) {
+    return [...guess]
+  }
+
+  return nextGuess
 }
 
 export function removeGuessMineral(
@@ -86,11 +179,42 @@ export function removeGuessMineral(
   )
 }
 
+export function rotateGuessMineral(
+  guess: ReadonlyArray<GuessPlacement>,
+  mineralId: MineralId,
+): Array<GuessPlacement> {
+  const target = guess.find((placement) => placement.mineralId === mineralId)
+
+  if (!target) {
+    return [...guess]
+  }
+
+  const nextOrientation = rotateOrientation(target.orientation)
+
+  if (target.origin) {
+    return moveGuessMineral(guess, mineralId, target.origin, nextOrientation)
+  }
+
+  return guess.map((placement) =>
+    placement.mineralId === mineralId
+      ? { ...placement, orientation: nextOrientation }
+      : placement,
+  )
+}
+
 export function toPlacedMinerals(
   guess: ReadonlyArray<GuessPlacement>,
 ): Array<MineralPlacement> {
   return guess.flatMap((placement) =>
-    placement.origin ? [{ mineralId: placement.mineralId, origin: placement.origin }] : [],
+    placement.origin
+      ? [
+          {
+            mineralId: placement.mineralId,
+            orientation: placement.orientation,
+            origin: placement.origin,
+          },
+        ]
+      : [],
   )
 }
 
@@ -100,6 +224,9 @@ export function compareGuess(puzzle: Puzzle, guess: ReadonlyArray<GuessPlacement
       (guessPlacement) =>
         guessPlacement.mineralId === solutionPlacement.mineralId &&
         guessPlacement.origin !== null &&
+        guessPlacement.orientation ===
+          (solutionPlacement.orientation ??
+            minerals[solutionPlacement.mineralId].defaultOrientation) &&
         guessPlacement.origin.column === solutionPlacement.origin.column &&
         guessPlacement.origin.row === solutionPlacement.origin.row,
     ),

@@ -1,9 +1,9 @@
-import type { Coordinate, Direction, EdgePort } from './coordinates'
+import type { Coordinate, EdgePort } from './coordinates'
 import { exitLabelFrom, isInsideBoard, move } from './coordinates'
 import type { ColorContact, SignalColor } from './colors'
 import { mixSignalColor } from './colors'
-import type { MineralPlacement, Reflector } from './minerals'
-import { findOccupant } from './minerals'
+import type { MineralPlacement } from './minerals'
+import { findOccupant, reflectsFrom } from './minerals'
 
 export type WaveTrace =
   | Readonly<{
@@ -25,46 +25,6 @@ export type WaveTrace =
       signalColor: SignalColor
       path: ReadonlyArray<Coordinate>
     }>
-
-function reflect(direction: Direction, reflector: Reflector): Direction {
-  if (reflector === 'slash') {
-    const turns: Record<Direction, Direction> = {
-      north: 'east',
-      east: 'north',
-      south: 'west',
-      west: 'south',
-    }
-    return turns[direction]
-  }
-
-  if (reflector === 'backslash') {
-    const turns: Record<Direction, Direction> = {
-      north: 'west',
-      west: 'north',
-      south: 'east',
-      east: 'south',
-    }
-    return turns[direction]
-  }
-
-  if (reflector === 'vertical') {
-    const turns: Record<Direction, Direction> = {
-      north: 'north',
-      east: 'west',
-      south: 'south',
-      west: 'east',
-    }
-    return turns[direction]
-  }
-
-  const turns: Record<Direction, Direction> = {
-    north: 'south',
-    east: 'east',
-    south: 'north',
-    west: 'west',
-  }
-  return turns[direction]
-}
 
 export function traceWave(
   placements: ReadonlyArray<MineralPlacement>,
@@ -108,7 +68,7 @@ export function traceWave(
       continue
     }
 
-    if (occupant.mineral.color === 'black') {
+    if (occupant.opticalCell === 'absorb' || occupant.mineral.color === 'black') {
       return {
         kind: 'absorbed',
         entryLabel: edgePort.label,
@@ -121,7 +81,7 @@ export function traceWave(
       contacts.add(occupant.mineral.color)
     }
 
-    direction = reflect(direction, occupant.reflector)
+    direction = reflectsFrom(occupant.opticalCell, direction)
   }
 
   return {

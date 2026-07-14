@@ -12,23 +12,29 @@ export type EdgePort = Readonly<{
 }>
 
 export const boardSize = {
-  columns: 10,
-  rows: 8,
+  columns: 8,
+  rows: 10,
 } as const
 
-export const rowLabels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'] as const
-export const bottomLabels = [
-  'I',
-  'J',
-  'K',
-  'L',
-  'M',
-  'N',
-  'O',
-  'P',
-  'Q',
-  'R',
-] as const
+export const topLabels = Array.from(
+  { length: boardSize.columns },
+  (_, index) => `T${index + 1}`,
+)
+
+export const bottomLabels = Array.from(
+  { length: boardSize.columns },
+  (_, index) => `B${index + 1}`,
+)
+
+export const leftLabels = Array.from(
+  { length: boardSize.rows },
+  (_, index) => `L${index + 1}`,
+)
+
+export const rightLabels = Array.from(
+  { length: boardSize.rows },
+  (_, index) => `R${index + 1}`,
+)
 
 export function coordinateKey(coordinate: Coordinate) {
   return `${coordinate.column}:${coordinate.row}`
@@ -60,44 +66,64 @@ export function move(coordinate: Coordinate, direction: Direction): Coordinate {
 }
 
 export function parseEdgePort(rawInput: string): EdgePort | null {
-  const input = rawInput.trim().toUpperCase()
-  const numericLabel = Number(input)
+  const input = rawInput.trim().toUpperCase().replace(/\s+/g, '')
+  const compact = input.match(/^([TBLR])([1-9]|10)$/)
 
-  if (Number.isInteger(numericLabel) && numericLabel >= 1 && numericLabel <= 10) {
-    return {
-      label: String(numericLabel),
-      start: { column: numericLabel - 1, row: -1 },
-      direction: 'south',
-    }
+  if (compact) {
+    return edgePortFromSide(compact[1], Number(compact[2]))
   }
+
+  const numericTopLabel = Number(input)
 
   if (
-    Number.isInteger(numericLabel) &&
-    numericLabel >= 11 &&
-    numericLabel <= 18
+    Number.isInteger(numericTopLabel) &&
+    numericTopLabel >= 1 &&
+    numericTopLabel <= boardSize.columns
   ) {
+    return edgePortFromSide('T', numericTopLabel)
+  }
+
+  return null
+}
+
+function edgePortFromSide(side: string, index: number): EdgePort | null {
+  if ((side === 'T' || side === 'B') && index > boardSize.columns) {
+    return null
+  }
+
+  if ((side === 'L' || side === 'R') && index > boardSize.rows) {
+    return null
+  }
+
+  if (side === 'T') {
     return {
-      label: String(numericLabel),
-      start: { column: boardSize.columns, row: numericLabel - 11 },
-      direction: 'west',
+      direction: 'south',
+      label: `T${index}`,
+      start: { column: index - 1, row: -1 },
     }
   }
 
-  const leftRow = rowLabels.indexOf(input as (typeof rowLabels)[number])
-  if (leftRow >= 0) {
+  if (side === 'B') {
     return {
-      label: input,
-      start: { column: -1, row: leftRow },
-      direction: 'east',
-    }
-  }
-
-  const bottomColumn = bottomLabels.indexOf(input as (typeof bottomLabels)[number])
-  if (bottomColumn >= 0) {
-    return {
-      label: input,
-      start: { column: bottomColumn, row: boardSize.rows },
       direction: 'north',
+      label: `B${index}`,
+      start: { column: index - 1, row: boardSize.rows },
+    }
+  }
+
+  if (side === 'L') {
+    return {
+      direction: 'east',
+      label: `L${index}`,
+      start: { column: -1, row: index - 1 },
+    }
+  }
+
+  if (side === 'R') {
+    return {
+      direction: 'west',
+      label: `R${index}`,
+      start: { column: boardSize.columns, row: index - 1 },
     }
   }
 
@@ -106,20 +132,20 @@ export function parseEdgePort(rawInput: string): EdgePort | null {
 
 export function parseGridCoordinate(rawInput: string): Coordinate | null {
   const input = rawInput.trim().toUpperCase().replace(/[(),\s]/g, '')
-  const letterFirst = input.match(/^([A-H])(10|[1-9])$/)
-  const numberFirst = input.match(/^(10|[1-9])([A-H])$/)
+  const columnRow = input.match(/^(?:C)?([1-8])(?:R)?(10|[1-9])$/)
+  const rowColumn = input.match(/^R(10|[1-9])C([1-8])$/)
 
-  if (letterFirst) {
+  if (columnRow) {
     return {
-      column: Number(letterFirst[2]) - 1,
-      row: rowLabels.indexOf(letterFirst[1] as (typeof rowLabels)[number]),
+      column: Number(columnRow[1]) - 1,
+      row: Number(columnRow[2]) - 1,
     }
   }
 
-  if (numberFirst) {
+  if (rowColumn) {
     return {
-      column: Number(numberFirst[1]) - 1,
-      row: rowLabels.indexOf(numberFirst[2] as (typeof rowLabels)[number]),
+      column: Number(rowColumn[2]) - 1,
+      row: Number(rowColumn[1]) - 1,
     }
   }
 
@@ -130,20 +156,20 @@ export function exitLabelFrom(lastInside: Coordinate, direction: Direction) {
   const outside = move(lastInside, direction)
 
   if (outside.row < 0) {
-    return String(lastInside.column + 1)
+    return `T${lastInside.column + 1}`
   }
 
   if (outside.column >= boardSize.columns) {
-    return String(lastInside.row + 11)
+    return `R${lastInside.row + 1}`
   }
 
   if (outside.row >= boardSize.rows) {
-    return bottomLabels[lastInside.column]
+    return `B${lastInside.column + 1}`
   }
 
-  return rowLabels[lastInside.row]
+  return `L${lastInside.row + 1}`
 }
 
 export function formatGridCoordinate(coordinate: Coordinate) {
-  return `${coordinate.column + 1}, ${rowLabels[coordinate.row]}`
+  return `C${coordinate.column + 1}, R${coordinate.row + 1}`
 }

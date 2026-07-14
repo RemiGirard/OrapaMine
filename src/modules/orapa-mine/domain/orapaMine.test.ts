@@ -2,43 +2,51 @@ import { describe, expect, it } from 'vitest'
 import { parseEdgePort, parseGridCoordinate } from './coordinates'
 import { mixSignalColor } from './colors'
 import { answerQuestion } from './questions'
-import { compareGuess, createEmptyGuess, moveGuessMineral } from './puzzles'
+import {
+  compareGuess,
+  createEmptyGuess,
+  moveGuessMineral,
+  preparedPuzzles,
+  rotateGuessMineral,
+} from './puzzles'
 import type { Puzzle } from './puzzles'
+import { canPlaceMineralWithOrientation, placementsOverlap } from './minerals'
+import { parseVoiceQuestion } from './voiceCommands'
 
 const singleBlackPuzzle: Puzzle = {
   id: 'test-black',
   title: 'Test Black',
   ruleset: 'expansion',
-  placements: [{ mineralId: 'black-body', origin: { column: 0, row: 0 } }],
+  placements: [{ mineralId: 'black-absorber', origin: { column: 0, row: 0 } }],
 }
 
 describe('Orapa Mine domain', () => {
-  it('parses edge launch labels around the 10 by 8 grid', () => {
-    expect(parseEdgePort('1')).toEqual({
+  it('parses edge launch labels around the 8 by 10 grid', () => {
+    expect(parseEdgePort('T1')).toEqual({
       direction: 'south',
-      label: '1',
+      label: 'T1',
       start: { column: 0, row: -1 },
     })
-    expect(parseEdgePort('11')).toEqual({
+    expect(parseEdgePort('R1')).toEqual({
       direction: 'west',
-      label: '11',
-      start: { column: 10, row: 0 },
+      label: 'R1',
+      start: { column: 8, row: 0 },
     })
-    expect(parseEdgePort('A')).toEqual({
+    expect(parseEdgePort('L1')).toEqual({
       direction: 'east',
-      label: 'A',
+      label: 'L1',
       start: { column: -1, row: 0 },
     })
-    expect(parseEdgePort('R')).toEqual({
+    expect(parseEdgePort('B8')).toEqual({
       direction: 'north',
-      label: 'R',
-      start: { column: 9, row: 8 },
+      label: 'B8',
+      start: { column: 7, row: 10 },
     })
   })
 
   it('parses spoken-style coordinate questions', () => {
-    expect(parseGridCoordinate('4,E')).toEqual({ column: 3, row: 4 })
-    expect(parseGridCoordinate('E4')).toEqual({ column: 3, row: 4 })
+    expect(parseGridCoordinate('C4,R5')).toEqual({ column: 3, row: 4 })
+    expect(parseGridCoordinate('R5C4')).toEqual({ column: 3, row: 4 })
   })
 
   it('mixes signal colors using first-hit color contacts', () => {
@@ -52,11 +60,11 @@ describe('Orapa Mine domain', () => {
   })
 
   it('absorbs waves and coordinate checks on black gemstones', () => {
-    expect(answerQuestion(singleBlackPuzzle, 'edge', '1', 1)).toMatchObject({
+    expect(answerQuestion(singleBlackPuzzle, 'edge', 'T1', 1)).toMatchObject({
       message: 'Signal absorbed',
       signalColor: 'absorbed',
     })
-    expect(answerQuestion(singleBlackPuzzle, 'coordinate', 'A1', 2)).toMatchObject({
+    expect(answerQuestion(singleBlackPuzzle, 'coordinate', 'C1,R1', 2)).toMatchObject({
       message: 'Signal absorbed',
       signalColor: 'absorbed',
     })
@@ -81,6 +89,61 @@ describe('Orapa Mine domain', () => {
       exactPlacements: 1,
       solved: true,
       totalPlacements: 1,
+    })
+  })
+
+  it('treats gemstone orientation as part of the family solution', () => {
+    const puzzle: Puzzle = {
+      id: 'test-oriented',
+      title: 'Test Oriented',
+      ruleset: 'basic',
+      placements: [
+        {
+          mineralId: 'red-parallelogram',
+          orientation: 'south',
+          origin: { column: 1, row: 1 },
+        },
+      ],
+    }
+    const wrongOrientationGuess = moveGuessMineral(
+      createEmptyGuess(puzzle),
+      'red-parallelogram',
+      { column: 1, row: 1 },
+      'east',
+    )
+    const correctGuess = rotateGuessMineral(
+      wrongOrientationGuess,
+      'red-parallelogram',
+    )
+
+    expect(compareGuess(puzzle, wrongOrientationGuess).solved).toBe(false)
+    expect(compareGuess(puzzle, correctGuess).solved).toBe(true)
+  })
+
+  it('keeps prepared puzzle pieces inside the board without overlap', () => {
+    for (const puzzle of preparedPuzzles) {
+      expect(placementsOverlap(puzzle.placements)).toBe(false)
+
+      for (const placement of puzzle.placements) {
+        expect(
+          canPlaceMineralWithOrientation(
+            placement.mineralId,
+            placement.origin,
+            placement.orientation ?? 'north',
+          ),
+        ).toBe(true)
+      }
+    }
+  })
+
+  it('parses spoken ray and cell questions', () => {
+    expect(parseVoiceQuestion('send ray right six')).toEqual({
+      mode: 'edge',
+      query: 'R6',
+    })
+    expect(parseVoiceQuestion('query cell column four row five')).toEqual({
+      mode: 'coordinate',
+      query: '45',
     })
   })
 })

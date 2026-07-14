@@ -1,8 +1,6 @@
 import { Eye, EyeOff, Shuffle } from 'lucide-react'
 import { useCooperativeMineGame } from '../application/useCooperativeMineGame'
-import { BoardView } from './BoardView'
 import { GuessBoard } from './GuessBoard'
-import { QuestionConsole } from './QuestionConsole'
 import styles from './CooperativeMineGame.module.css'
 
 export function CooperativeMineGame() {
@@ -34,32 +32,27 @@ export function CooperativeMineGame() {
       </header>
 
       <section className={styles.layout}>
-        <QuestionConsole
-          answers={game.answers}
-          mode={game.questionMode}
-          onAsk={game.askCurrentQuestion}
-          onModeChange={game.setQuestionMode}
-          onQueryChange={game.setQuery}
-          query={game.query}
-        />
-
-        <div className={styles.minePanel}>
-          <BoardView
-            hidden={!game.showSolution}
-            highlightedPath={game.highlightedPath}
-            occupiedCells={game.showSolution ? game.solutionCells : []}
-            title="Mine"
-          />
-        </div>
-
         <GuessBoard
+          answers={game.answers}
+          currentAnswer={game.lastAnswer}
+          edgeAnswers={game.edgeAnswers}
           guess={game.guess}
-          occupiedCells={game.guessCells}
+          highlightedPath={game.highlightedPath}
+          onAskEdge={game.askEdge}
+          onPlaceSelected={game.placeSelectedMineral}
           onPlace={game.placeGuessMineral}
           onRemove={game.removeGuess}
           onReset={game.resetGuess}
+          onRotate={game.rotateGuess}
+          onSelect={game.selectGuessMineral}
           onSubmit={game.submitGuess}
+          onToggleLightPath={game.setShowLightPath}
+          onVoiceCommand={game.askVoiceQuestion}
           result={game.submittedResult}
+          selectedMineralId={game.selectedMineralId}
+          showLightPath={game.showLightPath}
+          showSolution={game.showSolution}
+          solutionPlacements={game.puzzle.placements}
         />
       </section>
     </main>

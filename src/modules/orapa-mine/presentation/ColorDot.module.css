@@ -1,7 +1,10 @@
 .dot {
   background: var(--dot-color);
-  border: 1px solid rgb(0 0 0 / 0.18);
+  border: 1px solid rgb(255 255 255 / 0.34);
   border-radius: 999px;
+  box-shadow:
+    0 0 10px var(--dot-color),
+    inset 0 0 8px rgb(255 255 255 / 0.22);
   display: inline-block;
   height: 1.1rem;
   width: 1.1rem;
