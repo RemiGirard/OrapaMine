@@ -119,23 +119,32 @@ export function GuessBoard({
   const [voiceState, setVoiceState] = useState<'idle' | 'listening' | 'error'>(
     'idle',
   )
+  const [hoveredLogbookAnswerId, setHoveredLogbookAnswerId] = useState<
+    number | null
+  >(null)
   const [dragState, setDragState] = useState<DragState | null>(null)
   const dragStateRef = useRef<DragState | null>(null)
   const boardRef = useRef<HTMLDivElement>(null)
   const draggedPlacement = dragState
     ? guess.find((placement) => placement.mineralId === dragState.mineralId)
     : null
+  const hoveredLogbookAnswer =
+    answers.find(
+      (answer): answer is Extract<Answer, { mode: 'edge' }> =>
+        answer.id === hoveredLogbookAnswerId && answer.mode === 'edge',
+    ) ?? null
+  const activeEdgeLight = hoveredLogbookAnswer ?? currentRayPreview
   const activeRayLabels = new Set(
-    currentRayPreview
-      ? [currentRayPreview.query, currentRayPreview.exitLabel].filter(
+    activeEdgeLight
+      ? [activeEdgeLight.query, activeEdgeLight.exitLabel].filter(
           (label): label is string => Boolean(label),
         )
       : [],
   )
-  const activeEmitterLabel = currentRayPreview?.query
-  const activeReceiverLabel = currentRayPreview?.exitLabel
-  const activeRayColor = currentRayPreview
-    ? colorValue(currentRayPreview.signalColor)
+  const activeEmitterLabel = activeEdgeLight?.query
+  const activeReceiverLabel = activeEdgeLight?.exitLabel
+  const activeRayColor = activeEdgeLight
+    ? colorValue(activeEdgeLight.signalColor)
     : undefined
 
   function listenForVoiceCommand() {
@@ -175,6 +184,16 @@ export function GuessBoard({
     }
 
     return null
+  }
+
+  function previewLogbookAnswer(answer: Answer) {
+    if (answer.mode === 'edge') {
+      setHoveredLogbookAnswerId(answer.id)
+    }
+  }
+
+  function clearLogbookPreview() {
+    setHoveredLogbookAnswerId(null)
   }
 
   function commitDragState(nextDragState: DragState | null) {
@@ -785,7 +804,29 @@ export function GuessBoard({
             {answers.length > 0 ? (
               <ol className={styles.logbook} aria-label="Logbook">
                 {answers.slice(0, 6).map((answer) => (
-                  <li key={answer.id}>
+                  <li
+                    className={[
+                      answer.mode === 'edge' ? styles.edgeLogEntry : '',
+                      answer.id === hoveredLogbookAnswerId
+                        ? styles.activeLogEntry
+                        : '',
+                    ].join(' ')}
+                    key={answer.id}
+                    onBlur={clearLogbookPreview}
+                    onFocus={() => previewLogbookAnswer(answer)}
+                    onPointerEnter={() => previewLogbookAnswer(answer)}
+                    onPointerLeave={clearLogbookPreview}
+                    style={
+                      answer.mode === 'edge'
+                        ? ({
+                            '--logbook-active-color': colorValue(
+                              answer.signalColor,
+                            ),
+                          } as CSSProperties)
+                        : undefined
+                    }
+                    tabIndex={answer.mode === 'edge' ? 0 : undefined}
+                  >
                     <ColorDot
                       color={
                         answer.signalColor === 'absorbed'
