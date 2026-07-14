@@ -228,7 +228,7 @@ describe('GameTable piece interactions', () => {
     expect(pointValues?.every((point) => point >= 0 && point <= 100)).toBe(true)
   })
 
-  it('renders every placement-derived ray and lets the family hide them', () => {
+  it('renders colored placement-derived rays, hides empty ones, and lets the family hide them', () => {
     const allRayPreviews: ReadonlyArray<Extract<Answer, { mode: 'edge' }>> = [
       {
         exitLabel: 'B1',
@@ -264,7 +264,9 @@ describe('GameTable piece interactions', () => {
     expect(allRaysToggle).toHaveProperty('checked', true)
     expect(
       document.querySelectorAll('[data-ray-layer="all"] polyline'),
-    ).toHaveLength(4)
+    ).toHaveLength(2)
+    expect(document.querySelector('[data-ray-query="T1"]')).toBeNull()
+    expect(document.querySelector('[data-ray-query="L1"]')).not.toBeNull()
 
     fireEvent.click(allRaysToggle)
 

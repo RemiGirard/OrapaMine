@@ -70,6 +70,15 @@ function AllRaysOverlay({
   answers: ReadonlyArray<RayAnswer>
   excludedQuery?: string
 }>) {
+  const visibleAnswers = answers.filter(
+    (answer) =>
+      answer.signalColor !== 'transparent' && answer.query !== excludedQuery,
+  )
+
+  if (visibleAnswers.length === 0) {
+    return null
+  }
+
   return (
     <svg
       aria-hidden="true"
@@ -78,11 +87,7 @@ function AllRaysOverlay({
       preserveAspectRatio="none"
       viewBox="0 0 100 100"
     >
-      {answers.map((answer) => {
-        if (answer.query === excludedQuery) {
-          return null
-        }
-
+      {visibleAnswers.map((answer) => {
         const points = rayPoints(answer)
 
         if (points.length < 2) {
@@ -91,6 +96,7 @@ function AllRaysOverlay({
 
         return (
           <g
+            data-ray-query={answer.query}
             key={answer.query}
             style={
               { '--ray-color': colorValue(answer.signalColor) } as CSSProperties
