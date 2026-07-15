@@ -15,6 +15,7 @@ import { signalColorLabels } from '../../domain/colors'
 import type { Answer } from '../../domain/questions'
 import type { CluePreviewSource } from '../clues/useClueInspection'
 import { colorValue } from '../colorPalette'
+import type { ActiveLight } from '../light/lightActivity'
 import styles from './EdgePorts.module.css'
 
 type EdgeAnswer = Extract<Answer, { mode: 'edge' }>
@@ -32,7 +33,7 @@ const edgeGroups: Record<
 }
 
 export function EdgePortGroup({
-  activeAnswer,
+  activeLight,
   answers,
   onAsk,
   onClearPreview,
@@ -42,7 +43,7 @@ export function EdgePortGroup({
   onShoot,
   side,
 }: Readonly<{
-  activeAnswer: EdgeAnswer | null
+  activeLight: ActiveLight | null
   answers: ReadonlyMap<string, EdgeAnswer>
   onAsk: (edgeLabel: string) => void
   onClearPreview: (source: CluePreviewSource) => void
@@ -53,6 +54,7 @@ export function EdgePortGroup({
   side: EdgeSide
 }>) {
   const group = edgeGroups[side]
+  const activeAnswer = activeLight?.answer ?? null
   const activeLabels = new Set(
     activeAnswer
       ? [activeAnswer.query, activeAnswer.exitLabel].filter(
@@ -73,6 +75,7 @@ export function EdgePortGroup({
         <EdgePort
           activeColor={activeColor}
           activeConnection={activeConnection}
+          activeLightState={activeLight?.state ?? null}
           activeRole={activeRoleFor(label, activeAnswer)}
           answer={answers.get(label)}
           isActive={activeLabels.has(label)}
@@ -110,6 +113,7 @@ function EdgePort({
   activeRole,
   activeColor,
   activeConnection,
+  activeLightState,
   answer,
   isActive,
   label,
@@ -123,6 +127,7 @@ function EdgePort({
   activeRole: ActiveEdgeRole | null
   activeColor: string | undefined
   activeConnection: EdgeConnection | null
+  activeLightState: ActiveLight['state'] | null
   answer: EdgeAnswer | undefined
   isActive: boolean
   label: string
@@ -136,6 +141,7 @@ function EdgePort({
   function previewKnownAnswer(source: CluePreviewSource) {
     if (answer) {
       onPreview(answer, source)
+      onShoot(label)
     }
   }
 
@@ -192,11 +198,14 @@ function EdgePort({
       aria-label={`Send ray ${label}`}
       className={[
         answer ? styles.answeredEdge : '',
-        isActive ? styles.activeRayEdge : '',
-        activeRole === 'emitter' || activeRole === 'both'
+        isActive && activeLightState === 'clue' ? styles.inspectedClueEdge : '',
+        isActive && activeLightState !== 'clue' ? styles.activeRayEdge : '',
+        activeLightState !== 'clue' &&
+        (activeRole === 'emitter' || activeRole === 'both')
           ? styles.activeEmitterEdge
           : '',
-        activeRole === 'receiver' || activeRole === 'both'
+        activeLightState !== 'clue' &&
+        (activeRole === 'receiver' || activeRole === 'both')
           ? styles.activeReceiverEdge
           : '',
       ].join(' ')}
@@ -205,6 +214,7 @@ function EdgePort({
       }
       data-clue-connection={connection?.key}
       data-edge-role={activeRole ?? undefined}
+      data-light-state={isActive ? (activeLightState ?? undefined) : undefined}
       data-edge-side={label.slice(0, 1)}
       data-edge-port="true"
       data-edge-port-index={edgeLabels.indexOf(label)}

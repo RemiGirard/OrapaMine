@@ -57,7 +57,8 @@ Application functions return new immutable state. React is only an adapter aroun
   view-model contracts.
 - `board`: board surface and clickable perimeter ports.
 - `glass`: foam case, rendered pieces, drag lifecycle, and DOM hit-testing adapter.
-- `light`: current/all ray overlays and visibility controls.
+- `light`: background, diagnostic, and verified ray activity; photon overlays; and visibility
+  controls.
 - `clues`: current answer, notebook history, and temporary answer preview.
 - `solution`: submission feedback.
 

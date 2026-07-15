@@ -19,6 +19,7 @@ import glassStyles from '../glass/Glass.module.css'
 import type { usePieceMovementInteraction } from '../glass/usePieceMovementInteraction'
 import layoutStyles from '../GameTable.module.css'
 import { LightPaths } from '../light/LightPaths'
+import type { ActiveLight } from '../light/lightActivity'
 import type { RayShot } from '../light/useRayShot'
 import { EdgePortGroup } from './EdgePorts'
 import styles from './SolutionBoard.module.css'
@@ -27,7 +28,7 @@ type MovementInteraction = ReturnType<typeof usePieceMovementInteraction>
 type RayAnswer = Extract<Answer, { mode: 'edge' }>
 
 export function SolutionBoard({
-  activeAnswer,
+  activeLight,
   boardRef,
   edgeAnswers,
   guess,
@@ -53,7 +54,7 @@ export function SolutionBoard({
   solutionPlacements,
   currentRay,
 }: Readonly<{
-  activeAnswer: RayAnswer | null
+  activeLight: ActiveLight | null
   boardRef: RefObject<HTMLDivElement | null>
   currentRay: RayAnswer | null
   edgeAnswers: ReadonlyMap<string, RayAnswer>
@@ -86,7 +87,7 @@ export function SolutionBoard({
       )
     : null
   const edgeProps = {
-    activeAnswer,
+    activeLight,
     answers: edgeAnswers,
     onAsk: onAskEdge,
     onClearPreview: onClearAnswerPreview,

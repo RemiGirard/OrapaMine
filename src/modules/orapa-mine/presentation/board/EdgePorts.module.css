@@ -232,6 +232,24 @@
   opacity: 0.72;
 }
 
+.columnLabels .inspectedClueEdge,
+.bottomLabels .inspectedClueEdge,
+.rowLabels .inspectedClueEdge,
+.rightLabels .inspectedClueEdge {
+  filter: brightness(1.08) saturate(1.08);
+  transform: scale(1.02);
+}
+
+.columnLabels .inspectedClueEdge .portLabel,
+.bottomLabels .inspectedClueEdge .portLabel,
+.rowLabels .inspectedClueEdge .portLabel,
+.rightLabels .inspectedClueEdge .portLabel {
+  filter: brightness(1.18);
+  text-shadow:
+    0 0 2px rgb(255 255 255 / 0.82),
+    0 0 8px color-mix(in srgb, var(--edge-answer-color) 58%, transparent);
+}
+
 .columnLabels .activeRayEdge:not(.answeredEdge),
 .bottomLabels .activeRayEdge:not(.answeredEdge),
 .rowLabels .activeRayEdge:not(.answeredEdge),

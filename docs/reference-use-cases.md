@@ -27,11 +27,18 @@ The same use case can start from a spoken command such as `top four` or `right s
 
 ### Inspect the current family optics
 
-1. Every ray for the current family placement is visible by default.
-2. The family may independently hide all live rays or the latest selected ray.
-3. Moving, rotating, flipping, or returning a glass piece recomputes the live rays from derived
+1. Every colored ray for the current family placement is visible by default as a dark, static
+   background path.
+2. Clicking any edge emits one diagnostic photon along the route produced by the family placement,
+   whether or not that route matches a clue. Hovering or focusing a known edge or logbook clue
+   repeats that diagnostic shot without recording another clue.
+3. A selected clue becomes a verified light link only when the family ray has the same input,
+   output, and final color. Verified links use the brighter fixed path and one continuously bouncing
+   photon; unmatched clues identify their expected endpoints without that passing-light treatment.
+4. The family may independently hide all background rays or the verified selected ray.
+5. Moving, rotating, flipping, or returning a glass piece recomputes the live rays from derived
    state; no light result is stored separately.
-4. Each notebook ray shows whether the current family map produces the same exit and color, while
+6. Each notebook ray shows whether the current family map produces the same exit and color, while
    a compact meter counts the distinct clues currently matched.
 
 Actual clue colors remain puzzle answers. Live-ray previews show what the current family placement

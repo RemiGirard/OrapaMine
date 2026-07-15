@@ -641,7 +641,8 @@ describe('GameTable piece interactions', () => {
     expect(document.querySelector('[data-ray-layer="all"]')).toBeNull()
   })
 
-  it('brightens the real output of the latest answer and previews answered labels on hover', () => {
+  it('inspects clue endpoints and fires the current family ray on hover', () => {
+    vi.useFakeTimers()
     const latestAnswer: Extract<Answer, { mode: 'edge' }> = {
       exitLabel: 'B2',
       id: 10,
@@ -665,6 +666,7 @@ describe('GameTable piece interactions', () => {
 
     render(
       <InteractiveGameTable
+        allRayPreviews={[hoveredAnswer, reverseEdgeAnswer(hoveredAnswer)]}
         answers={[latestAnswer, hoveredAnswer]}
         currentAnswer={latestAnswer}
         edgeAnswers={
@@ -681,17 +683,27 @@ describe('GameTable piece interactions', () => {
     const hoveredOutput = screen.getByRole('button', { name: 'Send ray R4' })
 
     expect(latestOutput.getAttribute('data-edge-role')).toBe('receiver')
-    expect(latestOutput.className).toContain('activeReceiverEdge')
+    expect(latestOutput.getAttribute('data-light-state')).toBe('clue')
+    expect(latestOutput.className).toContain('inspectedClueEdge')
+    expect(latestOutput.className).not.toContain('activeReceiverEdge')
 
     fireEvent.pointerEnter(hoveredInput)
 
     expect(latestOutput.getAttribute('data-edge-role')).toBeNull()
     expect(hoveredOutput.getAttribute('data-edge-role')).toBe('receiver')
+    expect(hoveredOutput.getAttribute('data-light-state')).toBe('diagnostic')
     expect(hoveredOutput.className).toContain('activeReceiverEdge')
+    expect(
+      document
+        .querySelector('[data-ray-layer="shot"]')
+        ?.getAttribute('data-ray-query'),
+    ).toBe('L4')
 
     fireEvent.pointerLeave(hoveredInput)
+    act(() => vi.runAllTimers())
 
     expect(latestOutput.getAttribute('data-edge-role')).toBe('receiver')
+    expect(latestOutput.getAttribute('data-light-state')).toBe('clue')
   })
 
   it('gives a self-returning clue both the emitter and receiver signals', () => {
@@ -719,8 +731,10 @@ describe('GameTable piece interactions', () => {
     const port = screen.getByRole('button', { name: 'Send ray T2' })
 
     expect(port.getAttribute('data-edge-role')).toBe('both')
-    expect(port.className).toContain('activeEmitterEdge')
-    expect(port.className).toContain('activeReceiverEdge')
+    expect(port.getAttribute('data-light-state')).toBe('clue')
+    expect(port.className).toContain('inspectedClueEdge')
+    expect(port.className).not.toContain('activeEmitterEdge')
+    expect(port.className).not.toContain('activeReceiverEdge')
   })
 
   it('selects an answered edge instead of asking for the clue again', () => {
@@ -796,14 +810,14 @@ describe('GameTable piece interactions', () => {
     const latestFamilyRay: Extract<Answer, { mode: 'edge' }> = {
       ...latestClue,
       id: -4,
-      message: 'Exit L5 - Red',
-      signalColor: 'red',
+      message: 'Exit L5 - Blue',
+      signalColor: 'blue',
     }
     const selectedFamilyRay: Extract<Answer, { mode: 'edge' }> = {
       ...selectedClue,
       id: -3,
-      message: 'Exit L6 - Red',
-      signalColor: 'red',
+      message: 'Exit L6 - Blue',
+      signalColor: 'blue',
     }
     const reverseLatestClue = reverseEdgeAnswer(latestClue)
     const reverseSelectedClue = reverseEdgeAnswer(selectedClue)
@@ -844,10 +858,10 @@ describe('GameTable piece interactions', () => {
       '#3277d2',
     )
     expect(selectedInput.style.getPropertyValue('--edge-active-color')).toBe(
-      '#ef4f4a',
+      '#3277d2',
     )
     expect(linkedOutput.style.getPropertyValue('--edge-active-color')).toBe(
-      '#ef4f4a',
+      '#3277d2',
     )
     expect(
       document
@@ -908,14 +922,56 @@ describe('GameTable piece interactions', () => {
 
     fireEvent.click(input)
 
-    expect(document.querySelector('[data-ray-layer="shot"]')).toBeNull()
-    expect(familyOutput.getAttribute('data-edge-role')).toBeNull()
+    expect(
+      document
+        .querySelector('[data-ray-layer="shot"]')
+        ?.getAttribute('data-ray-output'),
+    ).toBe('B4')
+    expect(familyOutput.getAttribute('data-edge-role')).toBe('receiver')
+    expect(familyOutput.getAttribute('data-light-state')).toBe('diagnostic')
 
     act(() => vi.runAllTimers())
 
     expect(document.querySelector('[data-ray-layer="current"]')).toBeNull()
     expect(clueOutput.getAttribute('data-edge-role')).toBe('receiver')
     expect(familyOutput.getAttribute('data-edge-role')).toBeNull()
+  })
+
+  it('does not verify a clue when its ports match but its final color differs', () => {
+    const clue: Extract<Answer, { mode: 'edge' }> = {
+      exitLabel: 'L5',
+      id: 14,
+      message: 'Exit L5 - Blue',
+      colorContacts: [],
+      mode: 'edge',
+      path: [{ column: 3, row: 4 }],
+      query: 'T4',
+      signalColor: 'blue',
+    }
+    const wrongColorFamilyRay: Extract<Answer, { mode: 'edge' }> = {
+      ...clue,
+      id: -4,
+      message: 'Exit L5 - Red',
+      signalColor: 'red',
+    }
+
+    render(
+      <InteractiveGameTable
+        allRayPreviews={[wrongColorFamilyRay]}
+        answers={[clue]}
+        currentAnswer={clue}
+        currentRayPreview={wrongColorFamilyRay}
+        showLightPath
+      />,
+    )
+
+    expect(document.querySelector('[data-ray-layer="current"]')).toBeNull()
+    expect(screen.queryByRole('checkbox', { name: 'Current ray' })).toBeNull()
+    expect(
+      screen
+        .getByRole('button', { name: 'Send ray T4' })
+        .getAttribute('data-light-state'),
+    ).toBe('clue')
   })
 
   it('renders compact colored routes and a return arrow for self-returns', () => {

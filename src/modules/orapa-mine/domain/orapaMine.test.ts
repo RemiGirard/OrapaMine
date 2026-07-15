@@ -3,6 +3,7 @@ import { parseEdgePort, parseGridCoordinate } from './coordinates'
 import { mixSignalColor } from './colors'
 import {
   edgeAnswersConnectSamePorts,
+  edgeAnswersShareConnection,
   edgeConnectionFrom,
   edgeConnectionRayFrom,
   edgeConnectionsFrom,
@@ -161,6 +162,13 @@ describe('Orapa Mine domain', () => {
         signalColor: connection.signalColor,
       })
       expect(edgeAnswersConnectSamePorts(fromFirst!, fromSecond!)).toBe(true)
+      expect(edgeAnswersShareConnection(fromFirst!, fromSecond!)).toBe(true)
+      expect(
+        edgeAnswersShareConnection(fromFirst!, {
+          ...fromSecond!,
+          signalColor: connection.signalColor === 'red' ? 'blue' : 'red',
+        }),
+      ).toBe(false)
       expect(edgeConnectionFrom(fromFirst!)).toMatchObject({
         key: connection.key,
       })

@@ -1,5 +1,5 @@
 import { Mic, RotateCcw, Shuffle } from 'lucide-react'
-import { useEffect, useMemo, useRef } from 'react'
+import { useMemo, useRef } from 'react'
 import type { VoiceRecognitionStatus } from '../application/voiceRecognition'
 import type { SolutionSubmissionReadiness } from '../application/solutionSubmission'
 import {
@@ -9,7 +9,7 @@ import {
 import type { GuessResult } from '../domain/familySolution'
 import type { Coordinate } from '../domain/coordinates'
 import {
-  edgeAnswersConnectSamePorts,
+  edgeAnswersShareConnection,
   edgeConnectionsFrom,
 } from '../domain/edgeConnections'
 import type {
@@ -27,6 +27,7 @@ import { usePieceMovementInteraction } from './glass/usePieceMovementInteraction
 import styles from './GameTable.module.css'
 import { useGameKeyboardControls } from './keyboard/useGameKeyboardControls'
 import { LightControls } from './light/LightControls'
+import { resolveActiveLight } from './light/lightActivity'
 import { isVisibleRay } from './light/lightVisibility'
 import { useRayShot } from './light/useRayShot'
 import { SolutionSubmission } from './solution/SolutionSubmission'
@@ -109,25 +110,22 @@ export function GameTable({
         : null)
     )
   }, [inspectedClue, light.currentRay, light.raysByPort])
-  const matchingInspectedRay = useMemo(() => {
+  const verifiedInspectedRay = useMemo(() => {
     if (!inspectedClue || !inspectedRay) {
       return inspectedRay
     }
 
-    return edgeAnswersConnectSamePorts(inspectedClue, inspectedRay)
+    return edgeAnswersShareConnection(inspectedClue, inspectedRay)
       ? inspectedRay
       : null
   }, [inspectedClue, inspectedRay])
-  const matchingRayShot = useMemo(() => {
-    const shot = rayShot.rayShot
-
-    return shot &&
-      matchingInspectedRay &&
-      edgeAnswersConnectSamePorts(matchingInspectedRay, shot.answer)
-      ? shot
-      : null
-  }, [matchingInspectedRay, rayShot.rayShot])
-  const hasCurrentRay = isVisibleRay(matchingInspectedRay)
+  const activeLight = resolveActiveLight({
+    inspectedClue,
+    rayShot: rayShot.rayShot,
+    showVerifiedRay: light.showCurrentRay,
+    verifiedRay: verifiedInspectedRay,
+  })
+  const hasCurrentRay = isVisibleRay(verifiedInspectedRay)
 
   useGameKeyboardControls({
     boardRef,
@@ -143,19 +141,6 @@ export function GameTable({
     showCurrentRay: light.showCurrentRay,
   })
 
-  useEffect(() => {
-    const shot = rayShot.rayShot
-
-    if (shot && !matchingRayShot) {
-      rayShot.completeRayShot(shot.sequence)
-    }
-  }, [matchingRayShot, rayShot.completeRayShot, rayShot.rayShot])
-
-  const activePortAnswer =
-    matchingRayShot?.answer ??
-    (light.showCurrentRay && isVisibleRay(matchingInspectedRay)
-      ? matchingInspectedRay
-      : inspectedClue)
   const draggedPlacement = movement.movementState
     ? familySolution.guess.find(
         (placement) =>
@@ -236,9 +221,9 @@ export function GameTable({
 
       <div className={styles.playSurface}>
         <SolutionBoard
-          activeAnswer={activePortAnswer}
+          activeLight={activeLight}
           boardRef={boardRef}
-          currentRay={matchingInspectedRay}
+          currentRay={verifiedInspectedRay}
           edgeAnswers={clues.edgeAnswers}
           guess={familySolution.guess}
           movement={movement}
@@ -254,7 +239,7 @@ export function GameTable({
           onShootEdge={rayShot.shootRay}
           placementAssessments={placementAssessments}
           rayConnections={rayConnections}
-          rayShot={matchingRayShot}
+          rayShot={rayShot.rayShot}
           selectedMineralId={familySolution.selectedMineralId}
           showAllRays={light.showAllRays}
           showCurrentRay={light.showCurrentRay}
@@ -289,6 +274,7 @@ export function GameTable({
               answers={clues.answers}
               onClearPreview={clueInspection.clearPreview}
               onPreview={clueInspection.previewAnswer}
+              onShootEdge={rayShot.shootRay}
               previewedAnswerId={clueInspection.activeAnswerId}
             />
           </div>

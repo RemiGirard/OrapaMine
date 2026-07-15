@@ -11,11 +11,13 @@ export function ClueNotebook({
   answers,
   onClearPreview,
   onPreview,
+  onShootEdge,
   previewedAnswerId,
 }: Readonly<{
   answers: ReadonlyArray<Answer>
   onClearPreview: (source: CluePreviewSource) => void
   onPreview: (answer: Answer, source: CluePreviewSource) => void
+  onShootEdge: (edgeLabel: string) => void
   previewedAnswerId: number | null
 }>) {
   if (answers.length === 0) {
@@ -40,8 +42,14 @@ export function ClueNotebook({
               data-clue-connection={connection?.key}
               key={answer.id}
               onBlur={() => onClearPreview('focus')}
-              onFocus={() => onPreview(answer, 'focus')}
-              onPointerEnter={() => onPreview(answer, 'pointer')}
+              onFocus={() => {
+                onPreview(answer, 'focus')
+                if (answer.mode === 'edge') onShootEdge(answer.query)
+              }}
+              onPointerEnter={() => {
+                onPreview(answer, 'pointer')
+                if (answer.mode === 'edge') onShootEdge(answer.query)
+              }}
               onPointerLeave={() => onClearPreview('pointer')}
               style={
                 {
