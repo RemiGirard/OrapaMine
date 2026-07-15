@@ -129,7 +129,10 @@ test.describe('clue light display', () => {
     await t4.click()
     await expect(t4).toHaveAttribute('data-edge-role', 'emitter')
     await expect(l5).toHaveAttribute('data-edge-role', 'receiver')
-    await expect(t4).toHaveCSS('filter', 'saturate(1.35) brightness(1.13)')
+    await expect(t4).toHaveCSS('animation-name', /labelLightExposure/)
+    await expect(t4).toHaveCSS('animation-duration', '3.2s')
+    await expect(t4).toHaveCSS('animation-iteration-count', 'infinite')
+    await expect(l5).toHaveCSS('animation-name', /labelLightExposure/)
     await expect(t4.locator('span:last-child')).toHaveCSS(
       'filter',
       'brightness(1.34)',

@@ -236,8 +236,7 @@
 .bottomLabels .inspectedClueEdge,
 .rowLabels .inspectedClueEdge,
 .rightLabels .inspectedClueEdge {
-  filter: brightness(1.08) saturate(1.08);
-  transform: scale(1.02);
+  animation: labelLightExposure 3200ms ease-in-out infinite;
 }
 
 .columnLabels .inspectedClueEdge .portLabel,
@@ -254,6 +253,7 @@
 .bottomLabels .activeRayEdge:not(.answeredEdge),
 .rowLabels .activeRayEdge:not(.answeredEdge),
 .rightLabels .activeRayEdge:not(.answeredEdge) {
+  animation: labelLightExposure 3200ms ease-in-out infinite;
   background:
     linear-gradient(
       132deg,
@@ -292,6 +292,7 @@
 .bottomLabels .answeredEdge.activeRayEdge,
 .rowLabels .answeredEdge.activeRayEdge,
 .rightLabels .answeredEdge.activeRayEdge {
+  animation: labelLightExposure 3200ms ease-in-out infinite;
   background:
     linear-gradient(
       132deg,
@@ -366,27 +367,11 @@
   opacity: 0.96;
 }
 
-.columnLabels .activeEmitterEdge,
-.bottomLabels .activeEmitterEdge,
-.rowLabels .activeEmitterEdge,
-.rightLabels .activeEmitterEdge {
-  filter: saturate(1.35) brightness(1.13);
-  transform: scale(1.035);
-}
-
-.columnLabels .activeReceiverEdge,
-.bottomLabels .activeReceiverEdge,
-.rowLabels .activeReceiverEdge,
-.rightLabels .activeReceiverEdge {
-  animation: receiverExposure 2400ms ease-in-out infinite;
-  transform: scale(1.045);
-}
-
 .columnLabels .activeReceiverEdge::after,
 .bottomLabels .activeReceiverEdge::before,
 .rowLabels .activeReceiverEdge::after,
 .rightLabels .activeReceiverEdge::before {
-  animation: apertureExposure 2400ms ease-in-out infinite;
+  animation: apertureExposure 3200ms ease-in-out infinite;
 }
 
 .columnLabels button:hover:not(.answeredEdge):not(.activeRayEdge),
@@ -450,14 +435,16 @@
   opacity: 0.9;
 }
 
-@keyframes receiverExposure {
+@keyframes labelLightExposure {
   0%,
   100% {
-    filter: saturate(1.35) brightness(1.08);
+    filter: saturate(1) brightness(1);
+    transform: scale(1);
   }
 
   50% {
-    filter: saturate(1.42) brightness(1.25);
+    filter: saturate(1.2) brightness(1.3);
+    transform: scale(1.035);
   }
 }
 
@@ -473,10 +460,14 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .columnLabels .activeReceiverEdge,
-  .bottomLabels .activeReceiverEdge,
-  .rowLabels .activeReceiverEdge,
-  .rightLabels .activeReceiverEdge,
+  .columnLabels .activeRayEdge,
+  .bottomLabels .activeRayEdge,
+  .rowLabels .activeRayEdge,
+  .rightLabels .activeRayEdge,
+  .columnLabels .inspectedClueEdge,
+  .bottomLabels .inspectedClueEdge,
+  .rowLabels .inspectedClueEdge,
+  .rightLabels .inspectedClueEdge,
   .columnLabels .activeReceiverEdge::after,
   .bottomLabels .activeReceiverEdge::before,
   .rowLabels .activeReceiverEdge::after,
