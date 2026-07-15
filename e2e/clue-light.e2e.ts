@@ -18,6 +18,7 @@ test.describe('clue light display', () => {
     await expect(game.currentRay).toHaveCount(0)
     await expect(game.rayShot).toHaveAttribute('data-ray-query', 'T3')
     await expect(game.rayPhoton).toHaveCount(1)
+    await expect(game.rayMotion).toHaveAttribute('calcMode', 'paced')
 
     await t4.click()
     await expect(t4).toHaveAttribute('data-edge-role', 'emitter')
@@ -30,5 +31,31 @@ test.describe('clue light display', () => {
     await expect(game.currentRay).toHaveCount(0)
     await expect(game.rayShot).toHaveAttribute('data-ray-query', 'T3')
     await expect(game.rayPhoton).toHaveCount(1)
+  })
+
+  test('changes the moving photon color when it reaches placed glass', async ({
+    game,
+  }) => {
+    await game.placeFromToolbox('red-parallelogram')
+
+    await game.edgePort('T4').click()
+
+    await expect(game.rayShot).toHaveAttribute('data-ray-query', 'T4')
+    await expect(game.rayPhoton).toHaveAttribute(
+      'data-photon-colors',
+      'transparent red red',
+    )
+    await expect(game.photonColorAnimation).toHaveAttribute(
+      'calcMode',
+      'discrete',
+    )
+    await expect(game.photonColorAnimation).toHaveAttribute(
+      'values',
+      /#c9edf3;#ef4f4a;#ef4f4a/,
+    )
+    await expect(game.currentRay).toHaveCount(0)
+
+    await expect(game.rayShot).toHaveCount(0)
+    await expect(game.currentRay).toHaveCount(1)
   })
 })

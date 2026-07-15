@@ -16,7 +16,7 @@ export function useRayShot(answers: ReadonlyArray<RayAnswer>) {
       const answer = answers.find((candidate) => candidate.query === edgeLabel)
 
       setRayShot((currentShot) =>
-        answer?.signalColor === 'transparent'
+        answer
           ? {
               answer,
               sequence: (currentShot?.sequence ?? 0) + 1,
@@ -27,5 +27,11 @@ export function useRayShot(answers: ReadonlyArray<RayAnswer>) {
     [answers],
   )
 
-  return { rayShot, shootRay }
+  const completeRayShot = useCallback((sequence: number) => {
+    setRayShot((currentShot) =>
+      currentShot?.sequence === sequence ? null : currentShot,
+    )
+  }, [])
+
+  return { completeRayShot, rayShot, shootRay }
 }

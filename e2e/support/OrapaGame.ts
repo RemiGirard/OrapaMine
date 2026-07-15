@@ -11,13 +11,19 @@ type BasicMineralId =
 export class OrapaGame {
   readonly board: Locator
   readonly currentRay: Locator
+  readonly photonColorAnimation: Locator
   readonly rayPhoton: Locator
+  readonly rayMotion: Locator
   readonly rayShot: Locator
 
   constructor(private readonly page: Page) {
     this.board = page.getByTestId('solution-board-surface')
     this.currentRay = page.locator('[data-ray-layer="current"]')
     this.rayPhoton = page.locator('[data-ray-photon="true"]')
+    this.photonColorAnimation = this.rayPhoton.locator(
+      'animate[attributeName="color"]',
+    )
+    this.rayMotion = this.rayPhoton.locator('animateMotion')
     this.rayShot = page.locator('[data-ray-layer="shot"]')
   }
 

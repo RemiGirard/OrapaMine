@@ -5,26 +5,34 @@ import { mixSignalColor } from './colors'
 import type { MineralPlacement } from './minerals'
 import { findOccupant, reflectsFrom } from './minerals'
 
+export type WaveColorContact = Readonly<{
+  color: ColorContact
+  pathIndex: number
+}>
+
+type WaveTraceBase = Readonly<{
+  colorContacts: ReadonlyArray<WaveColorContact>
+  entryLabel: string
+  path: ReadonlyArray<Coordinate>
+}>
+
 export type WaveTrace =
-  | Readonly<{
-      kind: 'exit'
-      entryLabel: string
-      exitLabel: string
-      signalColor: SignalColor
-      path: ReadonlyArray<Coordinate>
-    }>
-  | Readonly<{
-      kind: 'absorbed'
-      entryLabel: string
-      absorbedAt: Coordinate
-      path: ReadonlyArray<Coordinate>
-    }>
-  | Readonly<{
-      kind: 'loop'
-      entryLabel: string
-      signalColor: SignalColor
-      path: ReadonlyArray<Coordinate>
-    }>
+  | (WaveTraceBase &
+      Readonly<{
+        kind: 'exit'
+        exitLabel: string
+        signalColor: SignalColor
+      }>)
+  | (WaveTraceBase &
+      Readonly<{
+        kind: 'absorbed'
+        absorbedAt: Coordinate
+      }>)
+  | (WaveTraceBase &
+      Readonly<{
+        kind: 'loop'
+        signalColor: SignalColor
+      }>)
 
 export function traceWave(
   placements: ReadonlyArray<MineralPlacement>,
@@ -34,6 +42,7 @@ export function traceWave(
   let direction = edgePort.direction
   const path: Array<Coordinate> = []
   const contacts = new Set<ColorContact>()
+  const colorContacts: Array<WaveColorContact> = []
   const seen = new Set<string>()
 
   for (let steps = 0; steps < 80; steps += 1) {
@@ -43,8 +52,11 @@ export function traceWave(
       const lastInside = path.at(-1)
       return {
         kind: 'exit',
+        colorContacts,
         entryLabel: edgePort.label,
-        exitLabel: lastInside ? exitLabelFrom(lastInside, direction) : edgePort.label,
+        exitLabel: lastInside
+          ? exitLabelFrom(lastInside, direction)
+          : edgePort.label,
         signalColor: mixSignalColor(contacts),
         path,
       }
@@ -56,6 +68,7 @@ export function traceWave(
     if (seen.has(loopKey)) {
       return {
         kind: 'loop',
+        colorContacts,
         entryLabel: edgePort.label,
         signalColor: mixSignalColor(contacts),
         path,
@@ -68,17 +81,27 @@ export function traceWave(
       continue
     }
 
-    if (occupant.opticalCell === 'absorb' || occupant.mineral.color === 'black') {
+    if (
+      occupant.opticalCell === 'absorb' ||
+      occupant.mineral.color === 'black'
+    ) {
       return {
         kind: 'absorbed',
+        colorContacts,
         entryLabel: edgePort.label,
         absorbedAt: cursor,
         path,
       }
     }
 
-    if (occupant.mineral.color !== 'transparent') {
-      contacts.add(occupant.mineral.color)
+    const contactColor = occupant.mineral.color
+
+    if (contactColor !== 'transparent' && !contacts.has(contactColor)) {
+      contacts.add(contactColor)
+      colorContacts.push({
+        color: contactColor,
+        pathIndex: path.length - 1,
+      })
     }
 
     direction = reflectsFrom(occupant.opticalCell, direction)
@@ -86,6 +109,7 @@ export function traceWave(
 
   return {
     kind: 'loop',
+    colorContacts,
     entryLabel: edgePort.label,
     signalColor: mixSignalColor(contacts),
     path,

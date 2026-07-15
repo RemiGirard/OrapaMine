@@ -1,50 +1,87 @@
+import { useEffect } from 'react'
 import type { CSSProperties } from 'react'
-import { boardSize, parseEdgePort } from '../../domain/coordinates'
-import type { Answer } from '../../domain/questions'
+import type { EdgeAnswer } from '../../domain/questions'
 import { colorValue } from '../colorPalette'
 import { isVisibleRay } from './lightVisibility'
+import { createPhotonPlayback } from './photonPlayback'
+import type { PhotonPlayback } from './photonPlayback'
+import { rayPoints, toSvgPoints } from './rayPathGeometry'
 import type { RayShot } from './useRayShot'
 import styles from './LightPaths.module.css'
 
-type RayAnswer = Extract<Answer, { mode: 'edge' }>
+type RayAnswer = EdgeAnswer
 
 export function LightPaths({
   allRays,
   currentRay,
+  onShotComplete,
   rayShot,
   showAllRays,
   showCurrentRay,
 }: Readonly<{
   allRays: ReadonlyArray<RayAnswer>
   currentRay: RayAnswer | null
+  onShotComplete: (sequence: number) => void
   rayShot: RayShot | null
   showAllRays: boolean
   showCurrentRay: boolean
 }>) {
   const visibleCurrentRay = isVisibleRay(currentRay) ? currentRay : null
+  const shotQuery = rayShot?.answer.query
+  const excludedAllRayQueries = [
+    showCurrentRay ? visibleCurrentRay?.query : undefined,
+    shotQuery,
+  ].filter((query): query is string => Boolean(query))
 
   return (
     <>
       {showAllRays ? (
         <AllRaysOverlay
           answers={allRays}
-          excludedQuery={showCurrentRay ? visibleCurrentRay?.query : undefined}
+          excludedQueries={excludedAllRayQueries}
         />
       ) : null}
-      {visibleCurrentRay && showCurrentRay ? (
+      {visibleCurrentRay &&
+      showCurrentRay &&
+      visibleCurrentRay.query !== shotQuery ? (
         <RayOverlay answer={visibleCurrentRay} />
       ) : null}
       {rayShot ? (
-        <RayShotOverlay answer={rayShot.answer} key={rayShot.sequence} />
+        <RayShotOverlay
+          key={rayShot.sequence}
+          onComplete={onShotComplete}
+          shot={rayShot}
+        />
       ) : null}
     </>
   )
 }
 
-function RayShotOverlay({ answer }: Readonly<{ answer: RayAnswer }>) {
+function RayShotOverlay({
+  onComplete,
+  shot,
+}: Readonly<{
+  onComplete: (sequence: number) => void
+  shot: RayShot
+}>) {
+  const { answer, sequence } = shot
   const points = rayPoints(answer)
+  const playback =
+    points.length < 2 ? null : createPhotonPlayback(answer, points)
+  const durationMs = playback?.durationMs ?? 0
 
-  if (answer.signalColor !== 'transparent' || points.length < 2) {
+  useEffect(() => {
+    if (durationMs === 0) {
+      onComplete(sequence)
+      return
+    }
+
+    const timeout = window.setTimeout(() => onComplete(sequence), durationMs)
+
+    return () => window.clearTimeout(timeout)
+  }, [durationMs, onComplete, sequence])
+
+  if (!playback) {
     return null
   }
 
@@ -55,37 +92,50 @@ function RayShotOverlay({ answer }: Readonly<{ answer: RayAnswer }>) {
       data-ray-layer="shot"
       data-ray-query={answer.query}
       preserveAspectRatio="none"
-      style={{ '--ray-color': colorValue(answer.signalColor) } as CSSProperties}
       viewBox="0 0 100 100"
     >
-      <RayPhoton points={points} />
+      <RayPhoton playback={playback} />
     </svg>
   )
 }
 
-function RayPhoton({
-  points,
-}: Readonly<{
-  points: ReadonlyArray<{ x: number; y: number }>
-}>) {
+function RayPhoton({ playback }: Readonly<{ playback: PhotonPlayback }>) {
+  const { colorStops, durationMs, motionPath } = playback
+  const duration = `${durationMs}ms`
+  const colorKeyTimes = colorStops
+    .map((stop) => formatAnimationNumber(stop.offset))
+    .join(';')
+  const colorValues = colorStops.map((stop) => colorValue(stop.color)).join(';')
+
   return (
     <line
       className={styles.rayPhoton}
+      data-photon-colors={colorStops.map((stop) => stop.color).join(' ')}
       data-ray-photon="true"
+      style={{ color: colorValue(colorStops[0].color) }}
       x1="-2.2"
       x2="2.2"
       y1="0"
       y2="0"
     >
       <animateMotion
-        dur="900ms"
+        calcMode="paced"
+        dur={duration}
         fill="freeze"
-        path={toMotionPath(points)}
+        path={motionPath}
         rotate="auto"
       />
       <animate
+        attributeName="color"
+        calcMode="discrete"
+        dur={duration}
+        fill="freeze"
+        keyTimes={colorKeyTimes}
+        values={colorValues}
+      />
+      <animate
         attributeName="opacity"
-        dur="900ms"
+        dur={duration}
         fill="freeze"
         keyTimes="0;0.05;0.88;1"
         values="0;1;1;0"
@@ -130,13 +180,13 @@ function RayOverlay({ answer }: Readonly<{ answer: RayAnswer }>) {
 
 function AllRaysOverlay({
   answers,
-  excludedQuery,
+  excludedQueries,
 }: Readonly<{
   answers: ReadonlyArray<RayAnswer>
-  excludedQuery?: string
+  excludedQueries: ReadonlyArray<string>
 }>) {
   const visibleAnswers = answers.filter(
-    (answer) => isVisibleRay(answer) && answer.query !== excludedQuery,
+    (answer) => isVisibleRay(answer) && !excludedQueries.includes(answer.query),
   )
 
   if (visibleAnswers.length === 0) {
@@ -181,51 +231,6 @@ function AllRaysOverlay({
   )
 }
 
-const rayEdgeInset = 1.1
-
-function rayPoints(answer: RayAnswer) {
-  const entryPoint = edgePoint(answer.query)
-  const pathPoints = answer.path.map((coordinate) => ({
-    x: ((coordinate.column + 0.5) / boardSize.columns) * 100,
-    y: ((coordinate.row + 0.5) / boardSize.rows) * 100,
-  }))
-  const exitPoint = answer.exitLabel ? edgePoint(answer.exitLabel) : null
-
-  return [entryPoint, ...pathPoints, exitPoint].filter(
-    (point): point is { x: number; y: number } => point !== null,
-  )
-}
-
-function edgePoint(label: string) {
-  const edgePort = parseEdgePort(label)
-
-  if (!edgePort) {
-    return null
-  }
-
-  if (edgePort.label.startsWith('T') || edgePort.label.startsWith('B')) {
-    const column = Number(edgePort.label.slice(1)) - 0.5
-
-    return {
-      x: (column / boardSize.columns) * 100,
-      y: edgePort.label.startsWith('T') ? rayEdgeInset : 100 - rayEdgeInset,
-    }
-  }
-
-  const row = Number(edgePort.label.slice(1)) - 0.5
-
-  return {
-    x: edgePort.label.startsWith('L') ? rayEdgeInset : 100 - rayEdgeInset,
-    y: (row / boardSize.rows) * 100,
-  }
-}
-
-function toSvgPoints(points: ReadonlyArray<{ x: number; y: number }>) {
-  return points.map((point) => `${point.x},${point.y}`).join(' ')
-}
-
-function toMotionPath(points: ReadonlyArray<{ x: number; y: number }>) {
-  return points
-    .map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`)
-    .join(' ')
+function formatAnimationNumber(value: number) {
+  return Number(value.toFixed(4)).toString()
 }

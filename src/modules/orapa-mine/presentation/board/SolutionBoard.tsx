@@ -36,6 +36,7 @@ export function SolutionBoard({
   onPreviewAnswer,
   onRotate,
   onSelect,
+  onShotComplete,
   onShootEdge,
   placementAssessments,
   rayShot,
@@ -59,6 +60,7 @@ export function SolutionBoard({
   onPreviewAnswer: (answer: Answer) => void
   onRotate: (mineralId: MineralId) => void
   onSelect: (mineralId: MineralId) => void
+  onShotComplete: (sequence: number) => void
   onShootEdge: (edgeLabel: string) => void
   placementAssessments: ReadonlyMap<MineralId, PlacementAssessment>
   rayShot: RayShot | null
@@ -116,6 +118,7 @@ export function SolutionBoard({
           <LightPaths
             allRays={allRays}
             currentRay={currentRay}
+            onShotComplete={onShotComplete}
             rayShot={rayShot}
             showAllRays={showAllRays}
             showCurrentRay={showCurrentRay}

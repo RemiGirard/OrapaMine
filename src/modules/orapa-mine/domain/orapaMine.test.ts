@@ -12,7 +12,12 @@ import {
 import { canPlaceMineralWithOrientation, placementsOverlap } from './minerals'
 import { preparedPuzzles } from './puzzles'
 import type { Puzzle } from './puzzles'
-import { answerAllEdgesForPlacements, answerQuestion } from './questions'
+import {
+  answerAllEdgesForPlacements,
+  answerEdgeForPlacements,
+  answerQuestion,
+  reverseEdgeAnswer,
+} from './questions'
 import { parseVoiceQuestion } from './voiceCommands'
 
 const singleBlackPuzzle: Puzzle = {
@@ -86,6 +91,25 @@ describe('Orapa Mine domain', () => {
       exitLabel: 'B8',
       signalColor: 'transparent',
     })
+  })
+
+  it('records where a ray acquires color in both travel directions', () => {
+    const answer = answerEdgeForPlacements(
+      [
+        {
+          mineralId: 'red-parallelogram',
+          origin: { column: 2, row: 7 },
+        },
+      ],
+      'T3',
+      1,
+    )
+
+    expect(answer.colorContacts).toEqual([{ color: 'red', pathIndex: 7 }])
+    expect(answer.signalColor).toBe('red')
+    expect(reverseEdgeAnswer(answer).colorContacts).toEqual([
+      { color: 'red', pathIndex: 2 },
+    ])
   })
 
   it('keeps every traversing edge answer reciprocal', () => {

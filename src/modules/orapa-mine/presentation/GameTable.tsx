@@ -190,6 +190,7 @@ export function GameTable({
           onPreviewAnswer={cluePreview.previewAnswer}
           onRotate={familySolution.onRotate}
           onSelect={familySolution.onSelect}
+          onShotComplete={rayShot.completeRayShot}
           onShootEdge={rayShot.shootRay}
           placementAssessments={placementAssessments}
           rayShot={rayShot.rayShot}

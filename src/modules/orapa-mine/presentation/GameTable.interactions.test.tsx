@@ -1,6 +1,7 @@
 /* @vitest-environment jsdom */
 
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -82,6 +83,7 @@ describe('GameTable piece interactions', () => {
 
   afterEach(() => {
     cleanup()
+    vi.useRealTimers()
     HTMLElement.prototype.getBoundingClientRect = originalGetBoundingClientRect
     document.elementFromPoint = originalElementFromPoint
   })
@@ -353,6 +355,7 @@ describe('GameTable piece interactions', () => {
       exitLabel: 'B1',
       id: 1,
       message: 'Exit B1 - Red',
+      colorContacts: [],
       mode: 'edge',
       path: [{ column: 0, row: 4 }],
       query: 'T1',
@@ -387,6 +390,7 @@ describe('GameTable piece interactions', () => {
       exitLabel: 'B3',
       id: 1,
       message: 'Exit B3 - Transparent',
+      colorContacts: [],
       mode: 'edge',
       path: [{ column: 2, row: 4 }],
       query: 'T3',
@@ -404,11 +408,13 @@ describe('GameTable piece interactions', () => {
     expect(screen.queryByRole('checkbox', { name: 'Current ray' })).toBeNull()
   })
 
-  it('fires a transient shot for an empty ray and clears it for colored light', () => {
+  it('fires one continuous photon and changes its color at a mineral contact', () => {
+    vi.useFakeTimers()
     const transparentRay: Extract<Answer, { mode: 'edge' }> = {
       exitLabel: 'B3',
       id: -1,
       message: 'Exit B3 - Transparent',
+      colorContacts: [],
       mode: 'edge',
       path: [{ column: 2, row: 4 }],
       query: 'T3',
@@ -418,6 +424,7 @@ describe('GameTable piece interactions', () => {
       exitLabel: 'R1',
       id: -2,
       message: 'Exit R1 - Red',
+      colorContacts: [{ color: 'red', pathIndex: 0 }],
       mode: 'edge',
       path: [{ column: 4, row: 0 }],
       query: 'L1',
@@ -425,7 +432,11 @@ describe('GameTable piece interactions', () => {
     }
 
     render(
-      <InteractiveGameTable allRayPreviews={[transparentRay, coloredRay]} />,
+      <InteractiveGameTable
+        allRayPreviews={[transparentRay, coloredRay]}
+        currentRayPreview={coloredRay}
+        showLightPath
+      />,
     )
 
     fireEvent.click(screen.getByRole('button', { name: 'Send ray T3' }))
@@ -442,11 +453,31 @@ describe('GameTable piece interactions', () => {
     expect(
       photon?.querySelector('animateMotion')?.getAttribute('path'),
     ).toContain('L 31.25 45')
-    expect(document.querySelector('[data-ray-layer="current"]')).toBeNull()
+    expect(document.querySelector('[data-ray-layer="current"]')).not.toBeNull()
 
     fireEvent.click(screen.getByRole('button', { name: 'Send ray L1' }))
 
+    const coloredPhoton = document.querySelector('[data-ray-photon="true"]')
+    const colorAnimation = coloredPhoton?.querySelector(
+      'animate[attributeName="color"]',
+    )
+
+    expect(
+      document
+        .querySelector('[data-ray-layer="shot"]')
+        ?.getAttribute('data-ray-query'),
+    ).toBe('L1')
+    expect(coloredPhoton?.getAttribute('data-photon-colors')).toBe(
+      'transparent red red',
+    )
+    expect(colorAnimation?.getAttribute('calcMode')).toBe('discrete')
+    expect(colorAnimation?.getAttribute('values')).toContain('#ef4f4a')
+    expect(document.querySelector('[data-ray-layer="current"]')).toBeNull()
+
+    act(() => vi.advanceTimersByTime(2200))
+
     expect(document.querySelector('[data-ray-layer="shot"]')).toBeNull()
+    expect(document.querySelector('[data-ray-layer="current"]')).not.toBeNull()
   })
 
   it('renders colored placement-derived rays, hides empty ones, and lets the family hide them', () => {
@@ -455,6 +486,7 @@ describe('GameTable piece interactions', () => {
         exitLabel: 'B1',
         id: -1,
         message: 'Exit B1 - Transparent',
+        colorContacts: [],
         mode: 'edge',
         path: [{ column: 0, row: 4 }],
         query: 'T1',
@@ -464,6 +496,7 @@ describe('GameTable piece interactions', () => {
         exitLabel: 'R1',
         id: -2,
         message: 'Exit R1 - Red',
+        colorContacts: [],
         mode: 'edge',
         path: [{ column: 4, row: 0 }],
         query: 'L1',
@@ -500,6 +533,7 @@ describe('GameTable piece interactions', () => {
       exitLabel: 'B2',
       id: 10,
       message: 'Exit B2 - Red',
+      colorContacts: [],
       mode: 'edge',
       path: [{ column: 1, row: 4 }],
       query: 'T2',
@@ -509,6 +543,7 @@ describe('GameTable piece interactions', () => {
       exitLabel: 'R4',
       id: 11,
       message: 'Exit R4 - Blue',
+      colorContacts: [],
       mode: 'edge',
       path: [{ column: 4, row: 3 }],
       query: 'L4',
@@ -551,6 +586,7 @@ describe('GameTable piece interactions', () => {
       exitLabel: 'T2',
       id: 12,
       message: 'Exit T2 - Blue',
+      colorContacts: [],
       mode: 'edge',
       path: [{ column: 1, row: 0 }],
       query: 'T2',
@@ -579,6 +615,7 @@ describe('GameTable piece interactions', () => {
       exitLabel: 'B2',
       id: 12,
       message: 'Exit B2 - Red',
+      colorContacts: [],
       mode: 'edge',
       path: [{ column: 1, row: 4 }],
       query: 'T2',
@@ -621,6 +658,7 @@ describe('GameTable piece interactions', () => {
       exitLabel: 'B2',
       id: 12,
       message: 'Exit B2 - Red',
+      colorContacts: [],
       mode: 'edge',
       path: [{ column: 1, row: 4 }],
       query: 'T2',
@@ -630,6 +668,7 @@ describe('GameTable piece interactions', () => {
       exitLabel: 'T6',
       id: 13,
       message: 'Exit T6 - Blue',
+      colorContacts: [],
       mode: 'edge',
       path: [{ column: 5, row: 0 }],
       query: 'T6',

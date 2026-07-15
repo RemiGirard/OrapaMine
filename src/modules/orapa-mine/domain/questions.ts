@@ -19,6 +19,7 @@ export type Answer =
       mode: 'edge'
       query: string
       message: string
+      colorContacts: ReturnType<typeof traceWave>['colorContacts']
       signalColor: SignalColor | 'absorbed'
       path: ReturnType<typeof traceWave>['path']
       exitLabel?: string
@@ -52,6 +53,10 @@ export function reverseEdgeAnswer(answer: EdgeAnswer): EdgeAnswer {
 
   return {
     ...answer,
+    colorContacts: [...answer.colorContacts].reverse().map((contact) => ({
+      ...contact,
+      pathIndex: answer.path.length - contact.pathIndex - 1,
+    })),
     exitLabel: answer.query,
     message:
       answer.signalColor === 'absorbed'
@@ -88,6 +93,7 @@ function answerEdgeQuestion(
       mode: 'edge',
       query: rawQuery,
       message: 'Unknown edge',
+      colorContacts: [],
       signalColor: 'transparent',
       path: [],
     }
@@ -109,6 +115,7 @@ export function answerEdgeForPlacements(
       mode: 'edge',
       query: rawQuery,
       message: 'Unknown edge',
+      colorContacts: [],
       signalColor: 'transparent',
       path: [],
     }
@@ -122,6 +129,7 @@ export function answerEdgeForPlacements(
       mode: 'edge',
       query: trace.entryLabel,
       message: 'Signal absorbed',
+      colorContacts: trace.colorContacts,
       signalColor: 'absorbed',
       path: trace.path,
     }
@@ -133,6 +141,7 @@ export function answerEdgeForPlacements(
       mode: 'edge',
       query: trace.entryLabel,
       message: `Loop - ${signalColorLabels[trace.signalColor]}`,
+      colorContacts: trace.colorContacts,
       signalColor: trace.signalColor,
       path: trace.path,
     }
@@ -144,6 +153,7 @@ export function answerEdgeForPlacements(
     query: trace.entryLabel,
     exitLabel: trace.exitLabel,
     message: `Exit ${trace.exitLabel} - ${signalColorLabels[trace.signalColor]}`,
+    colorContacts: trace.colorContacts,
     signalColor: trace.signalColor,
     path: trace.path,
   }
