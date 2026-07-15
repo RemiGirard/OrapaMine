@@ -29,6 +29,7 @@ export function EdgePortGroup({
   onAsk,
   onClearPreview,
   onPreview,
+  onShoot,
   side,
 }: Readonly<{
   activeAnswer: EdgeAnswer | null
@@ -36,6 +37,7 @@ export function EdgePortGroup({
   onAsk: (edgeLabel: string) => void
   onClearPreview: () => void
   onPreview: (answer: Answer) => void
+  onShoot: (edgeLabel: string) => void
   side: EdgeSide
 }>) {
   const group = edgeGroups[side]
@@ -63,6 +65,7 @@ export function EdgePortGroup({
           onAsk={onAsk}
           onClearPreview={onClearPreview}
           onPreview={onPreview}
+          onShoot={onShoot}
         />
       ))}
     </div>
@@ -94,6 +97,7 @@ function EdgePort({
   onAsk,
   onClearPreview,
   onPreview,
+  onShoot,
 }: Readonly<{
   activeRole: ActiveEdgeRole | null
   activeColor: string | undefined
@@ -103,6 +107,7 @@ function EdgePort({
   onAsk: (edgeLabel: string) => void
   onClearPreview: () => void
   onPreview: (answer: Answer) => void
+  onShoot: (edgeLabel: string) => void
 }>) {
   function previewKnownAnswer() {
     if (answer) {
@@ -111,6 +116,8 @@ function EdgePort({
   }
 
   function askOrPreview() {
+    onShoot(label)
+
     if (answer) {
       onPreview(answer)
       return

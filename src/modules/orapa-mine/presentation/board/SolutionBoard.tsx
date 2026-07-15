@@ -16,6 +16,7 @@ import glassStyles from '../glass/Glass.module.css'
 import type { usePieceMovementInteraction } from '../glass/usePieceMovementInteraction'
 import layoutStyles from '../GameTable.module.css'
 import { LightPaths } from '../light/LightPaths'
+import type { RayShot } from '../light/useRayShot'
 import { EdgePortGroup } from './EdgePorts'
 import styles from './SolutionBoard.module.css'
 
@@ -35,7 +36,9 @@ export function SolutionBoard({
   onPreviewAnswer,
   onRotate,
   onSelect,
+  onShootEdge,
   placementAssessments,
+  rayShot,
   selectedMineralId,
   showAllRays,
   showCurrentRay,
@@ -56,7 +59,9 @@ export function SolutionBoard({
   onPreviewAnswer: (answer: Answer) => void
   onRotate: (mineralId: MineralId) => void
   onSelect: (mineralId: MineralId) => void
+  onShootEdge: (edgeLabel: string) => void
   placementAssessments: ReadonlyMap<MineralId, PlacementAssessment>
+  rayShot: RayShot | null
   selectedMineralId: MineralId
   showAllRays: boolean
   showCurrentRay: boolean
@@ -75,6 +80,7 @@ export function SolutionBoard({
     onAsk: onAskEdge,
     onClearPreview: onClearAnswerPreview,
     onPreview: onPreviewAnswer,
+    onShoot: onShootEdge,
   }
 
   return (
@@ -110,6 +116,7 @@ export function SolutionBoard({
           <LightPaths
             allRays={allRays}
             currentRay={currentRay}
+            rayShot={rayShot}
             showAllRays={showAllRays}
             showCurrentRay={showCurrentRay}
           />

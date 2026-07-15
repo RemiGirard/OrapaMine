@@ -3,6 +3,7 @@ import { boardSize, parseEdgePort } from '../../domain/coordinates'
 import type { Answer } from '../../domain/questions'
 import { colorValue } from '../colorPalette'
 import { isVisibleRay } from './lightVisibility'
+import type { RayShot } from './useRayShot'
 import styles from './LightPaths.module.css'
 
 type RayAnswer = Extract<Answer, { mode: 'edge' }>
@@ -10,11 +11,13 @@ type RayAnswer = Extract<Answer, { mode: 'edge' }>
 export function LightPaths({
   allRays,
   currentRay,
+  rayShot,
   showAllRays,
   showCurrentRay,
 }: Readonly<{
   allRays: ReadonlyArray<RayAnswer>
   currentRay: RayAnswer | null
+  rayShot: RayShot | null
   showAllRays: boolean
   showCurrentRay: boolean
 }>) {
@@ -31,7 +34,63 @@ export function LightPaths({
       {visibleCurrentRay && showCurrentRay ? (
         <RayOverlay answer={visibleCurrentRay} />
       ) : null}
+      {rayShot ? (
+        <RayShotOverlay answer={rayShot.answer} key={rayShot.sequence} />
+      ) : null}
     </>
+  )
+}
+
+function RayShotOverlay({ answer }: Readonly<{ answer: RayAnswer }>) {
+  const points = rayPoints(answer)
+
+  if (answer.signalColor !== 'transparent' || points.length < 2) {
+    return null
+  }
+
+  return (
+    <svg
+      aria-hidden="true"
+      className={`${styles.rayLayer} ${styles.rayShotLayer}`}
+      data-ray-layer="shot"
+      data-ray-query={answer.query}
+      preserveAspectRatio="none"
+      style={{ '--ray-color': colorValue(answer.signalColor) } as CSSProperties}
+      viewBox="0 0 100 100"
+    >
+      <RayPhoton points={points} />
+    </svg>
+  )
+}
+
+function RayPhoton({
+  points,
+}: Readonly<{
+  points: ReadonlyArray<{ x: number; y: number }>
+}>) {
+  return (
+    <line
+      className={styles.rayPhoton}
+      data-ray-photon="true"
+      x1="-2.2"
+      x2="2.2"
+      y1="0"
+      y2="0"
+    >
+      <animateMotion
+        dur="900ms"
+        fill="freeze"
+        path={toMotionPath(points)}
+        rotate="auto"
+      />
+      <animate
+        attributeName="opacity"
+        dur="900ms"
+        fill="freeze"
+        keyTimes="0;0.05;0.88;1"
+        values="0;1;1;0"
+      />
+    </line>
   )
 }
 
@@ -163,4 +222,10 @@ function edgePoint(label: string) {
 
 function toSvgPoints(points: ReadonlyArray<{ x: number; y: number }>) {
   return points.map((point) => `${point.x},${point.y}`).join(' ')
+}
+
+function toMotionPath(points: ReadonlyArray<{ x: number; y: number }>) {
+  return points
+    .map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`)
+    .join(' ')
 }

@@ -404,6 +404,51 @@ describe('GameTable piece interactions', () => {
     expect(screen.queryByRole('checkbox', { name: 'Current ray' })).toBeNull()
   })
 
+  it('fires a transient shot for an empty ray and clears it for colored light', () => {
+    const transparentRay: Extract<Answer, { mode: 'edge' }> = {
+      exitLabel: 'B3',
+      id: -1,
+      message: 'Exit B3 - Transparent',
+      mode: 'edge',
+      path: [{ column: 2, row: 4 }],
+      query: 'T3',
+      signalColor: 'transparent',
+    }
+    const coloredRay: Extract<Answer, { mode: 'edge' }> = {
+      exitLabel: 'R1',
+      id: -2,
+      message: 'Exit R1 - Red',
+      mode: 'edge',
+      path: [{ column: 4, row: 0 }],
+      query: 'L1',
+      signalColor: 'red',
+    }
+
+    render(
+      <InteractiveGameTable allRayPreviews={[transparentRay, coloredRay]} />,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Send ray T3' }))
+
+    const rayShot = document.querySelector('[data-ray-layer="shot"]')
+    const photon = rayShot?.querySelector('[data-ray-photon="true"]')
+
+    expect(rayShot?.getAttribute('data-ray-query')).toBe('T3')
+    expect(rayShot?.querySelectorAll('[data-ray-photon="true"]')).toHaveLength(
+      1,
+    )
+    expect(photon?.tagName).toBe('line')
+    expect(photon?.querySelectorAll('animateMotion')).toHaveLength(1)
+    expect(
+      photon?.querySelector('animateMotion')?.getAttribute('path'),
+    ).toContain('L 31.25 45')
+    expect(document.querySelector('[data-ray-layer="current"]')).toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Send ray L1' }))
+
+    expect(document.querySelector('[data-ray-layer="shot"]')).toBeNull()
+  })
+
   it('renders colored placement-derived rays, hides empty ones, and lets the family hide them', () => {
     const allRayPreviews: ReadonlyArray<Extract<Answer, { mode: 'edge' }>> = [
       {

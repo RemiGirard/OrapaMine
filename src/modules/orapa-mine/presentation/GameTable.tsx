@@ -22,6 +22,7 @@ import { usePieceMovementInteraction } from './glass/usePieceMovementInteraction
 import styles from './GameTable.module.css'
 import { LightControls } from './light/LightControls'
 import { isVisibleRay } from './light/lightVisibility'
+import { useRayShot } from './light/useRayShot'
 import { SolutionSubmission } from './solution/SolutionSubmission'
 
 type RayAnswer = Extract<Answer, { mode: 'edge' }>
@@ -81,6 +82,7 @@ export function GameTable({
     onRemove: familySolution.onRemove,
     onSelect: familySolution.onSelect,
   })
+  const rayShot = useRayShot(light.allRays)
   const currentAnswerRay =
     clues.currentAnswer?.mode === 'edge' ? clues.currentAnswer : null
   const activeAnswer = cluePreview.previewedAnswer ?? currentAnswerRay
@@ -188,7 +190,9 @@ export function GameTable({
           onPreviewAnswer={cluePreview.previewAnswer}
           onRotate={familySolution.onRotate}
           onSelect={familySolution.onSelect}
+          onShootEdge={rayShot.shootRay}
           placementAssessments={placementAssessments}
+          rayShot={rayShot.rayShot}
           selectedMineralId={familySolution.selectedMineralId}
           showAllRays={light.showAllRays}
           showCurrentRay={light.showCurrentRay}
