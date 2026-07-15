@@ -57,5 +57,17 @@ test.describe('clue light display', () => {
 
     await expect(game.rayShot).toHaveCount(0)
     await expect(game.currentRay).toHaveCount(1)
+    await expect(game.currentRay).toHaveCSS('filter', 'none')
+    await expect(game.currentRayGuide).toHaveCount(1)
+    await expect(game.currentRayPhotons).toHaveCount(3)
+    const firstBouncingPhoton = game.currentRayPhoton(0)
+    await expect(firstBouncingPhoton.locator('animateMotion')).toHaveAttribute(
+      'keyPoints',
+      '0;1;0',
+    )
+    await expect(firstBouncingPhoton.locator('animateMotion')).toHaveAttribute(
+      'repeatCount',
+      'indefinite',
+    )
   })
 })

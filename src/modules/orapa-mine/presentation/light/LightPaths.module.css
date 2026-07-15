@@ -1,6 +1,6 @@
 .rayLayer {
   display: block;
-  filter: drop-shadow(0 0 8px var(--ray-color));
+  filter: none;
   height: 100%;
   inset: 0;
   left: 0;
@@ -13,8 +13,8 @@
   z-index: 2;
 }
 
-.rayCore,
-.rayGlow,
+.currentRayCore,
+.currentRayGuide,
 .rayPhoton,
 .allRayCore,
 .allRayGlow {
@@ -53,67 +53,38 @@
   stroke-width: 0.85;
 }
 
-.rayGlow {
-  animation: rayBreathe 1800ms ease-in-out infinite;
-  opacity: 0.36;
+.currentRayGuide {
+  opacity: 0.24;
   stroke: var(--ray-color);
-  stroke-width: 7;
+  stroke-width: 1.8;
 }
 
-.rayCore {
-  animation: rayCoreBreathe 1800ms ease-in-out infinite;
-  opacity: 0.94;
+.currentRayCore {
+  opacity: 0.62;
+  stroke: color-mix(in srgb, var(--ray-color) 58%, white);
+  stroke-width: 0.55;
+}
+
+.currentRayPhoton {
+  fill: currentcolor;
+  filter: drop-shadow(0 0 2px #ffffff) drop-shadow(0 0 5px currentcolor)
+    drop-shadow(0 0 11px currentcolor);
   stroke: #ffffff;
-  stroke-width: 1.55;
-}
-
-.raySpark {
-  animation: receiverSpark 1800ms ease-in-out infinite;
-  fill: #ffffff;
-  stroke: var(--ray-color);
-  stroke-width: 0.45;
-  transform-box: fill-box;
-  transform-origin: center;
+  stroke-width: 0.22;
   vector-effect: non-scaling-stroke;
 }
 
-@keyframes rayBreathe {
-  0%,
-  100% {
-    opacity: 0.28;
-  }
-
-  48% {
-    opacity: 0.48;
-  }
+.rayEndpoint {
+  fill: color-mix(in srgb, var(--ray-color) 72%, white);
+  opacity: 0.7;
+  stroke: var(--ray-color);
+  stroke-width: 0.24;
+  vector-effect: non-scaling-stroke;
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .currentRayPhoton,
   .rayShotLayer {
     display: none;
-  }
-}
-
-@keyframes rayCoreBreathe {
-  0%,
-  100% {
-    opacity: 0.78;
-  }
-
-  48% {
-    opacity: 1;
-  }
-}
-
-@keyframes receiverSpark {
-  0%,
-  100% {
-    opacity: 0.65;
-    transform: scale(0.86);
-  }
-
-  48% {
-    opacity: 1;
-    transform: scale(1.18);
   }
 }

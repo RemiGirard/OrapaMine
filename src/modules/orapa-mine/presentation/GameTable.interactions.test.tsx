@@ -397,6 +397,50 @@ describe('GameTable piece interactions', () => {
     expect(pointValues?.every((point) => point >= 0 && point <= 100)).toBe(true)
   })
 
+  it('keeps the current ray fixed while photons bounce along its path', () => {
+    const currentRayPreview: Extract<Answer, { mode: 'edge' }> = {
+      exitLabel: 'R1',
+      id: 1,
+      message: 'Exit R1 - Red',
+      colorContacts: [{ color: 'red', pathIndex: 0 }],
+      mode: 'edge',
+      path: [{ column: 4, row: 0 }],
+      query: 'L1',
+      signalColor: 'red',
+    }
+
+    render(
+      <InteractiveGameTable
+        currentRayPreview={currentRayPreview}
+        showLightPath
+      />,
+    )
+
+    const rayLayer = document.querySelector('[data-ray-layer="current"]')
+    const guide = rayLayer?.querySelector('[data-current-ray-guide="true"]')
+    const photons = rayLayer?.querySelectorAll(
+      '[data-current-ray-photon="true"]',
+    )
+    const firstPhoton = rayLayer?.querySelector(
+      '[data-current-ray-photon-index="0"]',
+    )
+    const motion = firstPhoton?.querySelector('animateMotion')
+    const colorAnimation = firstPhoton?.querySelector(
+      'animate[attributeName="color"]',
+    )
+
+    expect(guide).not.toBeNull()
+    expect(guide?.querySelector('animate')).toBeNull()
+    expect(photons).toHaveLength(3)
+    expect(motion?.getAttribute('keyPoints')).toBe('0;1;0')
+    expect(motion?.getAttribute('keyTimes')).toBe('0;0.5;1')
+    expect(motion?.getAttribute('repeatCount')).toBe('indefinite')
+    expect(colorAnimation?.getAttribute('repeatCount')).toBe('indefinite')
+    expect(firstPhoton?.getAttribute('data-photon-colors')).toBe(
+      'transparent red red red transparent',
+    )
+  })
+
   it('does not draw a straight current ray for a transparent clue preview', () => {
     const transparentRayPreview: Extract<Answer, { mode: 'edge' }> = {
       exitLabel: 'B3',

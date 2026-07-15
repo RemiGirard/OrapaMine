@@ -11,6 +11,8 @@ type BasicMineralId =
 export class OrapaGame {
   readonly board: Locator
   readonly currentRay: Locator
+  readonly currentRayGuide: Locator
+  readonly currentRayPhotons: Locator
   readonly photonColorAnimation: Locator
   readonly rayPhoton: Locator
   readonly rayMotion: Locator
@@ -20,6 +22,12 @@ export class OrapaGame {
   constructor(private readonly page: Page) {
     this.board = page.getByTestId('solution-board-surface')
     this.currentRay = page.locator('[data-ray-layer="current"]')
+    this.currentRayGuide = this.currentRay.locator(
+      '[data-current-ray-guide="true"]',
+    )
+    this.currentRayPhotons = this.currentRay.locator(
+      '[data-current-ray-photon="true"]',
+    )
     this.rayPhoton = page.locator('[data-ray-photon="true"]')
     this.photonColorAnimation = this.rayPhoton.locator(
       'animate[attributeName="color"]',
@@ -62,6 +70,10 @@ export class OrapaGame {
       exact: true,
       name: `Send ray ${label}`,
     })
+  }
+
+  currentRayPhoton(index: number) {
+    return this.currentRay.locator(`[data-current-ray-photon-index="${index}"]`)
   }
 
   async placeFromToolbox(

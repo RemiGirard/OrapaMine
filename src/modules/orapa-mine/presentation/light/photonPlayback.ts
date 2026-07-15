@@ -30,6 +30,37 @@ export function createPhotonPlayback(
   }
 }
 
+export function createBouncingPhotonPlayback(
+  answer: EdgeAnswer,
+  points: ReadonlyArray<RayPoint>,
+): PhotonPlayback {
+  const forwardPlayback = createPhotonPlayback(answer, points)
+
+  return {
+    ...forwardPlayback,
+    colorStops: mirrorColorStops(forwardPlayback.colorStops),
+    durationMs: forwardPlayback.durationMs * 2,
+  }
+}
+
+function mirrorColorStops(
+  forwardStops: ReadonlyArray<PhotonColorStop>,
+): ReadonlyArray<PhotonColorStop> {
+  const outwardStops = forwardStops.map((stop) => ({
+    ...stop,
+    offset: stop.offset / 2,
+  }))
+  const returnStops = forwardStops
+    .slice(0, -1)
+    .reverse()
+    .map((stop) => ({
+      ...stop,
+      offset: 1 - stop.offset / 2,
+    }))
+
+  return [...outwardStops, ...returnStops]
+}
+
 function createColorStops(
   answer: EdgeAnswer,
   points: ReadonlyArray<RayPoint>,

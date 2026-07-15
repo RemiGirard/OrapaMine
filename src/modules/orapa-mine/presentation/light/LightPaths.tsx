@@ -3,13 +3,18 @@ import type { CSSProperties } from 'react'
 import type { EdgeAnswer } from '../../domain/questions'
 import { colorValue } from '../colorPalette'
 import { isVisibleRay } from './lightVisibility'
-import { createPhotonPlayback } from './photonPlayback'
+import {
+  createBouncingPhotonPlayback,
+  createPhotonPlayback,
+} from './photonPlayback'
 import type { PhotonPlayback } from './photonPlayback'
 import { rayPoints, toSvgPoints } from './rayPathGeometry'
 import type { RayShot } from './useRayShot'
 import styles from './LightPaths.module.css'
 
 type RayAnswer = EdgeAnswer
+
+const currentPhotonPhases = [0, 1 / 3, 2 / 3] as const
 
 export function LightPaths({
   allRays,
@@ -151,6 +156,8 @@ function RayOverlay({ answer }: Readonly<{ answer: RayAnswer }>) {
     return null
   }
 
+  const playback = createBouncingPhotonPlayback(answer, points)
+
   return (
     <svg
       aria-hidden="true"
@@ -160,21 +167,84 @@ function RayOverlay({ answer }: Readonly<{ answer: RayAnswer }>) {
       style={{ '--ray-color': colorValue(answer.signalColor) } as CSSProperties}
       viewBox="0 0 100 100"
     >
-      <polyline className={styles.rayGlow} points={toSvgPoints(points)} />
-      <polyline className={styles.rayCore} points={toSvgPoints(points)} />
+      <polyline
+        className={styles.currentRayGuide}
+        data-current-ray-guide="true"
+        points={toSvgPoints(points)}
+      />
+      <polyline
+        className={styles.currentRayCore}
+        points={toSvgPoints(points)}
+      />
+      {currentPhotonPhases.map((phase, index) => (
+        <BouncingRayPhoton
+          index={index}
+          key={phase}
+          phase={phase}
+          playback={playback}
+        />
+      ))}
       <circle
-        className={styles.raySpark}
+        className={styles.rayEndpoint}
         cx={points[0].x}
         cy={points[0].y}
-        r="1.1"
+        r="0.62"
       />
       <circle
-        className={styles.raySpark}
+        className={styles.rayEndpoint}
         cx={points[points.length - 1].x}
         cy={points[points.length - 1].y}
-        r="1.1"
+        r="0.62"
       />
     </svg>
+  )
+}
+
+function BouncingRayPhoton({
+  index,
+  phase,
+  playback,
+}: Readonly<{
+  index: number
+  phase: number
+  playback: PhotonPlayback
+}>) {
+  const { colorStops, durationMs, motionPath } = playback
+  const duration = `${durationMs}ms`
+  const begin = phase === 0 ? '0ms' : `-${Math.round(durationMs * phase)}ms`
+  const colorKeyTimes = colorStops
+    .map((stop) => formatAnimationNumber(stop.offset))
+    .join(';')
+  const colorValues = colorStops.map((stop) => colorValue(stop.color)).join(';')
+
+  return (
+    <circle
+      className={styles.currentRayPhoton}
+      data-current-ray-photon="true"
+      data-current-ray-photon-index={index}
+      data-photon-colors={colorStops.map((stop) => stop.color).join(' ')}
+      r="0.72"
+      style={{ color: colorValue(colorStops[0].color) }}
+    >
+      <animateMotion
+        begin={begin}
+        calcMode="linear"
+        dur={duration}
+        keyPoints="0;1;0"
+        keyTimes="0;0.5;1"
+        path={motionPath}
+        repeatCount="indefinite"
+      />
+      <animate
+        attributeName="color"
+        begin={begin}
+        calcMode="discrete"
+        dur={duration}
+        keyTimes={colorKeyTimes}
+        repeatCount="indefinite"
+        values={colorValues}
+      />
+    </circle>
   )
 }
 
