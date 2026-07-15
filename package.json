@@ -1,6 +1,29 @@
 {
   "name": "orapa-mine-coop",
+  "version": "1.0.0",
   "private": true,
+  "description": "A cooperative light-and-color deduction game for reconstructing the Orapa mineral field.",
+  "author": "Remi Girard",
+  "license": "MIT",
+  "homepage": "https://remigirard.github.io/OrapaMine/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RemiGirard/OrapaMine.git"
+  },
+  "bugs": {
+    "url": "https://github.com/RemiGirard/OrapaMine/issues"
+  },
+  "keywords": [
+    "board-game",
+    "cooperative",
+    "deduction",
+    "react",
+    "tanstack-start",
+    "typescript"
+  ],
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "type": "module",
   "imports": {
     "#/*": "./src/*"

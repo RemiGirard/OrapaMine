@@ -1,4 +1,5 @@
-export type GemColor = 'red' | 'yellow' | 'blue' | 'white' | 'transparent' | 'black'
+export type GemColor =
+  'red' | 'yellow' | 'blue' | 'white' | 'transparent' | 'black'
 
 export type ColorContact = Exclude<GemColor, 'transparent' | 'black'>
 
@@ -68,7 +69,9 @@ const colorMixes: Record<string, SignalColor> = {
   'red-yellow-blue-white': 'gray',
 }
 
-export function mixSignalColor(contacts: ReadonlySet<ColorContact>): SignalColor {
+export function mixSignalColor(
+  contacts: ReadonlySet<ColorContact>,
+): SignalColor {
   if (contacts.size === 0) {
     return 'transparent'
   }

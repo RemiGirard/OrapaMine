@@ -50,13 +50,17 @@ const fillerWords = new Set([
   'send',
 ])
 
-export function parseVoiceQuestion(rawTranscript: string): VoiceQuestion | null {
+export function parseVoiceQuestion(
+  rawTranscript: string,
+): VoiceQuestion | null {
   const tokens = rawTranscript
     .toLowerCase()
     .replace(/[^a-z0-9 ]/g, ' ')
     .split(/\s+/)
     .filter((token) => token && !fillerWords.has(token))
-    .map((token) => numberWords[token] ?? sideWords[token] ?? token.toUpperCase())
+    .map(
+      (token) => numberWords[token] ?? sideWords[token] ?? token.toUpperCase(),
+    )
 
   const compact = tokens.join('')
   const spaced = tokens.join(' ')
