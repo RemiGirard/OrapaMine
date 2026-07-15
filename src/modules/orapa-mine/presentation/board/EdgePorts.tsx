@@ -198,7 +198,8 @@ function EdgePort({
       title={title}
       type="button"
     >
-      {label}
+      <span className={styles.opticalFlare} />
+      <span className={styles.portLabel}>{label}</span>
     </button>
   )
 }

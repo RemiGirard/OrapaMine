@@ -3,7 +3,7 @@
 .rowLabels,
 .rightLabels {
   align-items: center;
-  color: #91a8b8;
+  color: #8fa5b2;
   display: grid;
   font-size: 0.66rem;
   font-weight: 900;
@@ -45,79 +45,135 @@
 .rightLabels button {
   align-items: center;
   aspect-ratio: 1;
+  backdrop-filter: blur(5px);
   background:
-    radial-gradient(
-      circle at 28% 24%,
-      rgb(255 255 255 / 0.28),
-      transparent 30%
+    linear-gradient(
+      132deg,
+      rgb(225 253 255 / 0.11) 0%,
+      transparent 26%,
+      transparent 67%,
+      rgb(105 204 232 / 0.07) 100%
     ),
-    linear-gradient(145deg, rgb(123 215 255 / 0.15), rgb(6 14 22 / 0.92));
+    rgb(8 17 25 / 0.72);
   border: 0;
-  border-radius: 6px;
+  border-radius: 5px;
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.16),
-    inset 0 -10px 14px rgb(0 0 0 / 0.22),
-    0 0 10px rgb(123 215 255 / 0.08);
+    inset 0 0 0 1px rgb(208 247 255 / 0.06),
+    inset 0 0 12px rgb(103 215 238 / 0.035),
+    0 4px 12px rgb(0 0 0 / 0.28);
   color: inherit;
   display: flex;
   font-size: 0.64rem;
   font-weight: inherit;
   justify-content: center;
   min-width: 0;
+  overflow: visible;
   padding: 0;
   position: relative;
   transition:
-    box-shadow 180ms ease,
-    color 180ms ease,
-    transform 180ms ease;
+    background 220ms ease,
+    box-shadow 220ms ease,
+    color 220ms ease,
+    filter 220ms ease,
+    transform 220ms ease;
   width: 1.7rem;
+}
+
+.portLabel {
+  position: relative;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.7);
+  z-index: 2;
+}
+
+.opticalFlare {
+  background:
+    linear-gradient(
+      118deg,
+      transparent 16%,
+      rgb(255 255 255 / 0.18) 42%,
+      transparent 51%
+    ),
+    radial-gradient(circle at 34% 28%, rgb(234 254 255 / 0.24), transparent 31%);
+  border-radius: 4px;
+  inset: 2px;
+  opacity: 0.58;
+  overflow: hidden;
+  pointer-events: none;
+  position: absolute;
+  transition:
+    background 240ms ease,
+    box-shadow 240ms ease,
+    opacity 240ms ease;
+  z-index: 1;
+}
+
+.opticalFlare::after {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(255 255 255 / 0.36),
+    transparent
+  );
+  content: '';
+  height: 1px;
+  left: 10%;
+  opacity: 0.44;
+  position: absolute;
+  top: 53%;
+  width: 80%;
 }
 
 .columnLabels button::after,
 .bottomLabels button::before,
 .rowLabels button::after,
 .rightLabels button::before {
-  background: rgb(156 224 255 / 0.24);
-  box-shadow: 0 0 8px rgb(123 215 255 / 0.16);
   content: '';
+  opacity: 0.46;
   pointer-events: none;
   position: absolute;
   transition:
-    background 180ms ease,
-    box-shadow 180ms ease,
-    opacity 180ms ease;
+    filter 220ms ease,
+    opacity 220ms ease;
 }
 
 .columnLabels button::after,
 .bottomLabels button::before {
-  height: 8px;
+  height: 9px;
   left: 50%;
   transform: translateX(-50%);
-  width: 1px;
+  width: 7px;
 }
 
 .columnLabels button::after {
-  bottom: -7px;
+  background: linear-gradient(180deg, rgb(202 246 255 / 0.28), transparent);
+  bottom: -8px;
+  clip-path: polygon(43% 0, 57% 0, 88% 100%, 12% 100%);
 }
 
 .bottomLabels button::before {
-  top: -7px;
+  background: linear-gradient(0deg, rgb(202 246 255 / 0.28), transparent);
+  clip-path: polygon(12% 0, 88% 0, 57% 100%, 43% 100%);
+  top: -8px;
 }
 
 .rowLabels button::after,
 .rightLabels button::before {
-  height: 1px;
+  height: 7px;
   top: 50%;
   transform: translateY(-50%);
-  width: 9px;
+  width: 10px;
 }
 
 .rowLabels button::after {
-  right: -8px;
+  background: linear-gradient(90deg, rgb(202 246 255 / 0.28), transparent);
+  clip-path: polygon(0 43%, 0 57%, 100% 88%, 100% 12%);
+  right: -9px;
 }
 
 .rightLabels button::before {
-  left: -8px;
+  background: linear-gradient(270deg, rgb(202 246 255 / 0.28), transparent);
+  clip-path: polygon(0 12%, 0 88%, 100% 57%, 100% 43%);
+  left: -9px;
 }
 
 .columnLabels .answeredEdge,
@@ -125,32 +181,55 @@
 .rowLabels .answeredEdge,
 .rightLabels .answeredEdge {
   background:
-    radial-gradient(
-      circle at 30% 24%,
-      rgb(255 255 255 / 0.36),
-      transparent 32%
-    ),
     linear-gradient(
-      145deg,
-      color-mix(in srgb, var(--edge-answer-color) 68%, white),
-      color-mix(in srgb, var(--edge-answer-color) 70%, #06111a)
+      132deg,
+      rgb(255 255 255 / 0.2) 0%,
+      transparent 27%,
+      transparent 66%,
+      color-mix(in srgb, var(--edge-answer-color) 24%, transparent) 100%
+    ),
+    radial-gradient(
+      circle at 50% 56%,
+      color-mix(in srgb, var(--edge-answer-color) 54%, transparent),
+      color-mix(in srgb, var(--edge-answer-color) 17%, #071019) 60%,
+      rgb(6 14 21 / 0.9) 100%
     );
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.24),
-    inset 0 -10px 13px rgb(0 0 0 / 0.16),
-    0 0 14px color-mix(in srgb, var(--edge-answer-color) 36%, transparent);
-  color: #ffffff;
-  text-shadow: 0 1px 2px rgb(0 0 0 / 0.52);
+    inset 0 0 0 1px
+      color-mix(in srgb, var(--edge-answer-color) 20%, transparent),
+    inset 0 0 13px color-mix(in srgb, var(--edge-answer-color) 22%, transparent),
+    0 0 16px color-mix(in srgb, var(--edge-answer-color) 24%, transparent);
+  color: #f6feff;
+}
+
+.columnLabels .answeredEdge .opticalFlare,
+.bottomLabels .answeredEdge .opticalFlare,
+.rowLabels .answeredEdge .opticalFlare,
+.rightLabels .answeredEdge .opticalFlare {
+  background:
+    linear-gradient(
+      116deg,
+      transparent 13%,
+      rgb(255 255 255 / 0.34) 40%,
+      transparent 51%
+    ),
+    radial-gradient(
+      ellipse at 50% 55%,
+      color-mix(in srgb, var(--edge-answer-color) 68%, white),
+      color-mix(in srgb, var(--edge-answer-color) 31%, transparent) 34%,
+      transparent 69%
+    );
+  opacity: 0.68;
 }
 
 .columnLabels .answeredEdge::after,
 .bottomLabels .answeredEdge::before,
 .rowLabels .answeredEdge::after,
 .rightLabels .answeredEdge::before {
-  background: color-mix(in srgb, var(--edge-answer-color) 58%, #ffffff);
-  box-shadow: 0 0 11px
-    color-mix(in srgb, var(--edge-answer-color) 42%, transparent);
-  opacity: 0.75;
+  filter: drop-shadow(
+    0 0 4px color-mix(in srgb, var(--edge-answer-color) 58%, transparent)
+  );
+  opacity: 0.72;
 }
 
 .columnLabels .activeRayEdge:not(.answeredEdge),
@@ -158,90 +237,103 @@
 .rowLabels .activeRayEdge:not(.answeredEdge),
 .rightLabels .activeRayEdge:not(.answeredEdge) {
   background:
-    radial-gradient(
-      circle at 30% 24%,
-      rgb(255 255 255 / 0.38),
-      transparent 32%
-    ),
     linear-gradient(
-      145deg,
-      color-mix(in srgb, var(--edge-active-color) 68%, white),
-      color-mix(in srgb, var(--edge-active-color) 62%, #06111a)
+      132deg,
+      rgb(255 255 255 / 0.25) 0%,
+      transparent 28%,
+      transparent 65%,
+      color-mix(in srgb, var(--edge-active-color) 25%, transparent) 100%
+    ),
+    radial-gradient(
+      circle at 50% 55%,
+      color-mix(in srgb, var(--edge-active-color) 64%, transparent),
+      color-mix(in srgb, var(--edge-active-color) 20%, #071019) 60%,
+      rgb(6 14 21 / 0.92) 100%
     );
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.26),
-    inset 0 -10px 13px rgb(0 0 0 / 0.14),
-    0 0 16px color-mix(in srgb, var(--edge-active-color) 42%, transparent);
+    inset 0 0 0 1px rgb(240 255 255 / 0.12),
+    inset 0 0 14px color-mix(in srgb, var(--edge-active-color) 26%, transparent),
+    0 0 18px color-mix(in srgb, var(--edge-active-color) 30%, transparent);
   color: #ffffff;
-  text-shadow: 0 1px 2px rgb(0 0 0 / 0.54);
+}
+
+.columnLabels .activeRayEdge:not(.answeredEdge) .opticalFlare,
+.bottomLabels .activeRayEdge:not(.answeredEdge) .opticalFlare,
+.rowLabels .activeRayEdge:not(.answeredEdge) .opticalFlare,
+.rightLabels .activeRayEdge:not(.answeredEdge) .opticalFlare {
+  background: radial-gradient(
+    ellipse at 50% 52%,
+    rgb(255 255 255 / 0.86),
+    color-mix(in srgb, var(--edge-active-color) 54%, transparent) 33%,
+    transparent 72%
+  );
+  opacity: 0.82;
 }
 
 .columnLabels .answeredEdge.activeRayEdge,
 .bottomLabels .answeredEdge.activeRayEdge,
 .rowLabels .answeredEdge.activeRayEdge,
 .rightLabels .answeredEdge.activeRayEdge {
-  background:
-    radial-gradient(
-      circle at 30% 24%,
-      rgb(255 255 255 / 0.62),
-      transparent 34%
-    ),
-    linear-gradient(
-      145deg,
-      color-mix(in srgb, var(--edge-answer-color) 72%, white),
-      color-mix(in srgb, var(--edge-answer-color) 76%, #06111a)
-    );
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.42),
-    inset 0 -10px 13px rgb(0 0 0 / 0.12),
-    0 0 0 2px color-mix(in srgb, var(--edge-active-color) 70%, white),
-    0 0 15px var(--edge-active-color),
-    0 0 28px color-mix(in srgb, var(--edge-active-color) 48%, transparent);
+    inset 0 0 0 1px rgb(246 255 255 / 0.19),
+    inset 0 0 15px color-mix(in srgb, var(--edge-answer-color) 29%, transparent),
+    0 0 19px color-mix(in srgb, var(--edge-active-color) 38%, transparent),
+    0 0 34px color-mix(in srgb, var(--edge-active-color) 18%, transparent);
   color: #ffffff;
 }
 
-.columnLabels .activeRayEdge:not(.answeredEdge)::after,
-.bottomLabels .activeRayEdge:not(.answeredEdge)::before,
-.rowLabels .activeRayEdge:not(.answeredEdge)::after,
-.rightLabels .activeRayEdge:not(.answeredEdge)::before {
-  background: color-mix(in srgb, var(--edge-active-color) 60%, white);
-  box-shadow:
-    0 0 12px var(--edge-active-color),
-    0 0 24px color-mix(in srgb, var(--edge-active-color) 46%, transparent);
-  opacity: 1;
+.columnLabels .answeredEdge.activeRayEdge .opticalFlare,
+.bottomLabels .answeredEdge.activeRayEdge .opticalFlare,
+.rowLabels .answeredEdge.activeRayEdge .opticalFlare,
+.rightLabels .answeredEdge.activeRayEdge .opticalFlare {
+  background:
+    linear-gradient(
+      116deg,
+      transparent 13%,
+      rgb(255 255 255 / 0.46) 41%,
+      transparent 51%
+    ),
+    radial-gradient(
+      ellipse at 50% 53%,
+      rgb(255 255 255 / 0.88),
+      color-mix(in srgb, var(--edge-active-color) 62%, transparent) 31%,
+      transparent 72%
+    );
+  opacity: 0.9;
 }
 
-.columnLabels .answeredEdge.activeRayEdge::after,
-.bottomLabels .answeredEdge.activeRayEdge::before,
-.rowLabels .answeredEdge.activeRayEdge::after,
-.rightLabels .answeredEdge.activeRayEdge::before {
-  background: color-mix(in srgb, var(--edge-active-color) 42%, white);
-  box-shadow:
-    0 0 12px var(--edge-active-color),
-    0 0 24px color-mix(in srgb, var(--edge-active-color) 58%, transparent);
-  opacity: 1;
+.columnLabels .activeRayEdge::after,
+.bottomLabels .activeRayEdge::before,
+.rowLabels .activeRayEdge::after,
+.rightLabels .activeRayEdge::before {
+  filter: brightness(1.8)
+    drop-shadow(
+      0 0 5px color-mix(in srgb, var(--edge-active-color) 72%, transparent)
+    );
+  opacity: 0.96;
 }
 
 .columnLabels .activeEmitterEdge,
 .bottomLabels .activeEmitterEdge,
 .rowLabels .activeEmitterEdge,
 .rightLabels .activeEmitterEdge {
-  transform: scale(1.06);
+  filter: brightness(1.06);
+  transform: scale(1.035);
 }
 
 .columnLabels .activeReceiverEdge,
 .bottomLabels .activeReceiverEdge,
 .rowLabels .activeReceiverEdge,
 .rightLabels .activeReceiverEdge {
-  animation: receiverLamp 1800ms ease-in-out infinite;
-  transform: scale(1.08);
+  animation: receiverExposure 2400ms ease-in-out infinite;
+  transform: scale(1.045);
 }
 
 .columnLabels .activeReceiverEdge::after,
 .bottomLabels .activeReceiverEdge::before,
 .rowLabels .activeReceiverEdge::after,
 .rightLabels .activeReceiverEdge::before {
-  animation: receiverLead 1800ms ease-in-out infinite;
+  animation: apertureExposure 2400ms ease-in-out infinite;
 }
 
 .columnLabels button:hover:not(.answeredEdge):not(.activeRayEdge),
@@ -252,40 +344,73 @@
 .bottomLabels button:focus-visible:not(.answeredEdge):not(.activeRayEdge),
 .rowLabels button:focus-visible:not(.answeredEdge):not(.activeRayEdge),
 .rightLabels button:focus-visible:not(.answeredEdge):not(.activeRayEdge) {
+  background:
+    linear-gradient(
+      132deg,
+      rgb(255 255 255 / 0.2),
+      transparent 34%,
+      rgb(111 222 240 / 0.06)
+    ),
+    rgb(9 20 28 / 0.8);
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.16),
-    inset 0 -10px 13px rgb(0 0 0 / 0.12),
-    0 0 18px rgb(46 255 205 / 0.22);
-  color: #ecf7ff;
+    inset 0 0 0 1px rgb(219 252 255 / 0.12),
+    inset 0 0 13px rgb(139 233 246 / 0.08),
+    0 0 18px rgb(140 235 247 / 0.14);
+  color: #f3fdff;
   outline: 0;
-  transform: scale(1.06);
+  transform: scale(1.035);
 }
 
-@keyframes receiverLamp {
+.columnLabels button:hover:not(.answeredEdge):not(.activeRayEdge) .opticalFlare,
+.bottomLabels button:hover:not(.answeredEdge):not(.activeRayEdge) .opticalFlare,
+.rowLabels button:hover:not(.answeredEdge):not(.activeRayEdge) .opticalFlare,
+.rightLabels button:hover:not(.answeredEdge):not(.activeRayEdge) .opticalFlare,
+.columnLabels
+  button:focus-visible:not(.answeredEdge):not(.activeRayEdge)
+  .opticalFlare,
+.bottomLabels
+  button:focus-visible:not(.answeredEdge):not(.activeRayEdge)
+  .opticalFlare,
+.rowLabels
+  button:focus-visible:not(.answeredEdge):not(.activeRayEdge)
+  .opticalFlare,
+.rightLabels
+  button:focus-visible:not(.answeredEdge):not(.activeRayEdge)
+  .opticalFlare {
+  opacity: 0.9;
+}
+
+@keyframes receiverExposure {
   0%,
   100% {
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.18),
-      inset 0 -8px 12px rgb(0 0 0 / 0.14),
-      0 0 12px color-mix(in srgb, var(--edge-active-color) 30%, transparent);
+    filter: brightness(0.94);
   }
 
-  48% {
-    box-shadow:
-      inset 0 0 12px rgb(255 255 255 / 0.86),
-      inset 0 -8px 12px rgb(0 0 0 / 0.08),
-      0 0 18px var(--edge-active-color),
-      0 0 36px color-mix(in srgb, var(--edge-active-color) 62%, transparent);
+  50% {
+    filter: brightness(1.2);
   }
 }
 
-@keyframes receiverLead {
+@keyframes apertureExposure {
   0%,
   100% {
-    opacity: 0.62;
+    opacity: 0.68;
   }
 
-  48% {
+  50% {
     opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .columnLabels .activeReceiverEdge,
+  .bottomLabels .activeReceiverEdge,
+  .rowLabels .activeReceiverEdge,
+  .rightLabels .activeReceiverEdge,
+  .columnLabels .activeReceiverEdge::after,
+  .bottomLabels .activeReceiverEdge::before,
+  .rowLabels .activeReceiverEdge::after,
+  .rightLabels .activeReceiverEdge::before {
+    animation: none;
   }
 }
