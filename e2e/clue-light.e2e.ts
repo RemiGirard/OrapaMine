@@ -98,9 +98,24 @@ test.describe('clue light display', () => {
     const t3 = game.edgePort('T3')
     const l5 = game.edgePort('L5')
 
+    await t4.hover()
+    await expect(t4).toHaveCSS('color', 'rgb(255, 255, 255)')
+    await expect(t4.locator('span:last-child')).toHaveCSS(
+      'filter',
+      'brightness(1.3)',
+    )
+
     await t4.click()
     await expect(t4).toHaveAttribute('data-edge-role', 'emitter')
     await expect(l5).toHaveAttribute('data-edge-role', 'receiver')
+    await expect(t4.locator('span:last-child')).toHaveCSS(
+      'filter',
+      'brightness(1.34)',
+    )
+    await expect(l5.locator('span:last-child')).toHaveCSS(
+      'filter',
+      'brightness(1.34)',
+    )
     const connectionKey = await t4.getAttribute('data-clue-connection')
 
     expect(connectionKey).toBeTruthy()
