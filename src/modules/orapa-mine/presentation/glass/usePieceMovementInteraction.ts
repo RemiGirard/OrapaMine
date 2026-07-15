@@ -9,12 +9,18 @@ import {
   movePieceMovement,
   startPieceMovement,
 } from '../../application/pieceMovement'
+import {
+  initialKeyboardPlacementOrigin,
+  moveKeyboardPlacementOrigin,
+} from '../../application/keyboardPieceMovement'
+import type { KeyboardMovementDirection } from '../../application/keyboardPieceMovement'
 import type {
   PieceMovementAnchor,
   PieceMovementSession,
   PieceMovementTarget,
 } from '../../application/pieceMovement'
 import type { Coordinate } from '../../domain/coordinates'
+import { boardSize } from '../../domain/coordinates'
 import type { GuessPlacement, MineralId } from '../../domain/minerals'
 import {
   movementTargetFromClientPoint,
@@ -35,6 +41,8 @@ type PlacedPieceMotion = Readonly<{
   sequence: number
 }>
 
+type MovementInput = 'keyboard' | 'pointer'
+
 export function usePieceMovementInteraction({
   boardRef,
   guess,
@@ -44,9 +52,11 @@ export function usePieceMovementInteraction({
 }: PieceMovementInteractionOptions) {
   const [movementState, setMovementState] =
     useState<PieceMovementSession | null>(null)
+  const [movementInput, setMovementInput] = useState<MovementInput | null>(null)
   const [placedPieceMotion, setPlacedPieceMotion] =
     useState<PlacedPieceMotion | null>(null)
   const movementStateRef = useRef<PieceMovementSession | null>(null)
+  const movementInputRef = useRef<MovementInput | null>(null)
   const placementSequenceRef = useRef(0)
   const suppressedClickMineralIdRef = useRef<MineralId | null>(null)
   const cleanupDocumentListenersRef = useRef<(() => void) | null>(null)
@@ -58,6 +68,11 @@ export function usePieceMovementInteraction({
     },
     [],
   )
+
+  const commitMovementInput = useCallback((nextInput: MovementInput | null) => {
+    movementInputRef.current = nextInput
+    setMovementInput(nextInput)
+  }, [])
 
   const cleanupDocumentListeners = useCallback(() => {
     cleanupDocumentListenersRef.current?.()
@@ -170,6 +185,7 @@ export function usePieceMovementInteraction({
 
       cleanupDocumentListeners()
       commitMovementState(null)
+      commitMovementInput(null)
 
       if (wasPointerDrag) {
         suppressClickAfterDrag(mineralId)
@@ -190,6 +206,7 @@ export function usePieceMovementInteraction({
     },
     [
       cleanupDocumentListeners,
+      commitMovementInput,
       commitMovementState,
       onPlace,
       onRemove,
@@ -201,7 +218,8 @@ export function usePieceMovementInteraction({
   const cancelMovement = useCallback(() => {
     cleanupDocumentListeners()
     commitMovementState(null)
-  }, [cleanupDocumentListeners, commitMovementState])
+    commitMovementInput(null)
+  }, [cleanupDocumentListeners, commitMovementInput, commitMovementState])
 
   const attachDocumentListeners = useCallback(() => {
     if (cleanupDocumentListenersRef.current) {
@@ -300,11 +318,13 @@ export function usePieceMovementInteraction({
           ),
         }),
       )
+      commitMovementInput('pointer')
       attachDocumentListeners()
       onSelect(placement.mineralId)
     },
     [
       attachDocumentListeners,
+      commitMovementInput,
       commitMovementState,
       onSelect,
       targetFromClientPoint,
@@ -404,6 +424,121 @@ export function usePieceMovementInteraction({
     [cancelMovement],
   )
 
+  const pointerFromBoardOrigin = useCallback(
+    (origin: Coordinate) => {
+      const boardRect = boardRef.current?.getBoundingClientRect()
+
+      if (!boardRect) {
+        return { x: 0, y: 0 }
+      }
+
+      return {
+        x:
+          boardRect.left +
+          (origin.column / boardSize.columns) * boardRect.width,
+        y: boardRect.top + (origin.row / boardSize.rows) * boardRect.height,
+      }
+    },
+    [boardRef],
+  )
+
+  const startMovingPieceWithKeyboard = useCallback(
+    (placement: GuessPlacement) => {
+      cleanupDocumentListeners()
+      const origin = initialKeyboardPlacementOrigin(placement)
+      const pointer = pointerFromBoardOrigin(origin)
+
+      commitMovementState(
+        startPieceMovement({
+          anchor: { column: 0, row: 0 },
+          mineralId: placement.mineralId,
+          pointer,
+          target: { kind: 'board', origin },
+        }),
+      )
+      commitMovementInput('keyboard')
+      onSelect(placement.mineralId)
+      boardRef.current?.focus()
+    },
+    [
+      boardRef,
+      cleanupDocumentListeners,
+      commitMovementInput,
+      commitMovementState,
+      onSelect,
+      pointerFromBoardOrigin,
+    ],
+  )
+
+  const movePieceWithKeyboard = useCallback(
+    (direction: KeyboardMovementDirection) => {
+      const activeMovement = movementStateRef.current
+
+      if (movementInputRef.current !== 'keyboard' || !activeMovement) {
+        return
+      }
+
+      const placement = guess.find(
+        ({ mineralId }) => mineralId === activeMovement.mineralId,
+      )
+
+      if (!placement) {
+        return
+      }
+
+      const currentOrigin =
+        activeMovement.target?.kind === 'board'
+          ? activeMovement.target.origin
+          : initialKeyboardPlacementOrigin(placement)
+      const origin = moveKeyboardPlacementOrigin(
+        placement,
+        currentOrigin,
+        direction,
+      )
+
+      commitMovementState(
+        movePieceMovement(activeMovement, pointerFromBoardOrigin(origin), {
+          kind: 'board',
+          origin,
+        }),
+      )
+    },
+    [commitMovementState, guess, pointerFromBoardOrigin],
+  )
+
+  const finishMovingPieceWithKeyboard = useCallback(() => {
+    const activeMovement = movementStateRef.current
+
+    if (movementInputRef.current !== 'keyboard' || !activeMovement) {
+      return
+    }
+
+    const command = finishPieceMovement(activeMovement, activeMovement.target)
+    commitMovementState(null)
+    commitMovementInput(null)
+
+    if (command?.kind === 'place') {
+      placementSequenceRef.current += 1
+      setPlacedPieceMotion({
+        mineralId: command.mineralId,
+        sequence: placementSequenceRef.current,
+      })
+      onPlace(command.mineralId, command.origin)
+    }
+  }, [commitMovementInput, commitMovementState, onPlace])
+
+  const returnMovingPieceToCaseWithKeyboard = useCallback(() => {
+    const activeMovement = movementStateRef.current
+
+    if (movementInputRef.current !== 'keyboard' || !activeMovement) {
+      return
+    }
+
+    commitMovementState(null)
+    commitMovementInput(null)
+    onRemove(activeMovement.mineralId)
+  }, [commitMovementInput, commitMovementState, onRemove])
+
   useEffect(() => cleanupDocumentListeners, [cleanupDocumentListeners])
 
   return {
@@ -411,13 +546,18 @@ export function usePieceMovementInteraction({
     cancelMovingPiece,
     dropPickedPiece,
     movementState,
+    movementInput,
+    movePieceWithKeyboard,
     pickPieceFromClick,
     placedPieceMotion,
     placedDragAnchorFromClientPoint,
     placedMouseDragAnchor,
     placedPointerDragAnchor,
     stackDragAnchor,
+    finishMovingPieceWithKeyboard,
+    returnMovingPieceToCaseWithKeyboard,
     startMovingPiece,
     startMovingPieceWithMouse,
+    startMovingPieceWithKeyboard,
   }
 }

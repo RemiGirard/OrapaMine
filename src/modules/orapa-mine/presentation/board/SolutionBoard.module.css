@@ -27,6 +27,18 @@
   position: relative;
 }
 
+.boardSurface:focus-visible {
+  outline: 2px solid rgb(91 255 221 / 0.9);
+  outline-offset: 4px;
+}
+
+.boardSurface[data-keyboard-movement='true'] {
+  box-shadow:
+    0 0 0 1px rgb(91 255 221 / 0.34),
+    0 0 24px rgb(91 255 221 / 0.12),
+    0 10px 34px rgb(0 0 0 / 0.22);
+}
+
 .boardSurface::before {
   background:
     repeating-linear-gradient(

@@ -25,6 +25,7 @@ import { GlassCase } from './glass/GlassCase'
 import { GlassDragPreview } from './glass/GlassPieces'
 import { usePieceMovementInteraction } from './glass/usePieceMovementInteraction'
 import styles from './GameTable.module.css'
+import { useGameKeyboardControls } from './keyboard/useGameKeyboardControls'
 import { LightControls } from './light/LightControls'
 import { isVisibleRay } from './light/lightVisibility'
 import { useRayShot } from './light/useRayShot'
@@ -126,6 +127,21 @@ export function GameTable({
       ? shot
       : null
   }, [matchingInspectedRay, rayShot.rayShot])
+  const hasCurrentRay = isVisibleRay(matchingInspectedRay)
+
+  useGameKeyboardControls({
+    boardRef,
+    hasCurrentRay,
+    movement,
+    onFlip: familySolution.onFlip,
+    onRotate: familySolution.onRotate,
+    onShowAllRaysChange: light.onShowAllRaysChange,
+    onShowCurrentRayChange: light.onShowCurrentRayChange,
+    onSubmit: familySolution.onSubmit,
+    readiness: familySolution.readiness,
+    showAllRays: light.showAllRays,
+    showCurrentRay: light.showCurrentRay,
+  })
 
   useEffect(() => {
     const shot = rayShot.rayShot
@@ -175,7 +191,7 @@ export function GameTable({
           role="toolbar"
         >
           <LightControls
-            hasCurrentRay={isVisibleRay(matchingInspectedRay)}
+            hasCurrentRay={hasCurrentRay}
             onShowAllRaysChange={light.onShowAllRaysChange}
             onShowCurrentRayChange={light.onShowCurrentRayChange}
             showAllRays={light.showAllRays}
@@ -231,8 +247,8 @@ export function GameTable({
           onClearAnswerSelection={clueInspection.clearSelection}
           onFlip={familySolution.onFlip}
           onPreviewAnswer={clueInspection.previewAnswer}
+          onRemove={familySolution.onRemove}
           onRotate={familySolution.onRotate}
-          onSelect={familySolution.onSelect}
           onSelectAnswer={clueInspection.selectAnswer}
           onShotComplete={rayShot.completeRayShot}
           onShootEdge={rayShot.shootRay}

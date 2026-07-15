@@ -1,6 +1,7 @@
-import type { CSSProperties } from 'react'
+import type { CSSProperties, KeyboardEvent } from 'react'
 import {
   bottomLabels,
+  edgeLabels,
   leftLabels,
   rightLabels,
   topLabels,
@@ -150,6 +151,31 @@ function EdgePort({
     onAsk(label)
   }
 
+  function moveFocus(event: KeyboardEvent<HTMLButtonElement>) {
+    const currentIndex = edgeLabels.indexOf(label)
+    let nextIndex: number | null = null
+
+    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+      nextIndex = (currentIndex + 1) % edgeLabels.length
+    }
+
+    if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+      nextIndex = (currentIndex - 1 + edgeLabels.length) % edgeLabels.length
+    }
+
+    if (event.key === 'Home') nextIndex = 0
+    if (event.key === 'End') nextIndex = edgeLabels.length - 1
+
+    if (nextIndex === null) {
+      return
+    }
+
+    event.preventDefault()
+    document
+      .querySelector<HTMLElement>(`[data-edge-port-index="${nextIndex}"]`)
+      ?.focus()
+  }
+
   const connection = answer ? edgeConnectionFrom(answer) : null
   const linkedPort = connection
     ? edgeConnectionOtherPort(connection, label)
@@ -162,6 +188,7 @@ function EdgePort({
 
   return (
     <button
+      aria-keyshortcuts="P ArrowUp ArrowRight ArrowDown ArrowLeft Home End"
       aria-label={`Send ray ${label}`}
       className={[
         answer ? styles.answeredEdge : '',
@@ -179,10 +206,13 @@ function EdgePort({
       data-clue-connection={connection?.key}
       data-edge-role={activeRole ?? undefined}
       data-edge-side={label.slice(0, 1)}
+      data-edge-port="true"
+      data-edge-port-index={edgeLabels.indexOf(label)}
       data-clue-linked-edge={linkedPort ?? undefined}
       onBlur={() => onClearPreview('focus')}
       onClick={askOrSelect}
       onFocus={() => previewKnownAnswer('focus')}
+      onKeyDown={moveFocus}
       onPointerEnter={() => previewKnownAnswer('pointer')}
       onPointerLeave={() => onClearPreview('pointer')}
       style={

@@ -99,6 +99,8 @@ export function PlacementGhost({
 
   return (
     <span
+      data-grid-column={origin.column}
+      data-grid-row={origin.row}
       data-placement-ghost="true"
       data-placement-state={assessment?.valid === false ? 'invalid' : 'valid'}
       className={[
@@ -123,8 +125,8 @@ export function PlacedPiece({
   isSelected,
   movement,
   onFlip,
+  onRemove,
   onRotate,
-  onSelect,
   placement,
 }: Readonly<{
   assessment: PlacementAssessment | undefined
@@ -132,8 +134,8 @@ export function PlacedPiece({
   isSelected: boolean
   movement: MovementInteraction
   onFlip: (mineralId: MineralId) => void
+  onRemove: (mineralId: MineralId) => void
   onRotate: (mineralId: MineralId) => void
-  onSelect: (mineralId: MineralId) => void
   placement: GuessPlacement
 }>) {
   if (!placement.origin) {
@@ -155,6 +157,7 @@ export function PlacedPiece({
 
   return (
     <div
+      aria-keyshortcuts="Enter Space R F Delete Backspace"
       aria-invalid={assessment?.valid === false ? true : undefined}
       aria-label={
         issueDescription
@@ -167,7 +170,9 @@ export function PlacedPiece({
         isDragging ? styles.draggingPlacedPiece : '',
         assessment?.valid === false ? styles.invalidPlacedPiece : '',
       ].join(' ')}
+      data-glass-control
       data-placement-state={assessment?.valid === false ? 'invalid' : 'valid'}
+      data-selected={isSelected ? 'true' : undefined}
       data-testid={`placed-piece-${placement.mineralId}`}
       onClick={(event) => {
         if (movement.movementState) {
@@ -203,7 +208,7 @@ export function PlacedPiece({
       onKeyDown={(event) => {
         if (event.key === 'Enter' || event.key === ' ') {
           event.preventDefault()
-          onSelect(placement.mineralId)
+          event.stopPropagation()
         }
 
         if (event.key.toLowerCase() === 'r') {
@@ -214,6 +219,18 @@ export function PlacedPiece({
         if (event.key.toLowerCase() === 'f') {
           event.preventDefault()
           onFlip(placement.mineralId)
+        }
+
+        if (event.key === 'Delete' || event.key === 'Backspace') {
+          event.preventDefault()
+          onRemove(placement.mineralId)
+        }
+      }}
+      onKeyUp={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault()
+          event.stopPropagation()
+          movement.startMovingPieceWithKeyboard(placement)
         }
       }}
       onMouseDown={(event) => {

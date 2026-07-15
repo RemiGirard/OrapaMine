@@ -47,6 +47,7 @@ export function SolutionSubmission({
   return (
     <section aria-label="Solution submission" className={styles.submission}>
       <button
+        aria-keyshortcuts="Control+Enter Meta+Enter"
         aria-label={`${display.label}. ${display.detail}`}
         className={styles.submitButton}
         data-submission-state={readiness.status}

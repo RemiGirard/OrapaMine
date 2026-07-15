@@ -37,8 +37,8 @@ export function SolutionBoard({
   onClearAnswerSelection,
   onFlip,
   onPreviewAnswer,
+  onRemove,
   onRotate,
-  onSelect,
   onSelectAnswer,
   onShotComplete,
   onShootEdge,
@@ -64,8 +64,8 @@ export function SolutionBoard({
   onClearAnswerSelection: () => void
   onFlip: (mineralId: MineralId) => void
   onPreviewAnswer: (answer: Answer, source: CluePreviewSource) => void
+  onRemove: (mineralId: MineralId) => void
   onRotate: (mineralId: MineralId) => void
-  onSelect: (mineralId: MineralId) => void
   onSelectAnswer: (answer: RayAnswer) => void
   onShotComplete: (sequence: number) => void
   onShootEdge: (edgeLabel: string) => void
@@ -106,10 +106,20 @@ export function SolutionBoard({
         <EdgePortGroup {...edgeProps} side="left" />
 
         <div
+          aria-keyshortcuts="B ArrowUp ArrowRight ArrowDown ArrowLeft Enter Space Escape R F Delete Backspace"
+          aria-label={
+            movement.movementInput === 'keyboard' && draggedPlacement
+              ? `Place ${draggedPlacement.mineralId} on family solution board`
+              : 'Family solution board'
+          }
           className={styles.boardSurface}
+          data-keyboard-movement={
+            movement.movementInput === 'keyboard' ? 'true' : undefined
+          }
           data-testid="solution-board-surface"
           onClick={movement.dropPickedPiece}
           ref={boardRef}
+          tabIndex={0}
         >
           <div className={styles.cellLayer}>
             {Array.from({ length: boardSize.rows }, (_rowValue, row) =>
@@ -174,8 +184,8 @@ export function SolutionBoard({
                       key={placement.mineralId}
                       movement={movement}
                       onFlip={onFlip}
+                      onRemove={onRemove}
                       onRotate={onRotate}
-                      onSelect={onSelect}
                       placement={placement}
                       assessment={placementAssessments.get(placement.mineralId)}
                     />

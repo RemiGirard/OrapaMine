@@ -229,6 +229,69 @@ describe('GameTable piece interactions', () => {
     ).not.toBeNull()
   })
 
+  it('places, moves, rotates, flips, and returns glass with the keyboard', () => {
+    render(<InteractiveGameTable />)
+
+    const ruby = screen.getByTestId('toolbox-piece-red-parallelogram')
+    fireEvent.keyDown(ruby, { key: 'Enter' })
+    fireEvent.keyUp(ruby, { key: 'Enter' })
+
+    const board = screen.getByTestId('solution-board-surface')
+    const initialGhost = document.querySelector('[data-placement-ghost="true"]')
+
+    expect(document.activeElement).toBe(board)
+    expect(board.getAttribute('data-keyboard-movement')).toBe('true')
+    expect(initialGhost?.getAttribute('data-grid-column')).toBe('2')
+    expect(initialGhost?.getAttribute('data-grid-row')).toBe('4')
+
+    fireEvent.keyDown(document, { key: 'ArrowRight' })
+    fireEvent.keyDown(document, { key: 'r' })
+
+    const movedGhost = document.querySelector('[data-placement-ghost="true"]')
+
+    expect(movedGhost?.getAttribute('data-grid-column')).toBe('3')
+    expect(movedGhost?.querySelector('svg')?.getAttribute('viewBox')).toBe(
+      '0 0 1 3',
+    )
+
+    fireEvent.keyDown(document, { key: 'Enter' })
+
+    const placedRuby = screen.getByTestId('placed-piece-red-parallelogram')
+    expect(placedRuby.getAttribute('title')).toBe(
+      'Ruby parallelogram - east, front',
+    )
+
+    placedRuby.focus()
+    fireEvent.keyDown(placedRuby, { key: 'Enter' })
+    fireEvent.keyUp(placedRuby, { key: 'Enter' })
+    fireEvent.keyDown(document, { key: 'f' })
+    fireEvent.keyDown(document, { key: 'Delete' })
+
+    expect(screen.queryByTestId('placed-piece-red-parallelogram')).toBeNull()
+    expect(
+      screen
+        .getByTestId('toolbox-piece-red-parallelogram')
+        .getAttribute('title'),
+    ).toBe('Ruby parallelogram - north, front')
+  })
+
+  it('navigates light ports in domain order with arrow keys', () => {
+    render(<InteractiveGameTable />)
+
+    const firstPort = screen.getByRole('button', { name: 'Send ray T1' })
+    firstPort.focus()
+    fireEvent.keyDown(firstPort, { key: 'ArrowRight' })
+
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', { name: 'Send ray T2' }),
+    )
+
+    fireEvent.keyDown(document.activeElement!, { key: 'End' })
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', { name: 'Send ray L10' }),
+    )
+  })
+
   it('puts carried glass down when resetting or starting a new puzzle', () => {
     const onNext = vi.fn()
 

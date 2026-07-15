@@ -35,6 +35,7 @@ export function GlassCase({
     <div className={layoutStyles.stackCase}>
       <div className={styles.toolbarHeader}>Glass stack</div>
       <div
+        aria-keyshortcuts="G"
         className={styles.pieceStack}
         aria-label="Glass piece stack"
         onClick={movement.dropPickedPiece}
@@ -113,6 +114,8 @@ function GlassCaseSlot({
         <button
           aria-label={`Return ${mineral.name} to stack`}
           className={styles.stackResetButton}
+          data-glass-control
+          data-selected={isSelected ? 'true' : undefined}
           onClick={(event) => {
             event.stopPropagation()
             onRemove(placement.mineralId)
@@ -126,17 +129,20 @@ function GlassCaseSlot({
         </button>
       ) : (
         <button
+          aria-keyshortcuts="Enter Space R F"
           aria-label={`Move ${mineral.name}`}
           className={styles.stackPieceButton}
+          data-glass-control
+          data-selected={isSelected ? 'true' : undefined}
           data-testid={`toolbox-piece-${placement.mineralId}`}
           style={caseItemStyle(pieceLayout)}
-          onClick={(event) =>
+          onClick={(event) => {
             movement.pickPieceFromClick(
               event,
               placement,
               movement.stackDragAnchor(placement),
             )
-          }
+          }}
           onDoubleClick={(event) => {
             event.preventDefault()
             event.stopPropagation()
@@ -159,6 +165,30 @@ function GlassCaseSlot({
               movement.stackDragAnchor(placement),
             )
           }
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault()
+              event.stopPropagation()
+              return
+            }
+
+            if (event.key.toLowerCase() === 'r') {
+              event.preventDefault()
+              onRotate(placement.mineralId)
+            }
+
+            if (event.key.toLowerCase() === 'f') {
+              event.preventDefault()
+              onFlip(placement.mineralId)
+            }
+          }}
+          onKeyUp={(event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault()
+              event.stopPropagation()
+              movement.startMovingPieceWithKeyboard(placement)
+            }
+          }}
           onPointerCancel={() =>
             movement.cancelMovingPiece(placement.mineralId)
           }

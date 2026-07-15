@@ -18,6 +18,7 @@ export function LightControls({
       <strong>Rays</strong>
       <label>
         <input
+          aria-keyshortcuts="A"
           checked={showAllRays}
           onChange={(event) => onShowAllRaysChange(event.target.checked)}
           type="checkbox"
@@ -27,6 +28,7 @@ export function LightControls({
       {hasCurrentRay ? (
         <label>
           <input
+            aria-keyshortcuts="C"
             checked={showCurrentRay}
             onChange={(event) => onShowCurrentRayChange(event.target.checked)}
             type="checkbox"
