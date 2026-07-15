@@ -1,6 +1,12 @@
 /* @vitest-environment jsdom */
 
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from '@testing-library/react'
 import { useState } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
@@ -74,6 +80,41 @@ describe('GameTable piece interactions', () => {
     cleanup()
     HTMLElement.prototype.getBoundingClientRect = originalGetBoundingClientRect
     document.elementFromPoint = originalElementFromPoint
+  })
+
+  it('groups display and session options in one toolbar', () => {
+    const onNext = vi.fn()
+    const onToggleSolution = vi.fn()
+    render(
+      <InteractiveGameTable
+        onNext={onNext}
+        onToggleSolution={onToggleSolution}
+      />,
+    )
+
+    const options = screen.getByRole('toolbar', { name: 'Game options' })
+    const nextButton = within(options).getByRole('button', {
+      name: 'New puzzle',
+    })
+    const revealButton = within(options).getByRole('button', {
+      name: 'Reveal solution',
+    })
+
+    expect(
+      within(options).getByRole('checkbox', { name: 'All rays' }),
+    ).not.toBeNull()
+    expect(
+      within(options).getByRole('button', { name: 'Speak' }),
+    ).not.toBeNull()
+    expect(
+      within(options).getByRole('button', { name: 'Reset solution' }),
+    ).not.toBeNull()
+
+    fireEvent.click(nextButton)
+    fireEvent.click(revealButton)
+
+    expect(onNext).toHaveBeenCalledOnce()
+    expect(onToggleSolution).toHaveBeenCalledOnce()
   })
 
   it('moves a glass piece from tray to grid, around the grid, flips it, and returns it to the tray', () => {
@@ -468,7 +509,9 @@ function InteractiveGameTable({
   currentRayPreview = null,
   edgeAnswers = new Map(),
   initiallyShowAllLightPaths = false,
+  onNext = () => undefined,
   onAskEdge = () => undefined,
+  onToggleSolution = () => undefined,
   showLightPath = false,
 }: Readonly<{
   allRayPreviews?: ReadonlyArray<Extract<Answer, { mode: 'edge' }>>
@@ -477,7 +520,9 @@ function InteractiveGameTable({
   currentRayPreview?: Extract<Answer, { mode: 'edge' }> | null
   edgeAnswers?: ReadonlyMap<string, Extract<Answer, { mode: 'edge' }>>
   initiallyShowAllLightPaths?: boolean
+  onNext?: () => void
   onAskEdge?: (edgeLabel: string) => void
+  onToggleSolution?: () => void
   showLightPath?: boolean
 }>) {
   const [guess, setGuess] = useState(() => createEmptyGuess(puzzle))
@@ -524,6 +569,8 @@ function InteractiveGameTable({
         showCurrentRay: showLightPath,
       }}
       puzzle={{
+        onNext,
+        onToggleSolution,
         showSolution: false,
         solutionPlacements: puzzle.placements,
       }}

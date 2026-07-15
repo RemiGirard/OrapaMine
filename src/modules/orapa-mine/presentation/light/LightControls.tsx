@@ -15,7 +15,7 @@ export function LightControls({
 }>) {
   return (
     <div className={styles.lightControls} aria-label="Light display">
-      <strong>Light paths</strong>
+      <strong>Rays</strong>
       <label>
         <input
           checked={showAllRays}

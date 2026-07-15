@@ -2,179 +2,179 @@
   isolation: isolate;
   min-height: 100vh;
   overflow-x: hidden;
-  padding: 0.8rem 1rem;
+  padding: 0.75rem 1rem 1rem;
   position: relative;
 }
 
-.shell::before,
-.shell::after {
-  content: '';
-  inset: -18%;
+.ambientLight {
+  inset: 0;
+  overflow: hidden;
   pointer-events: none;
   position: fixed;
   z-index: -1;
 }
 
-.shell::before {
-  animation: sweepBeams 13s linear infinite;
-  background:
-    linear-gradient(
-      115deg,
-      transparent 0 38%,
-      rgb(46 255 205 / 0.12) 39%,
-      transparent 42%
-    ),
-    linear-gradient(
-      68deg,
-      transparent 0 56%,
-      rgb(255 201 91 / 0.1) 57%,
-      transparent 60%
-    ),
-    linear-gradient(
-      150deg,
-      transparent 0 64%,
-      rgb(206 86 255 / 0.08) 65%,
-      transparent 68%
-    );
-  transform-origin: center;
-}
-
-.shell::after {
-  animation: scanGrid 8s ease-in-out infinite;
+.ambientLight::before {
+  animation: gridDrift 31s ease-in-out infinite;
   background:
     repeating-linear-gradient(
       90deg,
-      rgb(140 218 255 / 0.035) 0 1px,
+      rgb(140 218 255 / 0.026) 0 1px,
       transparent 1px 90px
     ),
     repeating-linear-gradient(
       0deg,
-      rgb(140 218 255 / 0.025) 0 1px,
+      rgb(140 218 255 / 0.02) 0 1px,
       transparent 1px 90px
     );
+  content: '';
+  inset: -8rem;
+  opacity: 0.62;
+  position: absolute;
 }
 
-.header {
-  align-items: center;
-  display: flex;
-  gap: 1rem;
-  justify-content: space-between;
-  margin: 0 auto 0.7rem;
-  max-width: 1320px;
+.ambientLight span {
+  filter: blur(10px);
+  height: 155vh;
+  mix-blend-mode: screen;
+  opacity: 0.48;
+  position: absolute;
+  top: -28vh;
+  transform-origin: 50% 50%;
+  width: clamp(8rem, 12vw, 13rem);
 }
 
-.title {
-  background:
-    linear-gradient(180deg, #ffffff 0%, #dffaff 42%, #86e6ff 100%),
-    linear-gradient(90deg, transparent, rgb(255 255 255 / 0.78), transparent);
-  background-clip: text;
-  color: transparent;
-  font-size: 1.85rem;
-  line-height: 1;
-  margin: 0;
-  font-weight: 800;
-  position: relative;
-  text-shadow:
-    0 0 18px rgb(123 215 255 / 0.22),
-    0 0 42px rgb(46 255 205 / 0.12);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.title::after {
+.aquaBeam {
+  animation: aquaDrift 29s cubic-bezier(0.45, 0.05, 0.55, 0.95) -9s infinite;
   background: linear-gradient(
     90deg,
     transparent,
-    rgb(255 255 255 / 0.68) 26%,
-    rgb(123 215 255 / 0.56) 56%,
+    rgb(46 255 205 / 0.22) 48%,
     transparent
   );
-  bottom: -0.28rem;
-  content: '';
-  height: 1px;
-  left: 0.1rem;
-  position: absolute;
-  right: 0.1rem;
-  box-shadow: 0 0 14px rgb(123 215 255 / 0.34);
+  left: 17%;
 }
 
-.actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.65rem;
-  justify-content: flex-end;
+.goldBeam {
+  animation: goldDrift 37s cubic-bezier(0.4, 0, 0.6, 1) -21s infinite;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(255 201 91 / 0.2) 52%,
+    transparent
+  );
+  left: 61%;
 }
 
-.actions button {
-  align-items: center;
-  background: rgb(255 255 255 / 0.07);
-  border: 1px solid rgb(156 224 255 / 0.24);
-  border-radius: 8px;
-  color: #ecf7ff;
-  display: inline-flex;
-  gap: 0.5rem;
-  justify-content: center;
-  min-height: 2.35rem;
-  padding: 0 0.8rem;
-}
-
-.actions button:hover {
-  border-color: rgb(46 255 205 / 0.55);
-  box-shadow: 0 0 18px rgb(46 255 205 / 0.12);
+.violetBeam {
+  animation: violetDrift 43s cubic-bezier(0.45, 0.05, 0.55, 0.95) -31s infinite;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(206 86 255 / 0.14) 48%,
+    transparent
+  );
+  left: 43%;
 }
 
 .layout {
-  display: grid;
-  gap: 1.1rem;
-  grid-template-columns: minmax(0, 1fr);
   margin: 0 auto;
-  max-width: 1320px;
+  max-width: 1250px;
 }
 
-@keyframes sweepBeams {
-  0% {
-    transform: translateX(-4%) rotate(0deg);
-  }
-
-  50% {
-    transform: translateX(4%) rotate(2deg);
-  }
-
-  100% {
-    transform: translateX(-4%) rotate(0deg);
-  }
-}
-
-@keyframes scanGrid {
+@keyframes aquaDrift {
   0%,
   100% {
-    opacity: 0.42;
-    transform: translateY(-1.5rem);
+    opacity: 0.32;
+    transform: translate3d(-12vw, -2vh, 0) rotate(18deg) scaleX(0.72);
   }
 
-  50% {
-    opacity: 0.72;
-    transform: translateY(1.5rem);
+  29% {
+    opacity: 0.54;
+    transform: translate3d(7vw, 3vh, 0) rotate(25deg) scaleX(1.08);
+  }
+
+  63% {
+    opacity: 0.38;
+    transform: translate3d(2vw, -4vh, 0) rotate(14deg) scaleX(0.86);
   }
 }
 
-@media (max-width: 1180px) {
-  .layout {
-    grid-template-columns: 1fr;
+@keyframes goldDrift {
+  0%,
+  100% {
+    opacity: 0.26;
+    transform: translate3d(12vw, 3vh, 0) rotate(-16deg) scaleX(0.74);
+  }
+
+  37% {
+    opacity: 0.5;
+    transform: translate3d(-8vw, -4vh, 0) rotate(-24deg) scaleX(1.12);
+  }
+
+  71% {
+    opacity: 0.34;
+    transform: translate3d(1vw, 2vh, 0) rotate(-11deg) scaleX(0.9);
+  }
+}
+
+@keyframes violetDrift {
+  0%,
+  100% {
+    opacity: 0.18;
+    transform: translate3d(-6vw, 4vh, 0) rotate(34deg) scaleX(0.68);
+  }
+
+  43% {
+    opacity: 0.38;
+    transform: translate3d(13vw, -5vh, 0) rotate(23deg) scaleX(1.16);
+  }
+
+  78% {
+    opacity: 0.24;
+    transform: translate3d(-1vw, 1vh, 0) rotate(39deg) scaleX(0.82);
+  }
+}
+
+@keyframes gridDrift {
+  0%,
+  100% {
+    opacity: 0.36;
+    transform: translate3d(-1.25rem, -1rem, 0);
+  }
+
+  41% {
+    opacity: 0.62;
+    transform: translate3d(1rem, 1.5rem, 0);
+  }
+
+  73% {
+    opacity: 0.45;
+    transform: translate3d(0.2rem, -0.4rem, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ambientLight::before,
+  .ambientLight span {
+    animation: none;
+  }
+
+  .aquaBeam {
+    transform: translate3d(-3vw, 0, 0) rotate(20deg);
+  }
+
+  .goldBeam {
+    transform: translate3d(2vw, 0, 0) rotate(-18deg);
+  }
+
+  .violetBeam {
+    transform: translate3d(0, 0, 0) rotate(31deg);
   }
 }
 
 @media (max-width: 760px) {
   .shell {
-    padding: 0.875rem;
-  }
-
-  .header {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .layout {
-    grid-template-columns: 1fr;
+    padding: 0.75rem;
   }
 }

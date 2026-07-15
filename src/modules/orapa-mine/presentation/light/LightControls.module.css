@@ -1,32 +1,62 @@
 .lightControls {
   align-items: center;
-  background: rgb(255 255 255 / 0.035);
-  border: 1px solid rgb(156 224 255 / 0.14);
-  border-radius: 8px;
   color: #91a8b8;
   display: flex;
-  flex-wrap: wrap;
   font-size: 0.72rem;
-  gap: 0.75rem;
-  min-height: 2.45rem;
-  padding: 0.45rem 0.6rem;
+  gap: 0.18rem;
 }
 
 .lightControls strong {
-  color: #ecf7ff;
-  font-size: 0.76rem;
-  margin-right: auto;
+  color: #718797;
+  font-size: 0.66rem;
+  margin: 0 0.28rem 0 0.35rem;
+  text-transform: uppercase;
 }
 
 .lightControls label {
   align-items: center;
+  background: transparent;
+  border-radius: 5px;
+  color: #8fa5b3;
+  cursor: pointer;
   display: flex;
-  font-weight: 800;
+  font-weight: 750;
   gap: 0.35rem;
+  min-height: 2rem;
+  padding: 0 0.5rem;
+  transition:
+    background 160ms ease,
+    color 160ms ease;
   white-space: nowrap;
 }
 
+.lightControls label:hover,
+.lightControls label:has(input:focus-visible) {
+  background: rgb(123 215 255 / 0.075);
+  color: #dff7ff;
+}
+
+.lightControls label:has(input:checked) {
+  background: rgb(46 255 205 / 0.09);
+  color: #bcfff1;
+}
+
 .lightControls input {
-  accent-color: #2effcd;
+  appearance: none;
+  background: currentColor;
+  border-radius: 50%;
+  box-shadow: 0 0 7px currentColor;
+  height: 0.38rem;
   margin: 0;
+  opacity: 0.38;
+  width: 0.38rem;
+}
+
+.lightControls input:checked {
+  color: #2effcd;
+  opacity: 1;
+}
+
+.lightControls input:focus-visible {
+  outline: 0;
 }

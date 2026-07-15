@@ -14,9 +14,8 @@
 }
 
 .logbook {
-  border-bottom: 1px solid rgb(156 224 255 / 0.11);
-  border-top: 1px solid rgb(156 224 255 / 0.11);
   display: grid;
+  gap: 0.12rem;
   list-style: none;
   margin: 0;
   padding: 0;
@@ -24,7 +23,7 @@
 
 .logbook li {
   align-items: center;
-  border-bottom: 1px solid rgb(156 224 255 / 0.08);
+  border-radius: 4px;
   color: var(--clue-color);
   display: flex;
   min-height: 2.15rem;
@@ -35,10 +34,6 @@
   transition:
     background 160ms ease,
     box-shadow 160ms ease;
-}
-
-.logbook li:last-child {
-  border-bottom: 0;
 }
 
 .edgeLogEntry {

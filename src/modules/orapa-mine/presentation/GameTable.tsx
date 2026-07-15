@@ -1,4 +1,4 @@
-import { Mic, RotateCcw } from 'lucide-react'
+import { Eye, EyeOff, Mic, RotateCcw, Shuffle } from 'lucide-react'
 import { useRef } from 'react'
 import type { VoiceRecognitionStatus } from '../application/voiceRecognition'
 import type { GuessResult } from '../domain/familySolution'
@@ -49,6 +49,8 @@ export type GameTableProps = Readonly<{
     showCurrentRay: boolean
   }>
   puzzle: Readonly<{
+    onNext: () => void
+    onToggleSolution: () => void
     showSolution: boolean
     solutionPlacements: ReadonlyArray<MineralPlacement>
   }>
@@ -89,26 +91,61 @@ export function GameTable({
       className={styles.panel}
       onPointerCancel={movement.cancelActiveMovement}
     >
-      <div className={styles.heading}>
-        <div className={styles.headingActions}>
-          <button
-            aria-label="Speak"
-            className={voice.status === 'listening' ? styles.listening : ''}
-            onClick={voice.onStart}
-            title={voice.status === 'error' ? 'Voice unavailable' : 'Speak'}
-            type="button"
-          >
-            <Mic size={17} />
-          </button>
-          <button
-            aria-label="Reset solution"
-            onClick={familySolution.onReset}
-            type="button"
-          >
-            <RotateCcw size={17} />
-          </button>
+      <header className={styles.gameHeader}>
+        <h1 className={styles.title}>Orapa Mine</h1>
+        <div
+          aria-label="Game options"
+          className={styles.controlBar}
+          role="toolbar"
+        >
+          <LightControls
+            hasCurrentRay={light.currentRay !== null}
+            onShowAllRaysChange={light.onShowAllRaysChange}
+            onShowCurrentRayChange={light.onShowCurrentRayChange}
+            showAllRays={light.showAllRays}
+            showCurrentRay={light.showCurrentRay}
+          />
+          <span aria-hidden="true" className={styles.controlDivider} />
+          <div className={styles.headingActions}>
+            <button
+              aria-label="New puzzle"
+              onClick={puzzle.onNext}
+              title="New puzzle"
+              type="button"
+            >
+              <Shuffle size={17} />
+            </button>
+            <button
+              aria-label={
+                puzzle.showSolution ? 'Hide solution' : 'Reveal solution'
+              }
+              aria-pressed={puzzle.showSolution}
+              onClick={puzzle.onToggleSolution}
+              title={puzzle.showSolution ? 'Hide solution' : 'Reveal solution'}
+              type="button"
+            >
+              {puzzle.showSolution ? <EyeOff size={17} /> : <Eye size={17} />}
+            </button>
+            <button
+              aria-label="Speak"
+              className={voice.status === 'listening' ? styles.listening : ''}
+              onClick={voice.onStart}
+              title={voice.status === 'error' ? 'Voice unavailable' : 'Speak'}
+              type="button"
+            >
+              <Mic size={17} />
+            </button>
+            <button
+              aria-label="Reset solution"
+              onClick={familySolution.onReset}
+              title="Reset solution"
+              type="button"
+            >
+              <RotateCcw size={17} />
+            </button>
+          </div>
         </div>
-      </div>
+      </header>
 
       <div className={styles.playSurface}>
         <SolutionBoard
@@ -143,13 +180,6 @@ export function GameTable({
           />
 
           <div className={styles.statusRail}>
-            <LightControls
-              hasCurrentRay={light.currentRay !== null}
-              onShowAllRaysChange={light.onShowAllRaysChange}
-              onShowCurrentRayChange={light.onShowCurrentRayChange}
-              showAllRays={light.showAllRays}
-              showCurrentRay={light.showCurrentRay}
-            />
             <ClueNotebook
               answers={clues.answers}
               onClearPreview={cluePreview.clearPreview}

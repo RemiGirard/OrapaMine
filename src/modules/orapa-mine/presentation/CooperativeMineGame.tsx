@@ -1,4 +1,3 @@
-import { Eye, EyeOff, Shuffle } from 'lucide-react'
 import styles from './CooperativeMineGame.module.css'
 import { GameTable } from './GameTable'
 import { useCooperativeMineGame } from './useCooperativeMineGame'
@@ -12,28 +11,11 @@ export function CooperativeMineGame() {
 
   return (
     <main className={styles.shell}>
-      <header className={styles.header}>
-        <h1 className={styles.title}>Orapa Mine</h1>
-        <div className={styles.actions}>
-          <button onClick={game.session.nextPuzzle} type="button">
-            <Shuffle size={18} />
-            <span>New</span>
-          </button>
-          <button
-            onClick={() =>
-              game.session.setShowSolution(!game.session.showSolution)
-            }
-            type="button"
-          >
-            {game.session.showSolution ? (
-              <EyeOff size={18} />
-            ) : (
-              <Eye size={18} />
-            )}
-            <span>{game.session.showSolution ? 'Hide' : 'Reveal'}</span>
-          </button>
-        </div>
-      </header>
+      <div aria-hidden="true" className={styles.ambientLight}>
+        <span className={styles.aquaBeam} />
+        <span className={styles.goldBeam} />
+        <span className={styles.violetBeam} />
+      </div>
 
       <section className={styles.layout}>
         <GameTable
@@ -64,6 +46,9 @@ export function CooperativeMineGame() {
             showCurrentRay: game.light.showCurrentRay,
           }}
           puzzle={{
+            onNext: game.session.nextPuzzle,
+            onToggleSolution: () =>
+              game.session.setShowSolution(!game.session.showSolution),
             showSolution: game.session.showSolution,
             solutionPlacements: game.session.puzzle.placements,
           }}
