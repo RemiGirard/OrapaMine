@@ -4,7 +4,7 @@ import {
   createEmptyGuess,
   flipGuessMineral,
   moveGuessMineral,
-  removeGuessMineral,
+  returnGuessMineralToCase,
   rotateGuessMineral,
 } from '../domain/familySolution'
 import type { GuessResult } from '../domain/familySolution'
@@ -71,7 +71,7 @@ export function returnFamilyMineral(
   mineralId: MineralId,
 ): FamilySolution {
   return {
-    guess: removeGuessMineral(solution.guess, mineralId),
+    guess: returnGuessMineralToCase(solution.guess, mineralId),
     selectedMineralId: mineralId,
     submittedResult: null,
   }

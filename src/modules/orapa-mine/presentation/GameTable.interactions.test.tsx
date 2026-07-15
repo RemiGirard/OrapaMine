@@ -15,7 +15,7 @@ import {
   createEmptyGuess,
   flipGuessMineral,
   moveGuessMineral,
-  removeGuessMineral,
+  returnGuessMineralToCase,
   rotateGuessMineral,
 } from '../domain/familySolution'
 import type { GuessPlacement } from '../domain/minerals'
@@ -117,7 +117,7 @@ describe('GameTable piece interactions', () => {
     expect(onNext).toHaveBeenCalledOnce()
   })
 
-  it('moves a glass piece from tray to grid, around the grid, flips it, and returns it to the tray', () => {
+  it('moves glass around the grid and resets its orientation when returned', () => {
     render(<InteractiveGameTable />)
 
     const panel = document.querySelector('aside')
@@ -203,7 +203,7 @@ describe('GameTable piece interactions', () => {
           name: 'Move Ruby parallelogram',
         })
         .getAttribute('title'),
-    ).toBe('Ruby parallelogram - east, back')
+    ).toBe('Ruby parallelogram - north, front')
   })
 
   it('places a picked glass piece on a board click', () => {
@@ -968,7 +968,7 @@ function InteractiveGameTable({
           ),
         onRemove: (mineralId) =>
           setGuess((currentGuess) =>
-            removeGuessMineral(currentGuess, mineralId),
+            returnGuessMineralToCase(currentGuess, mineralId),
           ),
         onReset: () => setGuess(createEmptyGuess(puzzle)),
         onRotate: (mineralId) =>

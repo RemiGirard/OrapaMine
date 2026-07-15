@@ -13,6 +13,7 @@ import {
   createEmptyGuess,
   flipGuessMineral,
   moveGuessMineral,
+  returnGuessMineralToCase,
   rotateGuessMineral,
 } from './familySolution'
 import { canPlaceMineralWithOrientation, placementsOverlap } from './minerals'
@@ -217,6 +218,42 @@ describe('Orapa Mine domain', () => {
 
     expect(compareGuess(puzzle, wrongOrientationGuess).solved).toBe(false)
     expect(compareGuess(puzzle, correctGuess).solved).toBe(true)
+  })
+
+  it('keeps cased minerals neutral instead of revealing solution orientation', () => {
+    const guess = createEmptyGuess(preparedPuzzles[1])
+
+    expect(
+      guess.every(
+        (placement) =>
+          placement.face === 'front' && placement.orientation === 'north',
+      ),
+    ).toBe(true)
+  })
+
+  it('restores position, rotation, and face when glass returns to its case', () => {
+    const puzzle: Puzzle = {
+      id: 'test-case-reset',
+      placements: [
+        { mineralId: 'red-parallelogram', origin: { column: 0, row: 0 } },
+      ],
+      ruleset: 'basic',
+      title: 'Test Case Reset',
+    }
+    const placed = moveGuessMineral(
+      createEmptyGuess(puzzle),
+      'red-parallelogram',
+      { column: 2, row: 2 },
+      'east',
+      'back',
+    )
+
+    expect(returnGuessMineralToCase(placed, 'red-parallelogram')[0]).toEqual({
+      face: 'front',
+      mineralId: 'red-parallelogram',
+      orientation: 'north',
+      origin: null,
+    })
   })
 
   it('rotates placed glass around its center even across the board edge', () => {

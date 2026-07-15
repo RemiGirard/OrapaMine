@@ -582,8 +582,7 @@
   pointer-events: none;
 }
 
-.usedStackSlot:hover .stackResetButton,
-.usedStackSlot:focus-within .stackResetButton {
+.usedStackSlot .stackResetButton {
   pointer-events: auto;
 }
 

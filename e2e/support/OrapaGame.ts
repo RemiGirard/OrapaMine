@@ -68,6 +68,20 @@ export class OrapaGame {
     return this.page.locator(`[data-stack-mineral-id="${mineralId}"]`)
   }
 
+  returnToCaseButton(mineralName: string) {
+    return this.page.getByRole('button', {
+      exact: true,
+      name: `Return ${mineralName} to stack`,
+    })
+  }
+
+  resetSolutionButton() {
+    return this.page.getByRole('button', {
+      exact: true,
+      name: 'Reset solution',
+    })
+  }
+
   placedPiece(mineralId: BasicMineralId) {
     return this.page.getByTestId(`placed-piece-${mineralId}`)
   }

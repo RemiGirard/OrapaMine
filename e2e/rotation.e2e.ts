@@ -53,6 +53,46 @@ test.describe('glass rotation', () => {
     expect(restoredNorthBox.height).toBeCloseTo(northBox.height, 1)
   })
 
+  test('restores neutral orientation when resetting the solution', async ({
+    game,
+  }) => {
+    const ruby = game.toolboxPiece('red-parallelogram')
+
+    await ruby.click({ button: 'right' })
+    await ruby.click({ button: 'right', modifiers: ['Shift'] })
+    await expect(ruby).toHaveAttribute(
+      'title',
+      'Ruby parallelogram - east, back',
+    )
+
+    await game.resetSolutionButton().click()
+
+    await expect(ruby).toHaveAttribute(
+      'title',
+      'Ruby parallelogram - north, front',
+    )
+  })
+
+  test('restores neutral orientation when returning glass to its case', async ({
+    game,
+  }) => {
+    const placedRuby = await game.placeFromToolbox('red-parallelogram')
+
+    await placedRuby.click({ button: 'right' })
+    await placedRuby.click({ button: 'right', modifiers: ['Shift'] })
+    await expect(placedRuby).toHaveAttribute(
+      'title',
+      'Ruby parallelogram - east, back',
+    )
+
+    await game.returnToCaseButton('Ruby parallelogram').click()
+
+    await expect(game.toolboxPiece('red-parallelogram')).toHaveAttribute(
+      'title',
+      'Ruby parallelogram - north, front',
+    )
+  })
+
   test('rotates placed glass by mouse and keyboard without changing its face', async ({
     game,
   }) => {

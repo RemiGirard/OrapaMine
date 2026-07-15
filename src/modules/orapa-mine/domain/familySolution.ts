@@ -29,13 +29,9 @@ export type PlacementAssessment = Readonly<{
 }>
 
 export function createEmptyGuess(puzzle: Puzzle): Array<GuessPlacement> {
-  return puzzle.placements.map((placement) => ({
-    face: placement.face ?? 'front',
-    mineralId: placement.mineralId,
-    origin: null,
-    orientation:
-      placement.orientation ?? minerals[placement.mineralId].defaultOrientation,
-  }))
+  return puzzle.placements.map((placement) =>
+    createCasedMineral(placement.mineralId),
+  )
 }
 
 export function moveGuessMineral(
@@ -61,15 +57,24 @@ export function moveGuessMineral(
   )
 }
 
-export function removeGuessMineral(
+export function returnGuessMineralToCase(
   guess: ReadonlyArray<GuessPlacement>,
   mineralId: MineralId,
 ): Array<GuessPlacement> {
   return guess.map((placement) =>
     placement.mineralId === mineralId
-      ? { ...placement, origin: null }
+      ? createCasedMineral(mineralId)
       : placement,
   )
+}
+
+function createCasedMineral(mineralId: MineralId): GuessPlacement {
+  return {
+    face: 'front',
+    mineralId,
+    origin: null,
+    orientation: minerals[mineralId].defaultOrientation,
+  }
 }
 
 export function rotateGuessMineral(
