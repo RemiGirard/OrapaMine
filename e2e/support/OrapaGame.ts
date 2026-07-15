@@ -44,7 +44,10 @@ export class OrapaGame {
     })
   }
 
-  async placeFromToolbox(mineralId: BasicMineralId) {
+  async placeFromToolbox(
+    mineralId: BasicMineralId,
+    normalizedPosition = { x: 0.5, y: 0.5 },
+  ) {
     const toolboxPiece = this.toolboxPiece(mineralId)
     await expect(toolboxPiece).toBeVisible()
     await toolboxPiece.click()
@@ -56,8 +59,8 @@ export class OrapaGame {
     }
 
     const placementPoint = {
-      x: boardBox.width * 0.5,
-      y: boardBox.height * 0.5,
+      x: boardBox.width * normalizedPosition.x,
+      y: boardBox.height * normalizedPosition.y,
     }
 
     await this.board.hover({ position: placementPoint })

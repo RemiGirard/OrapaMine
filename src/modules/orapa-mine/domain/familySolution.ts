@@ -8,6 +8,7 @@ import type {
 import {
   canPlaceMineralWithOrientation,
   flipFace,
+  getMineralShape,
   minerals,
   placementsOverlap,
   rotateOrientation,
@@ -18,6 +19,13 @@ export type GuessResult = Readonly<{
   solved: boolean
   exactPlacements: number
   totalPlacements: number
+}>
+
+export type PlacementIssue = 'outside-board' | 'overlap'
+
+export type PlacementAssessment = Readonly<{
+  issues: ReadonlyArray<PlacementIssue>
+  valid: boolean
 }>
 
 export function createEmptyGuess(puzzle: Puzzle): Array<GuessPlacement> {
@@ -46,28 +54,11 @@ export function moveGuessMineral(
     minerals[mineralId].defaultOrientation
   const nextFace = face ?? currentPlacement?.face ?? 'front'
 
-  if (
-    !canPlaceMineralWithOrientation(
-      mineralId,
-      origin,
-      nextOrientation,
-      nextFace,
-    )
-  ) {
-    return [...guess]
-  }
-
-  const nextGuess = guess.map((placement) =>
+  return guess.map((placement) =>
     placement.mineralId === mineralId
       ? { ...placement, face: nextFace, orientation: nextOrientation, origin }
       : placement,
   )
-
-  if (placementsOverlap(toPlacedMinerals(nextGuess))) {
-    return [...guess]
-  }
-
-  return nextGuess
 }
 
 export function removeGuessMineral(
@@ -94,10 +85,25 @@ export function rotateGuessMineral(
   const nextOrientation = rotateOrientation(target.orientation)
 
   if (target.origin) {
+    const currentShape = getMineralShape(
+      mineralId,
+      target.orientation,
+      target.face,
+    )
+    const nextShape = getMineralShape(mineralId, nextOrientation, target.face)
+    const centeredOrigin = {
+      column:
+        target.origin.column +
+        Math.trunc((currentShape.width - nextShape.width) / 2),
+      row:
+        target.origin.row +
+        Math.trunc((currentShape.height - nextShape.height) / 2),
+    }
+
     return moveGuessMineral(
       guess,
       mineralId,
-      target.origin,
+      centeredOrigin,
       nextOrientation,
       target.face,
     )
@@ -153,6 +159,55 @@ export function toPlacedMinerals(
           },
         ]
       : [],
+  )
+}
+
+export function assessGuessPlacements(
+  guess: ReadonlyArray<GuessPlacement>,
+): ReadonlyMap<MineralId, PlacementAssessment> {
+  const placements = toPlacedMinerals(guess)
+
+  return new Map(
+    placements.map((placement) => {
+      const issues: Array<PlacementIssue> = []
+
+      if (
+        !canPlaceMineralWithOrientation(
+          placement.mineralId,
+          placement.origin,
+          placement.orientation ??
+            minerals[placement.mineralId].defaultOrientation,
+          placement.face,
+        )
+      ) {
+        issues.push('outside-board')
+      }
+
+      if (
+        placements.some(
+          (otherPlacement) =>
+            otherPlacement.mineralId !== placement.mineralId &&
+            placementsOverlap([placement, otherPlacement]),
+        )
+      ) {
+        issues.push('overlap')
+      }
+
+      return [
+        placement.mineralId,
+        { issues, valid: issues.length === 0 },
+      ] as const
+    }),
+  )
+}
+
+export function toValidPlacedMinerals(
+  guess: ReadonlyArray<GuessPlacement>,
+): Array<MineralPlacement> {
+  const assessments = assessGuessPlacements(guess)
+
+  return toPlacedMinerals(guess).filter(
+    (placement) => assessments.get(placement.mineralId)?.valid,
   )
 }
 

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { parseEdgePort, parseGridCoordinate } from './coordinates'
 import { mixSignalColor } from './colors'
 import {
+  assessGuessPlacements,
   compareGuess,
   createEmptyGuess,
   flipGuessMineral,
@@ -138,7 +139,7 @@ describe('Orapa Mine domain', () => {
         {
           mineralId: 'red-parallelogram',
           orientation: 'south',
-          origin: { column: 1, row: 1 },
+          origin: { column: 0, row: 2 },
         },
       ],
     }
@@ -155,6 +156,64 @@ describe('Orapa Mine domain', () => {
 
     expect(compareGuess(puzzle, wrongOrientationGuess).solved).toBe(false)
     expect(compareGuess(puzzle, correctGuess).solved).toBe(true)
+  })
+
+  it('rotates placed glass around its center even across the board edge', () => {
+    const puzzle: Puzzle = {
+      id: 'test-centered-rotation',
+      placements: [
+        { mineralId: 'red-parallelogram', origin: { column: 0, row: 0 } },
+      ],
+      ruleset: 'basic',
+      title: 'Test Centered Rotation',
+    }
+    const placed = moveGuessMineral(
+      createEmptyGuess(puzzle),
+      'red-parallelogram',
+      { column: 0, row: 0 },
+    )
+    const rotated = rotateGuessMineral(placed, 'red-parallelogram')
+
+    expect(rotated[0]).toMatchObject({
+      orientation: 'east',
+      origin: { column: 1, row: -1 },
+    })
+    expect(assessGuessPlacements(rotated).get('red-parallelogram')).toEqual({
+      issues: ['outside-board'],
+      valid: false,
+    })
+  })
+
+  it('keeps overlapping placements and marks every conflicting piece', () => {
+    const puzzle: Puzzle = {
+      id: 'test-invalid-overlap',
+      placements: [
+        { mineralId: 'red-parallelogram', origin: { column: 0, row: 0 } },
+        { mineralId: 'yellow-triangle', origin: { column: 4, row: 4 } },
+      ],
+      ruleset: 'basic',
+      title: 'Test Invalid Overlap',
+    }
+    const redPlaced = moveGuessMineral(
+      createEmptyGuess(puzzle),
+      'red-parallelogram',
+      { column: 2, row: 3 },
+    )
+    const overlapping = moveGuessMineral(redPlaced, 'yellow-triangle', {
+      column: 2,
+      row: 3,
+    })
+    const assessments = assessGuessPlacements(overlapping)
+
+    expect(overlapping[1]?.origin).toEqual({ column: 2, row: 3 })
+    expect(assessments.get('red-parallelogram')).toEqual({
+      issues: ['overlap'],
+      valid: false,
+    })
+    expect(assessments.get('yellow-triangle')).toEqual({
+      issues: ['overlap'],
+      valid: false,
+    })
   })
 
   it('rotates gemstone orientations clockwise through a complete turn', () => {

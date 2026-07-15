@@ -1,5 +1,6 @@
 import type { RefObject } from 'react'
 import { boardSize } from '../../domain/coordinates'
+import type { PlacementAssessment } from '../../domain/familySolution'
 import type {
   GuessPlacement,
   MineralId,
@@ -34,6 +35,7 @@ export function SolutionBoard({
   onPreviewAnswer,
   onRotate,
   onSelect,
+  placementAssessments,
   selectedMineralId,
   showAllRays,
   showCurrentRay,
@@ -54,6 +56,7 @@ export function SolutionBoard({
   onPreviewAnswer: (answer: Answer) => void
   onRotate: (mineralId: MineralId) => void
   onSelect: (mineralId: MineralId) => void
+  placementAssessments: ReadonlyMap<MineralId, PlacementAssessment>
   selectedMineralId: MineralId
   showAllRays: boolean
   showCurrentRay: boolean
@@ -114,6 +117,7 @@ export function SolutionBoard({
           {movement.movementState?.target?.kind === 'board' &&
           draggedPlacement ? (
             <PlacementGhost
+              assessment={placementAssessments.get(draggedPlacement.mineralId)}
               origin={movement.movementState.target.origin}
               placement={draggedPlacement}
             />
@@ -141,6 +145,7 @@ export function SolutionBoard({
                   onRotate={onRotate}
                   onSelect={onSelect}
                   placement={placement}
+                  assessment={placementAssessments.get(placement.mineralId)}
                 />
               ) : null,
             )}

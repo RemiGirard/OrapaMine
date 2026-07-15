@@ -51,7 +51,7 @@ describe('piece drop target adapter', () => {
     ).toEqual({ kind: 'board', origin: { column: 2, row: 3 } })
   })
 
-  it('rejects a drop that overlaps another placed mineral', () => {
+  it('keeps an overlapping board position available as a drop target', () => {
     const guess = moveGuessMineral(
       createEmptyGuess(puzzle),
       'yellow-triangle',
@@ -68,7 +68,39 @@ describe('piece drop target adapter', () => {
         mineralId: redPlacement.mineralId,
         point: { x: 350, y: 350 },
       }),
-    ).toBeNull()
+    ).toEqual({ kind: 'board', origin: { column: 2, row: 3 } })
+  })
+
+  it('keeps a board-edge position available when glass extends outside', () => {
+    const guess = createEmptyGuess(puzzle)
+    const redPlacement = guess[0]
+
+    expect(
+      movementTargetFromClientPoint({
+        anchor: stackDragAnchor(redPlacement),
+        boardRect,
+        documentRoot: document,
+        guess,
+        mineralId: redPlacement.mineralId,
+        point: { x: 20, y: 50 },
+      }),
+    ).toEqual({ kind: 'board', origin: { column: -1, row: 0 } })
+  })
+
+  it('accepts a release beyond the border while part of the glass intersects', () => {
+    const guess = createEmptyGuess(puzzle)
+    const redPlacement = guess[0]
+
+    expect(
+      movementTargetFromClientPoint({
+        anchor: stackDragAnchor(redPlacement),
+        boardRect,
+        documentRoot: document,
+        guess,
+        mineralId: redPlacement.mineralId,
+        point: { x: -60, y: 50 },
+      }),
+    ).toEqual({ kind: 'board', origin: { column: -2, row: 0 } })
   })
 
   it('recognizes the matching foam slot as a return target', () => {

@@ -22,6 +22,11 @@
 .placedPiece {
   cursor: grab;
   touch-action: none;
+  transition:
+    height 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    left 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    top 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    width 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .placedPiece:active {
@@ -53,6 +58,12 @@
 .selectedPlacedPiece .placedShape {
   filter: drop-shadow(0 0 8px rgb(48 255 205 / 0.75))
     drop-shadow(0 0 18px rgb(48 255 205 / 0.34));
+}
+
+.rotatingPieceShape {
+  animation: pieceQuarterTurn 240ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  transform-box: border-box;
+  transform-origin: center;
 }
 
 .dragPreviewShape,
@@ -224,6 +235,32 @@
 .placementGhostShape :global(.piece-crystal-shards),
 .placementGhostShape :global(.piece-raw-facets) {
   display: none;
+}
+
+.invalidPlacedPiece .placedShape,
+.invalidPlacementGhost .placementGhostShape,
+.invalidDragPreview .dragPreviewShape {
+  filter: drop-shadow(0 0 5px rgb(255 78 96 / 0.92))
+    drop-shadow(0 0 18px rgb(255 42 72 / 0.42));
+  opacity: 0.5;
+}
+
+.invalidPlacedPiece .placedShape :global(.piece-body),
+.invalidPlacedPiece .placedShape :global(.piece-facet),
+.invalidPlacementGhost .placementGhostShape :global(.piece-body),
+.invalidPlacementGhost .placementGhostShape :global(.piece-facet),
+.invalidDragPreview .dragPreviewShape :global(.piece-body),
+.invalidDragPreview .dragPreviewShape :global(.piece-facet) {
+  fill: rgb(255 35 68 / 0.26) !important;
+  stroke: rgb(255 108 122 / 0.96) !important;
+  stroke-width: 0.065;
+}
+
+.invalidPlacedPiece .placedShape :global(.piece-highlight),
+.invalidPlacementGhost .placementGhostShape :global(.piece-highlight),
+.invalidDragPreview .dragPreviewShape :global(.piece-highlight) {
+  fill: rgb(255 190 197 / 0.18) !important;
+  opacity: 0.32;
 }
 
 .dragPreview {
@@ -554,6 +591,20 @@
   }
 }
 
+@keyframes pieceQuarterTurn {
+  from {
+    transform: rotate(-90deg) scale(0.92);
+  }
+
+  72% {
+    transform: rotate(4deg) scale(1.025);
+  }
+
+  to {
+    transform: rotate(0deg) scale(1);
+  }
+}
+
 @keyframes glassReflection {
   0%,
   100% {
@@ -615,7 +666,8 @@
   .placedPiece::before,
   .placedPiece::after,
   .dragPreview::before,
-  .dragPreview::after {
+  .dragPreview::after,
+  .rotatingPieceShape {
     animation: none;
   }
 

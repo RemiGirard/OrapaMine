@@ -53,6 +53,26 @@ describe('cooperative game use cases', () => {
     })
   })
 
+  it('keeps invalid overlapping glass out of the optical preview', () => {
+    const withRuby = reduceCooperativeGame(createCooperativeGame(), {
+      mineralId: 'red-parallelogram',
+      origin: { column: 2, row: 3 },
+      type: 'place-family-mineral',
+    })
+    const withOverlap = reduceCooperativeGame(withRuby, {
+      mineralId: 'yellow-triangle',
+      origin: { column: 2, row: 3 },
+      type: 'place-family-mineral',
+    })
+    const view = createCooperativeGameView(withOverlap)
+
+    expect(
+      view.allRayPreviews.every(
+        (preview) => preview.signalColor === 'transparent',
+      ),
+    ).toBe(true)
+  })
+
   it('ignores a clue that is already recorded in either direction', () => {
     const withClue = reduceCooperativeGame(createCooperativeGame(), {
       id: 1,

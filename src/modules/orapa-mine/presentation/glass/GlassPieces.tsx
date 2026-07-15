@@ -2,6 +2,10 @@ import type { CSSProperties, RefObject } from 'react'
 import type { PieceMovementSession } from '../../application/pieceMovement'
 import { boardSize, formatGridCoordinate } from '../../domain/coordinates'
 import type { Coordinate } from '../../domain/coordinates'
+import type {
+  PlacementAssessment,
+  PlacementIssue,
+} from '../../domain/familySolution'
 import { getMineralShape, minerals } from '../../domain/minerals'
 import type {
   GuessPlacement,
@@ -10,6 +14,7 @@ import type {
 } from '../../domain/minerals'
 import styles from './Glass.module.css'
 import { PieceShape } from '../PieceShape'
+import { RotatingPieceShape } from './RotatingPieceShape'
 import type { usePieceMovementInteraction } from './usePieceMovementInteraction'
 
 type MovementInteraction = ReturnType<typeof usePieceMovementInteraction>
@@ -40,9 +45,11 @@ export function SolutionPiece({
 }
 
 export function PlacementGhost({
+  assessment,
   placement,
   origin,
 }: Readonly<{
+  assessment: PlacementAssessment | undefined
   placement: GuessPlacement
   origin: Coordinate
 }>) {
@@ -55,7 +62,11 @@ export function PlacementGhost({
   return (
     <span
       data-placement-ghost="true"
-      className={styles.placementGhost}
+      data-placement-state={assessment?.valid === false ? 'invalid' : 'valid'}
+      className={[
+        styles.placementGhost,
+        assessment?.valid === false ? styles.invalidPlacementGhost : '',
+      ].join(' ')}
       style={placementStyle(origin, shape.width, shape.height)}
     >
       <PieceShape
@@ -69,6 +80,7 @@ export function PlacementGhost({
 }
 
 export function PlacedPiece({
+  assessment,
   isDragging,
   isSelected,
   movement,
@@ -77,6 +89,7 @@ export function PlacedPiece({
   onSelect,
   placement,
 }: Readonly<{
+  assessment: PlacementAssessment | undefined
   isDragging: boolean
   isSelected: boolean
   movement: MovementInteraction
@@ -95,17 +108,31 @@ export function PlacedPiece({
     placement.face,
   )
   const mineral = minerals[placement.mineralId]
+  const issueDescription = placementIssueDescription(assessment?.issues ?? [])
+  const accessiblePlacement = `${mineral.name} at ${formatGridCoordinate(placement.origin)}`
 
   return (
     <div
-      aria-label={`${mineral.name} at ${formatGridCoordinate(placement.origin)}`}
+      aria-invalid={assessment?.valid === false ? true : undefined}
+      aria-label={
+        issueDescription
+          ? `${accessiblePlacement}, invalid placement: ${issueDescription}`
+          : accessiblePlacement
+      }
       className={[
         styles.placedPiece,
         isSelected ? styles.selectedPlacedPiece : '',
         isDragging ? styles.draggingPlacedPiece : '',
+        assessment?.valid === false ? styles.invalidPlacedPiece : '',
       ].join(' ')}
+      data-placement-state={assessment?.valid === false ? 'invalid' : 'valid'}
       data-testid={`placed-piece-${placement.mineralId}`}
-      onClick={(event) =>
+      onClick={(event) => {
+        if (movement.movementState) {
+          movement.dropPickedPiece(event)
+          return
+        }
+
         movement.pickPieceFromClick(
           event,
           placement,
@@ -115,7 +142,7 @@ export function PlacedPiece({
             placement,
           ),
         )
-      }
+      }}
       onDoubleClick={(event) => {
         event.preventDefault()
         event.stopPropagation()
@@ -147,27 +174,43 @@ export function PlacedPiece({
           onFlip(placement.mineralId)
         }
       }}
-      onMouseDown={(event) =>
+      onMouseDown={(event) => {
+        if (movement.movementState) {
+          event.preventDefault()
+          event.stopPropagation()
+          return
+        }
+
         movement.startMovingPieceWithMouse(
           event,
           placement,
           movement.placedMouseDragAnchor(event, placement),
         )
-      }
+      }}
       onPointerCancel={() => movement.cancelMovingPiece(placement.mineralId)}
-      onPointerDown={(event) =>
+      onPointerDown={(event) => {
+        if (movement.movementState) {
+          event.preventDefault()
+          event.stopPropagation()
+          return
+        }
+
         movement.startMovingPiece(
           event,
           placement,
           movement.placedPointerDragAnchor(event, placement),
         )
-      }
+      }}
       role="button"
       style={placementStyle(placement.origin, shape.width, shape.height)}
       tabIndex={0}
-      title={`${mineral.name} - ${placement.orientation}, ${placement.face}`}
+      title={
+        issueDescription
+          ? `${mineral.name} - ${placement.orientation}, ${placement.face}. Invalid: ${issueDescription}`
+          : `${mineral.name} - ${placement.orientation}, ${placement.face}`
+      }
     >
-      <PieceShape
+      <RotatingPieceShape
         className={styles.placedShape}
         face={placement.face}
         mineralId={placement.mineralId}
@@ -179,10 +222,12 @@ export function PlacedPiece({
 
 export function GlassDragPreview({
   boardRef,
+  isInvalid,
   movementState,
   placement,
 }: Readonly<{
   boardRef: RefObject<HTMLDivElement | null>
+  isInvalid: boolean
   movementState: PieceMovementSession
   placement: GuessPlacement
 }>) {
@@ -207,8 +252,12 @@ export function GlassDragPreview({
   return (
     <div
       aria-hidden="true"
-      className={styles.dragPreview}
+      className={[
+        styles.dragPreview,
+        isInvalid ? styles.invalidDragPreview : '',
+      ].join(' ')}
       data-glass-drag-preview="true"
+      data-placement-state={isInvalid ? 'invalid' : 'valid'}
       style={style}
     >
       <PieceShape
@@ -219,6 +268,16 @@ export function GlassDragPreview({
       />
     </div>
   )
+}
+
+function placementIssueDescription(issues: ReadonlyArray<PlacementIssue>) {
+  return issues
+    .map((issue) =>
+      issue === 'outside-board'
+        ? 'outside the board'
+        : 'overlaps another piece',
+    )
+    .join(' and ')
 }
 
 function placementStyle(

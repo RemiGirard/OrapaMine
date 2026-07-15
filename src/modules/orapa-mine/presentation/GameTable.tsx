@@ -1,6 +1,10 @@
 import { Eye, EyeOff, Mic, RotateCcw, Shuffle } from 'lucide-react'
-import { useRef } from 'react'
+import { useMemo, useRef } from 'react'
 import type { VoiceRecognitionStatus } from '../application/voiceRecognition'
+import {
+  assessGuessPlacements,
+  moveGuessMineral,
+} from '../domain/familySolution'
 import type { GuessResult } from '../domain/familySolution'
 import type { Coordinate } from '../domain/coordinates'
 import type {
@@ -86,6 +90,21 @@ export function GameTable({
           placement.mineralId === movement.movementState?.mineralId,
       )
     : null
+  const interactionGuess = useMemo(() => {
+    const target = movement.movementState?.target
+
+    return target?.kind === 'board' && movement.movementState
+      ? moveGuessMineral(
+          familySolution.guess,
+          movement.movementState.mineralId,
+          target.origin,
+        )
+      : familySolution.guess
+  }, [familySolution.guess, movement.movementState])
+  const placementAssessments = useMemo(
+    () => assessGuessPlacements(interactionGuess),
+    [interactionGuess],
+  )
 
   return (
     <aside
@@ -110,7 +129,10 @@ export function GameTable({
           <div className={styles.headingActions}>
             <button
               aria-label="New puzzle"
-              onClick={puzzle.onNext}
+              onClick={() => {
+                movement.cancelActiveMovement()
+                puzzle.onNext()
+              }}
               title="New puzzle"
               type="button"
             >
@@ -138,7 +160,10 @@ export function GameTable({
             </button>
             <button
               aria-label="Reset solution"
-              onClick={familySolution.onReset}
+              onClick={() => {
+                movement.cancelActiveMovement()
+                familySolution.onReset()
+              }}
               title="Reset solution"
               type="button"
             >
@@ -163,6 +188,7 @@ export function GameTable({
           onPreviewAnswer={cluePreview.previewAnswer}
           onRotate={familySolution.onRotate}
           onSelect={familySolution.onSelect}
+          placementAssessments={placementAssessments}
           selectedMineralId={familySolution.selectedMineralId}
           showAllRays={light.showAllRays}
           showCurrentRay={light.showCurrentRay}
@@ -198,6 +224,10 @@ export function GameTable({
       {movement.movementState && draggedPlacement ? (
         <GlassDragPreview
           boardRef={boardRef}
+          isInvalid={
+            placementAssessments.get(draggedPlacement.mineralId)?.valid ===
+            false
+          }
           movementState={movement.movementState}
           placement={draggedPlacement}
         />

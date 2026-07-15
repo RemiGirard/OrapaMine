@@ -17,6 +17,7 @@ type PieceShapeProps = Readonly<{
   face: MineralFace
   mineralId: MineralId
   orientation: Orientation
+  rotationMotion?: 'clockwise'
 }>
 
 export function PieceShape({
@@ -24,6 +25,7 @@ export function PieceShape({
   face,
   mineralId,
   orientation,
+  rotationMotion,
 }: PieceShapeProps) {
   const gradientId = useId().replace(/:/g, '')
   const mineral = minerals[mineralId]
@@ -45,6 +47,8 @@ export function PieceShape({
       data-mineral-face={face}
       data-mineral-color={mineral.color}
       data-mineral-id={mineralId}
+      data-mineral-orientation={orientation}
+      data-rotation-motion={rotationMotion}
       preserveAspectRatio="none"
       shapeRendering="geometricPrecision"
       style={

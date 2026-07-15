@@ -1,4 +1,4 @@
-import { toPlacedMinerals } from '../domain/familySolution'
+import { toValidPlacedMinerals } from '../domain/familySolution'
 import { preparedPuzzles } from '../domain/puzzles'
 import { answerAllEdgesForPlacements } from '../domain/questions'
 import type { Answer } from '../domain/questions'
@@ -21,7 +21,7 @@ export function createCooperativeGameView(
 ): CooperativeGameView {
   const puzzle = preparedPuzzles[game.puzzleIndex]
   const currentAnswer = latestClue(game.clueNotebook)
-  const placements = toPlacedMinerals(game.familySolution.guess)
+  const placements = toValidPlacedMinerals(game.familySolution.guess)
   const clueConsistency = evaluateClueConsistency(game.clueNotebook, placements)
 
   return {

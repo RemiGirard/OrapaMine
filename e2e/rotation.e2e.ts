@@ -46,6 +46,9 @@ test.describe('glass rotation', () => {
       'title',
       'Ruby parallelogram - east, front',
     )
+    await expect(
+      ruby.locator('[data-rotation-motion="clockwise"]'),
+    ).toBeVisible()
 
     await ruby.press('r')
     await expect(ruby).toHaveAttribute(
@@ -58,6 +61,28 @@ test.describe('glass rotation', () => {
       'title',
       'Ruby parallelogram - south, back',
     )
+  })
+
+  test('keeps an edge rotation and marks the outside glass as invalid', async ({
+    game,
+  }) => {
+    const ruby = await game.placeFromToolbox('red-parallelogram', {
+      x: 0.19,
+      y: 0.05,
+    })
+
+    await expect(ruby).toHaveAttribute('data-placement-state', 'valid')
+
+    await ruby.click({ button: 'right' })
+
+    await expect(ruby).toHaveAttribute('data-placement-state', 'invalid')
+    await expect(ruby).toHaveAttribute('aria-invalid', 'true')
+    await expect(
+      ruby.locator('[data-mineral-orientation="east"]'),
+    ).toBeVisible()
+    await expect(
+      ruby.locator('[data-rotation-motion="clockwise"]'),
+    ).toBeVisible()
   })
 })
 

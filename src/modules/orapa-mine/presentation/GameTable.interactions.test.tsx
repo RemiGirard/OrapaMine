@@ -28,6 +28,10 @@ const puzzle: Puzzle = {
       mineralId: 'red-parallelogram',
       origin: { column: 0, row: 0 },
     },
+    {
+      mineralId: 'yellow-triangle',
+      origin: { column: 4, row: 4 },
+    },
   ],
   ruleset: 'basic',
   title: 'Interaction Test',
@@ -155,6 +159,9 @@ describe('GameTable piece interactions', () => {
     expect(movedPiece.getAttribute('title')).toBe(
       'Ruby parallelogram - east, front',
     )
+    expect(
+      movedPiece.querySelector('[data-rotation-motion="clockwise"]'),
+    ).not.toBeNull()
 
     fireEvent.doubleClick(movedPiece)
 
@@ -213,6 +220,80 @@ describe('GameTable piece interactions', () => {
         name: 'Ruby parallelogram at C2, R3',
       }),
     ).not.toBeNull()
+  })
+
+  it('puts carried glass down when resetting or starting a new puzzle', () => {
+    const onNext = vi.fn()
+
+    render(<InteractiveGameTable onNext={onNext} />)
+
+    const ruby = screen.getByTestId('toolbox-piece-red-parallelogram')
+
+    fireEvent.click(ruby, { clientX: 40, clientY: 40 })
+    expect(
+      document.querySelector('[data-glass-drag-preview="true"]'),
+    ).not.toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reset solution' }))
+    expect(
+      document.querySelector('[data-glass-drag-preview="true"]'),
+    ).toBeNull()
+
+    fireEvent.click(ruby, { clientX: 40, clientY: 40 })
+    fireEvent.click(screen.getByRole('button', { name: 'New puzzle' }))
+
+    expect(
+      document.querySelector('[data-glass-drag-preview="true"]'),
+    ).toBeNull()
+    expect(onNext).toHaveBeenCalledOnce()
+  })
+
+  it('previews and keeps overlapping glass as a clear invalid placement', () => {
+    render(<InteractiveGameTable />)
+
+    const panel = document.querySelector('aside')
+    const board = screen.getByTestId('solution-board-surface')
+
+    expect(panel).not.toBeNull()
+
+    const target = boardPoint(3.5, 3.5)
+    const ruby = screen.getByTestId('toolbox-piece-red-parallelogram')
+
+    fireEvent.click(ruby, { clientX: 40, clientY: 40 })
+    fireEvent.mouseMove(panel!, toMouseEventPoint(target))
+    fireEvent.click(board, toMouseEventPoint(target))
+
+    const topaz = screen.getByTestId('toolbox-piece-yellow-triangle')
+
+    fireEvent.click(topaz, { clientX: 40, clientY: 40 })
+    fireEvent.mouseMove(panel!, toMouseEventPoint(target))
+
+    expect(
+      document
+        .querySelector('[data-placement-ghost="true"]')
+        ?.getAttribute('data-placement-state'),
+    ).toBe('invalid')
+    expect(
+      document
+        .querySelector('[data-glass-drag-preview="true"]')
+        ?.getAttribute('data-placement-state'),
+    ).toBe('invalid')
+    const placedRuby = screen.getByTestId('placed-piece-red-parallelogram')
+
+    expect(placedRuby.getAttribute('aria-invalid')).toBe('true')
+
+    fireEvent.click(placedRuby, toMouseEventPoint(target))
+
+    expect(
+      screen
+        .getByTestId('placed-piece-yellow-triangle')
+        .getAttribute('data-placement-state'),
+    ).toBe('invalid')
+    expect(
+      screen
+        .getByTestId('placed-piece-red-parallelogram')
+        .getAttribute('data-placement-state'),
+    ).toBe('invalid')
   })
 
   it('lifts a toolbox piece smoothly around its cursor anchor', () => {

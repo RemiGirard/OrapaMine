@@ -5,6 +5,7 @@ import layoutStyles from '../GameTable.module.css'
 import { PieceShape } from '../PieceShape'
 import styles from './Glass.module.css'
 import { glassCaseSlotLayout } from './glassCaseLayout'
+import { RotatingPieceShape } from './RotatingPieceShape'
 import type { usePieceMovementInteraction } from './usePieceMovementInteraction'
 
 type MovementInteraction = ReturnType<typeof usePieceMovementInteraction>
@@ -160,7 +161,7 @@ function GlassCaseSlot({
           title={`${mineral.name} - ${placement.orientation}, ${placement.face}`}
           type="button"
         >
-          <PieceShape
+          <RotatingPieceShape
             className={styles.stackShape}
             face={placement.face}
             mineralId={placement.mineralId}
