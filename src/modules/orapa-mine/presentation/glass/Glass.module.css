@@ -425,7 +425,6 @@
 }
 
 .stackCavity {
-  inset: 0;
   pointer-events: none;
   position: absolute;
   transition:
@@ -524,9 +523,7 @@
 
 .stackResetButton {
   color: #9fb4c2;
-  inset: 0;
   pointer-events: none;
-  position: relative;
 }
 
 .usedStackSlot:hover .stackResetButton,

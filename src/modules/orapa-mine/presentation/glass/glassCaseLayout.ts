@@ -21,40 +21,47 @@ export type GlassCasePieceLayout = Readonly<{
   widthPercent: number
 }>
 
-const glassCasePositions: Record<MineralId, GlassCasePosition> = {
-  'red-parallelogram': { column: 1, row: 2 },
-  'yellow-triangle': { column: 4, row: 1 },
-  'blue-big-triangle': { column: 7, row: 1 },
-  'white-diamond': { column: 1, row: 7 },
-  'white-big-triangle': { column: 4, row: 7 },
-  'transparent-prism': { column: 9, row: 6 },
-  'black-absorber': { column: 9, row: 9 },
+const glassCaseSlots: Record<MineralId, GlassCaseSlotLayout> = {
+  'red-parallelogram': { column: 0, height: 3, row: 1, width: 3 },
+  'yellow-triangle': { column: 4, height: 2, row: 1, width: 2 },
+  'blue-big-triangle': { column: 8, height: 4, row: 0, width: 4 },
+  'white-diamond': { column: 1, height: 2, row: 7, width: 2 },
+  'white-big-triangle': { column: 5, height: 4, row: 6, width: 4 },
+  'transparent-prism': { column: 10, height: 2, row: 6, width: 2 },
+  'black-absorber': { column: 10, height: 2, row: 9, width: 2 },
 }
 
 export function glassCaseSlotLayout(mineralId: MineralId): GlassCaseSlotLayout {
-  const mineral = minerals[mineralId]
-  const position = glassCasePositions[mineralId]
-  const shape = getMineralShape(mineralId, mineral.defaultOrientation, 'front')
+  return glassCaseSlots[mineralId]
+}
 
-  return {
-    ...position,
-    height: shape.height,
-    width: shape.width,
-  }
+export function glassCaseCavityLayout(
+  mineralId: MineralId,
+): GlassCasePieceLayout {
+  const mineral = minerals[mineralId]
+  const cavity = getMineralShape(mineralId, mineral.defaultOrientation, 'front')
+
+  return layoutInsideSlot(glassCaseSlotLayout(mineralId), cavity)
 }
 
 export function glassCasePieceLayout(
   placement: GuessPlacement,
 ): GlassCasePieceLayout {
-  const slot = glassCaseSlotLayout(placement.mineralId)
   const piece = getMineralShape(
     placement.mineralId,
     placement.orientation,
     placement.face,
   )
 
-  const widthPercent = (piece.width / slot.width) * 100
-  const heightPercent = (piece.height / slot.height) * 100
+  return layoutInsideSlot(glassCaseSlotLayout(placement.mineralId), piece)
+}
+
+function layoutInsideSlot(
+  slot: GlassCaseSlotLayout,
+  item: Readonly<{ height: number; width: number }>,
+): GlassCasePieceLayout {
+  const widthPercent = (item.width / slot.width) * 100
+  const heightPercent = (item.height / slot.height) * 100
 
   return {
     heightPercent,

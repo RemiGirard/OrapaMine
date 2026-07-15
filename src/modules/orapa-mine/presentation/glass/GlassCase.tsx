@@ -1,10 +1,16 @@
 import { RotateCcw } from 'lucide-react'
+import type { CSSProperties } from 'react'
 import { minerals } from '../../domain/minerals'
 import type { GuessPlacement, MineralId } from '../../domain/minerals'
 import layoutStyles from '../GameTable.module.css'
 import { PieceShape } from '../PieceShape'
 import styles from './Glass.module.css'
-import { glassCasePieceLayout, glassCaseSlotLayout } from './glassCaseLayout'
+import {
+  glassCaseCavityLayout,
+  glassCasePieceLayout,
+  glassCaseSlotLayout,
+} from './glassCaseLayout'
+import type { GlassCasePieceLayout } from './glassCaseLayout'
 import { RotatingPieceShape } from './RotatingPieceShape'
 import type { usePieceMovementInteraction } from './usePieceMovementInteraction'
 
@@ -70,6 +76,7 @@ function GlassCaseSlot({
   const isReturnTarget =
     isDragged && movement.movementState?.target?.kind === 'stack'
   const slotLayout = glassCaseSlotLayout(placement.mineralId)
+  const cavityLayout = glassCaseCavityLayout(placement.mineralId)
   const pieceLayout = glassCasePieceLayout(placement)
 
   return (
@@ -93,6 +100,7 @@ function GlassCaseSlot({
         aria-hidden="true"
         className={styles.stackCavity}
         data-stack-cavity-mineral-id={placement.mineralId}
+        style={caseItemStyle(cavityLayout)}
       >
         <PieceShape
           className={styles.stackCavityShape}
@@ -110,6 +118,7 @@ function GlassCaseSlot({
             onRemove(placement.mineralId)
           }}
           onMouseDown={(event) => event.stopPropagation()}
+          style={caseItemStyle(cavityLayout)}
           title={`Return ${mineral.name}`}
           type="button"
         >
@@ -120,12 +129,7 @@ function GlassCaseSlot({
           aria-label={`Move ${mineral.name}`}
           className={styles.stackPieceButton}
           data-testid={`toolbox-piece-${placement.mineralId}`}
-          style={{
-            height: `${pieceLayout.heightPercent}%`,
-            left: `${pieceLayout.leftPercent}%`,
-            top: `${pieceLayout.topPercent}%`,
-            width: `${pieceLayout.widthPercent}%`,
-          }}
+          style={caseItemStyle(pieceLayout)}
           onClick={(event) =>
             movement.pickPieceFromClick(
               event,
@@ -178,4 +182,13 @@ function GlassCaseSlot({
       )}
     </div>
   )
+}
+
+function caseItemStyle(layout: GlassCasePieceLayout): CSSProperties {
+  return {
+    height: `${layout.heightPercent}%`,
+    left: `${layout.leftPercent}%`,
+    top: `${layout.topPercent}%`,
+    width: `${layout.widthPercent}%`,
+  }
 }

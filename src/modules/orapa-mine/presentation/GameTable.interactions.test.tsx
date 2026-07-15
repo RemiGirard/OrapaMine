@@ -335,18 +335,28 @@ describe('GameTable piece interactions', () => {
     const slot = document.querySelector<HTMLElement>(
       '[data-stack-mineral-id="red-parallelogram"]',
     )
-    const cavity = slot?.querySelector(
-      '[data-stack-cavity-mineral-id="red-parallelogram"] svg',
+    const cavity = slot?.querySelector<HTMLElement>(
+      '[data-stack-cavity-mineral-id="red-parallelogram"]',
     )
-    const heldPiece = slot?.querySelector('button svg')
+    const cavityShape = cavity?.querySelector('svg')
+    const heldPiece = slot?.querySelector<HTMLElement>('button')
+    const heldPieceShape = heldPiece?.querySelector('svg')
 
     expect(slot?.dataset.stackWidth).toBe('3')
-    expect(slot?.dataset.stackHeight).toBe('1')
+    expect(slot?.dataset.stackHeight).toBe('3')
     expect(slot?.style.gridColumn).toContain('span 3')
-    expect(slot?.style.gridRow).toContain('span 1')
-    expect(cavity?.getAttribute('viewBox')).toBe('0 0 3 1')
-    expect(heldPiece?.getAttribute('viewBox')).toBe(
-      cavity?.getAttribute('viewBox'),
+    expect(slot?.style.gridRow).toContain('span 3')
+    expect(Number.parseFloat(cavity?.style.height ?? '')).toBeCloseTo(100 / 3)
+    expect(cavity?.style.left).toBe('0%')
+    expect(Number.parseFloat(cavity?.style.top ?? '')).toBeCloseTo(100 / 3)
+    expect(cavity?.style.width).toBe('100%')
+    expect(heldPiece?.style.height).toBe(cavity?.style.height)
+    expect(heldPiece?.style.left).toBe(cavity?.style.left)
+    expect(heldPiece?.style.top).toBe(cavity?.style.top)
+    expect(heldPiece?.style.width).toBe(cavity?.style.width)
+    expect(cavityShape?.getAttribute('viewBox')).toBe('0 0 3 1')
+    expect(heldPieceShape?.getAttribute('viewBox')).toBe(
+      cavityShape?.getAttribute('viewBox'),
     )
   })
 

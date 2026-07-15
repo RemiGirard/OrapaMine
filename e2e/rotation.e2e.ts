@@ -12,6 +12,7 @@ test.describe('glass rotation', () => {
     const ruby = game.toolboxPiece('red-parallelogram')
     const rubyCavity = game.toolboxCavity('red-parallelogram')
     const rubySlot = game.toolboxSlot('red-parallelogram')
+    const topaz = game.toolboxPiece('yellow-triangle')
 
     await expect(ruby).toHaveAttribute(
       'title',
@@ -29,6 +30,7 @@ test.describe('glass rotation', () => {
     )
     const eastBox = await visibleBox(ruby)
     expect(eastBox.height).toBeGreaterThan(eastBox.width)
+    expect(boxesOverlap(eastBox, await visibleBox(topaz))).toBe(false)
     expect(await visibleBox(rubyCavity)).toEqual(northCavityBox)
     expect(await visibleBox(rubySlot)).toEqual(northSlotBox)
     await expect(
@@ -114,4 +116,16 @@ async function visibleBox(locator: Locator) {
   }
 
   return box
+}
+
+function boxesOverlap(
+  first: Awaited<ReturnType<typeof visibleBox>>,
+  second: Awaited<ReturnType<typeof visibleBox>>,
+) {
+  return (
+    first.x < second.x + second.width &&
+    first.x + first.width > second.x &&
+    first.y < second.y + second.height &&
+    first.y + first.height > second.y
+  )
 }
