@@ -100,7 +100,8 @@
 
 .submittedGuessShape :global(.piece-highlight),
 .submittedGuessShape :global(.piece-caustics),
-.submittedGuessShape :global(.piece-crystal-grain) {
+.submittedGuessShape :global(.piece-crystal-grain),
+.submittedGuessShape :global(.piece-spectrum-reflections) {
   opacity: 0.06;
 }
 
@@ -144,9 +145,8 @@
 .placementGhostShape[data-mineral-color='white'],
 .stackShape[data-mineral-color='white'],
 .solutionShape[data-mineral-color='white'] {
-  filter: drop-shadow(0 0 12px rgb(255 255 255 / 0.78))
-    drop-shadow(0 0 24px rgb(123 215 255 / 0.48))
-    drop-shadow(0 0 42px rgb(46 255 205 / 0.18));
+  filter: drop-shadow(0 0 8px rgb(255 255 255 / 0.36))
+    drop-shadow(0 0 19px rgb(123 215 255 / 0.23));
 }
 
 .dragPreviewShape[data-mineral-color='white'] :global(.piece-facet),
@@ -154,8 +154,8 @@
 .placementGhostShape[data-mineral-color='white'] :global(.piece-facet),
 .stackShape[data-mineral-color='white'] :global(.piece-facet),
 .solutionShape[data-mineral-color='white'] :global(.piece-facet) {
-  opacity: 0.58;
-  stroke: rgb(255 255 255 / 0.62);
+  opacity: 0.42;
+  stroke: rgb(226 250 255 / 0.46);
   stroke-width: 0.035;
 }
 
@@ -164,15 +164,15 @@
 .placementGhostShape[data-mineral-color='white'] :global(.piece-body),
 .stackShape[data-mineral-color='white'] :global(.piece-body),
 .solutionShape[data-mineral-color='white'] :global(.piece-body) {
-  stroke: rgb(255 255 255 / 0.96);
-  stroke-width: 0.075;
+  stroke: rgb(225 249 255 / 0.68);
+  stroke-width: 0.06;
 }
 
 .dragPreviewShape[data-mineral-color='white'] :global(.piece-highlight),
 .placedShape[data-mineral-color='white'] :global(.piece-highlight),
 .stackShape[data-mineral-color='white'] :global(.piece-highlight),
 .solutionShape[data-mineral-color='white'] :global(.piece-highlight) {
-  opacity: 0.46;
+  opacity: 0.3;
 }
 
 .dragPreviewShape[data-mineral-color='white'] :global(.piece-crystal-grain),
@@ -180,16 +180,16 @@
 .stackShape[data-mineral-color='white'] :global(.piece-crystal-grain),
 .solutionShape[data-mineral-color='white'] :global(.piece-crystal-grain) {
   mix-blend-mode: normal;
-  opacity: 0.72;
+  opacity: 0.38;
 }
 
 .dragPreviewShape[data-mineral-color='white'] :global(.piece-caustics),
 .placedShape[data-mineral-color='white'] :global(.piece-caustics),
 .stackShape[data-mineral-color='white'] :global(.piece-caustics),
 .solutionShape[data-mineral-color='white'] :global(.piece-caustics) {
-  filter: drop-shadow(0 0 6px rgb(255 255 255 / 0.58));
+  filter: drop-shadow(0 0 4px rgb(255 255 255 / 0.32));
   mix-blend-mode: screen;
-  opacity: 0.84;
+  opacity: 0.52;
 }
 
 .dragPreviewShape[data-mineral-color='white'] :global(.piece-caustics path),
@@ -205,9 +205,9 @@
 .placedShape[data-mineral-color='white'] :global(.piece-crystal-shards),
 .stackShape[data-mineral-color='white'] :global(.piece-crystal-shards),
 .solutionShape[data-mineral-color='white'] :global(.piece-crystal-shards) {
-  filter: drop-shadow(0 0 3px rgb(123 215 255 / 0.28));
+  filter: drop-shadow(0 0 2px rgb(123 215 255 / 0.18));
   mix-blend-mode: normal;
-  opacity: 0.88;
+  opacity: 0.58;
 }
 
 .dragPreviewShape[data-mineral-color='white'] :global(.piece-crystal-shard),
@@ -225,7 +225,7 @@
 .solutionShape[data-mineral-color='white'] :global(.piece-raw-facets) {
   filter: drop-shadow(0 0 3px rgb(255 255 255 / 0.5));
   mix-blend-mode: normal;
-  opacity: 0.96;
+  opacity: 0.68;
 }
 
 .dragPreviewShape[data-mineral-color='white'] :global(.piece-raw-facets line),
@@ -235,6 +235,18 @@
   stroke: rgb(145 238 255 / 0.62);
   stroke-linecap: square;
   stroke-width: 0.058;
+}
+
+.dragPreviewShape[data-mineral-color='white']
+  :global(.piece-spectrum-reflections),
+.placedShape[data-mineral-color='white'] :global(.piece-spectrum-reflections),
+.stackShape[data-mineral-color='white'] :global(.piece-spectrum-reflections),
+.solutionShape[data-mineral-color='white']
+  :global(.piece-spectrum-reflections) {
+  animation: spectrumRefraction 7.2s ease-in-out infinite;
+  filter: drop-shadow(0 0 2px rgb(151 218 255 / 0.18));
+  mix-blend-mode: screen;
+  opacity: 0.42;
 }
 
 .solutionShape {
@@ -265,7 +277,8 @@
 .placementGhostShape :global(.piece-caustics),
 .placementGhostShape :global(.piece-crystal-grain),
 .placementGhostShape :global(.piece-crystal-shards),
-.placementGhostShape :global(.piece-raw-facets) {
+.placementGhostShape :global(.piece-raw-facets),
+.placementGhostShape :global(.piece-spectrum-reflections) {
   display: none;
 }
 
@@ -503,7 +516,8 @@
 .stackCavityShape :global(.piece-caustics),
 .stackCavityShape :global(.piece-crystal-grain),
 .stackCavityShape :global(.piece-crystal-shards),
-.stackCavityShape :global(.piece-raw-facets) {
+.stackCavityShape :global(.piece-raw-facets),
+.stackCavityShape :global(.piece-spectrum-reflections) {
   display: none;
 }
 
@@ -678,13 +692,28 @@
 @keyframes diamondRefraction {
   0%,
   100% {
-    opacity: 0.58;
+    opacity: 0.36;
     transform: translateX(-1.2%);
   }
 
   48% {
-    opacity: 0.96;
+    opacity: 0.62;
     transform: translateX(1.4%);
+  }
+}
+
+@keyframes spectrumRefraction {
+  0%,
+  100% {
+    opacity: 0.24;
+  }
+
+  44% {
+    opacity: 0.48;
+  }
+
+  64% {
+    opacity: 0.32;
   }
 }
 
@@ -713,6 +742,10 @@
   .stackShape[data-mineral-color='white'] :global(.piece-caustics),
   .placedShape[data-mineral-color='white'] :global(.piece-caustics),
   .dragPreviewShape[data-mineral-color='white'] :global(.piece-caustics),
+  .stackShape[data-mineral-color='white'] :global(.piece-spectrum-reflections),
+  .placedShape[data-mineral-color='white'] :global(.piece-spectrum-reflections),
+  .dragPreviewShape[data-mineral-color='white']
+    :global(.piece-spectrum-reflections),
   .stackPieceButton::before,
   .stackPieceButton::after,
   .placedPiece::before,

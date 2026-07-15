@@ -86,10 +86,10 @@ export function PieceShape({
           y1="0"
           y2="1"
         >
-          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.98" />
-          <stop offset="32%" stopColor="#eaffff" stopOpacity="0.9" />
-          <stop offset="62%" stopColor="#bfeeff" stopOpacity="0.58" />
-          <stop offset="100%" stopColor="#ffffff" stopOpacity="0.84" />
+          <stop offset="0%" stopColor="#f4feff" stopOpacity="0.62" />
+          <stop offset="32%" stopColor="#dff8ff" stopOpacity="0.48" />
+          <stop offset="62%" stopColor="#9ed9e8" stopOpacity="0.3" />
+          <stop offset="100%" stopColor="#eafcff" stopOpacity="0.5" />
         </linearGradient>
         <linearGradient
           id={`${gradientId}-diamond-edge`}
@@ -99,7 +99,7 @@ export function PieceShape({
           y2="0"
         >
           <stop offset="0%" stopColor="#bff7ff" stopOpacity="0.12" />
-          <stop offset="42%" stopColor="#ffffff" stopOpacity="0.92" />
+          <stop offset="42%" stopColor="#ffffff" stopOpacity="0.62" />
           <stop offset="100%" stopColor="#79dbff" stopOpacity="0.22" />
         </linearGradient>
         <linearGradient
@@ -110,8 +110,22 @@ export function PieceShape({
           y2="0"
         >
           <stop offset="0%" stopColor="#7bd7ff" stopOpacity="0" />
-          <stop offset="46%" stopColor="#ffffff" stopOpacity="0.56" />
+          <stop offset="46%" stopColor="#ffffff" stopOpacity="0.34" />
           <stop offset="100%" stopColor="#9fffe8" stopOpacity="0" />
+        </linearGradient>
+        <linearGradient
+          id={`${gradientId}-diamond-spectrum`}
+          x1="0"
+          x2="1"
+          y1="0.15"
+          y2="0.85"
+        >
+          <stop offset="0%" stopColor="#ff8192" stopOpacity="0.08" />
+          <stop offset="22%" stopColor="#ffd66e" stopOpacity="0.34" />
+          <stop offset="43%" stopColor="#7ff0c8" stopOpacity="0.28" />
+          <stop offset="64%" stopColor="#71d9ff" stopOpacity="0.34" />
+          <stop offset="84%" stopColor="#a99bff" stopOpacity="0.3" />
+          <stop offset="100%" stopColor="#ea8dff" stopOpacity="0.06" />
         </linearGradient>
         <pattern
           height="0.42"
@@ -139,9 +153,9 @@ export function PieceShape({
           cy="36%"
           r="68%"
         >
-          <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
-          <stop offset="48%" stopColor="#eefdff" stopOpacity="0.92" />
-          <stop offset="100%" stopColor="#b8efff" stopOpacity="0.62" />
+          <stop offset="0%" stopColor="#f8ffff" stopOpacity="0.62" />
+          <stop offset="48%" stopColor="#dbf5f8" stopOpacity="0.48" />
+          <stop offset="100%" stopColor="#8dcbd8" stopOpacity="0.3" />
         </radialGradient>
         <linearGradient
           id={`${gradientId}-diamond-shard-bright`}
@@ -150,9 +164,9 @@ export function PieceShape({
           y1="0"
           y2="1"
         >
-          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.96" />
-          <stop offset="58%" stopColor="#dcfbff" stopOpacity="0.62" />
-          <stop offset="100%" stopColor="#6bdfff" stopOpacity="0.16" />
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.58" />
+          <stop offset="58%" stopColor="#d5f5f8" stopOpacity="0.38" />
+          <stop offset="100%" stopColor="#6bdfff" stopOpacity="0.1" />
         </linearGradient>
         <linearGradient
           id={`${gradientId}-diamond-shard-cold`}
@@ -161,9 +175,9 @@ export function PieceShape({
           y1="0"
           y2="1"
         >
-          <stop offset="0%" stopColor="#79e8ff" stopOpacity="0.48" />
-          <stop offset="46%" stopColor="#ffffff" stopOpacity="0.72" />
-          <stop offset="100%" stopColor="#ecffff" stopOpacity="0.18" />
+          <stop offset="0%" stopColor="#79e8ff" stopOpacity="0.28" />
+          <stop offset="46%" stopColor="#ffffff" stopOpacity="0.44" />
+          <stop offset="100%" stopColor="#ecffff" stopOpacity="0.12" />
         </linearGradient>
         <linearGradient
           id={`${gradientId}-diamond-shard-shadow`}
@@ -173,8 +187,8 @@ export function PieceShape({
           y2="0"
         >
           <stop offset="0%" stopColor="#92ebff" stopOpacity="0.08" />
-          <stop offset="52%" stopColor="#d8fbff" stopOpacity="0.34" />
-          <stop offset="100%" stopColor="#ffffff" stopOpacity="0.72" />
+          <stop offset="52%" stopColor="#d8fbff" stopOpacity="0.22" />
+          <stop offset="100%" stopColor="#ffffff" stopOpacity="0.42" />
         </linearGradient>
         <filter
           id={`${gradientId}-diamond-roughness`}
@@ -241,6 +255,29 @@ export function PieceShape({
           fill={`url(#${gradientId}-diamond-grain)`}
           points={outlinePoints}
         />
+      ) : null}
+
+      {isDiamond ? (
+        <g
+          className="piece-spectrum-reflections"
+          clipPath={`url(#${gradientId}-piece-clip)`}
+        >
+          <path
+            d={`M ${-shape.width * 0.08} ${shape.height * 0.7} L ${shape.width * 1.08} ${shape.height * 0.28}`}
+            fill="none"
+            stroke={`url(#${gradientId}-diamond-spectrum)`}
+            strokeWidth="0.08"
+            vectorEffect="non-scaling-stroke"
+          />
+          <path
+            d={`M ${shape.width * 0.18} ${-shape.height * 0.05} L ${shape.width * 0.74} ${shape.height * 1.05}`}
+            fill="none"
+            opacity="0.62"
+            stroke={`url(#${gradientId}-diamond-spectrum)`}
+            strokeWidth="0.055"
+            vectorEffect="non-scaling-stroke"
+          />
+        </g>
       ) : null}
 
       {shape.cells.map((cell, index) => (
