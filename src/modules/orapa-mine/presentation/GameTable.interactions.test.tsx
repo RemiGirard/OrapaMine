@@ -912,9 +912,14 @@ describe('GameTable piece interactions', () => {
 
     expect(directRoute.textContent).toBe('T2B2')
     expect(directRoute.getAttribute('style')).toContain('#ef4f4a')
-    expect(
-      directRoute.querySelector('[data-clue-reversible="true"]'),
-    ).not.toBeNull()
+    const reversibleArrow = directRoute.querySelector(
+      '[data-clue-reversible="true"]',
+    )
+
+    expect(reversibleArrow).not.toBeNull()
+    expect(reversibleArrow?.classList.contains('lucide-move-horizontal')).toBe(
+      true,
+    )
     expect(
       returnRoute.querySelector('[data-clue-return="true"]'),
     ).not.toBeNull()

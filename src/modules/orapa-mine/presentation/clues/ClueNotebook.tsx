@@ -1,4 +1,4 @@
-import { ArrowLeftRight, ArrowRight, Undo2 } from 'lucide-react'
+import { ArrowRight, MoveHorizontal, Undo2 } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { signalColorLabels } from '../../domain/colors'
 import { edgeConnectionFrom } from '../../domain/edgeConnections'
@@ -80,7 +80,7 @@ function ClueRoute({ answer }: Readonly<{ answer: Answer }>) {
     return (
       <span className={styles.route}>
         <span>{answer.query}</span>
-        <ArrowLeftRight
+        <MoveHorizontal
           aria-hidden="true"
           data-clue-reversible="true"
           size={17}
