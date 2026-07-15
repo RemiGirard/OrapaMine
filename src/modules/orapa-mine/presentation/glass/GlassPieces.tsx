@@ -14,6 +14,7 @@ import type {
 } from '../../domain/minerals'
 import styles from './Glass.module.css'
 import { PieceShape } from '../PieceShape'
+import { DragPreviewMotion } from './DragPreviewMotion'
 import { RotatingPieceShape } from './RotatingPieceShape'
 import type { usePieceMovementInteraction } from './usePieceMovementInteraction'
 
@@ -147,6 +148,10 @@ export function PlacedPiece({
   const mineral = minerals[placement.mineralId]
   const issueDescription = placementIssueDescription(assessment?.issues ?? [])
   const accessiblePlacement = `${mineral.name} at ${formatGridCoordinate(placement.origin)}`
+  const placementMotionSequence =
+    movement.placedPieceMotion?.mineralId === placement.mineralId
+      ? movement.placedPieceMotion.sequence
+      : 0
 
   return (
     <div
@@ -247,12 +252,18 @@ export function PlacedPiece({
           : `${mineral.name} - ${placement.orientation}, ${placement.face}`
       }
     >
-      <RotatingPieceShape
-        className={styles.placedShape}
-        face={placement.face}
-        mineralId={placement.mineralId}
-        orientation={placement.orientation}
-      />
+      <span
+        className={styles.placementSettle}
+        data-placement-settle="true"
+        key={placementMotionSequence}
+      >
+        <RotatingPieceShape
+          className={styles.placedShape}
+          face={placement.face}
+          mineralId={placement.mineralId}
+          orientation={placement.orientation}
+        />
+      </span>
     </div>
   )
 }
@@ -276,34 +287,37 @@ export function GlassDragPreview({
     placement.orientation,
     placement.face,
   )
+  const left = movementState.pointer.x - movementState.anchor.column * cellWidth
+  const top = movementState.pointer.y - movementState.anchor.row * cellHeight
   const style: CSSProperties & Record<`--drag-${string}`, string> = {
     '--drag-anchor-x': `${(movementState.anchor.column / shape.width) * 100}%`,
     '--drag-anchor-y': `${(movementState.anchor.row / shape.height) * 100}%`,
     '--drag-start-scale': placement.origin ? '0.92' : '0.62',
     height: `${shape.height * cellHeight}px`,
-    left: `${movementState.pointer.x - movementState.anchor.column * cellWidth}px`,
-    top: `${movementState.pointer.y - movementState.anchor.row * cellHeight}px`,
     width: `${shape.width * cellWidth}px`,
   }
 
   return (
-    <div
+    <DragPreviewMotion
       aria-hidden="true"
       className={[
-        styles.dragPreview,
+        styles.dragPreviewMotion,
         isInvalid ? styles.invalidDragPreview : '',
       ].join(' ')}
       data-glass-drag-preview="true"
       data-placement-state={isInvalid ? 'invalid' : 'valid'}
       style={style}
+      target={{ x: left, y: top }}
     >
-      <PieceShape
-        className={styles.dragPreviewShape}
-        face={placement.face}
-        mineralId={placement.mineralId}
-        orientation={placement.orientation}
-      />
-    </div>
+      <div className={styles.dragPreview} data-glass-lift="true">
+        <PieceShape
+          className={styles.dragPreviewShape}
+          face={placement.face}
+          mineralId={placement.mineralId}
+          orientation={placement.orientation}
+        />
+      </div>
+    </DragPreviewMotion>
   )
 }
 

@@ -30,6 +30,11 @@ type PieceMovementInteractionOptions = Readonly<{
   onSelect: (mineralId: MineralId) => void
 }>
 
+type PlacedPieceMotion = Readonly<{
+  mineralId: MineralId
+  sequence: number
+}>
+
 export function usePieceMovementInteraction({
   boardRef,
   guess,
@@ -39,7 +44,10 @@ export function usePieceMovementInteraction({
 }: PieceMovementInteractionOptions) {
   const [movementState, setMovementState] =
     useState<PieceMovementSession | null>(null)
+  const [placedPieceMotion, setPlacedPieceMotion] =
+    useState<PlacedPieceMotion | null>(null)
   const movementStateRef = useRef<PieceMovementSession | null>(null)
+  const placementSequenceRef = useRef(0)
   const suppressedClickMineralIdRef = useRef<MineralId | null>(null)
   const cleanupDocumentListenersRef = useRef<(() => void) | null>(null)
 
@@ -168,6 +176,11 @@ export function usePieceMovementInteraction({
       }
 
       if (command?.kind === 'place') {
+        placementSequenceRef.current += 1
+        setPlacedPieceMotion({
+          mineralId: command.mineralId,
+          sequence: placementSequenceRef.current,
+        })
         onPlace(command.mineralId, command.origin)
       }
 
@@ -399,6 +412,7 @@ export function usePieceMovementInteraction({
     dropPickedPiece,
     movementState,
     pickPieceFromClick,
+    placedPieceMotion,
     placedDragAnchorFromClientPoint,
     placedMouseDragAnchor,
     placedPointerDragAnchor,

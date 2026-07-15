@@ -140,6 +140,9 @@ describe('GameTable piece interactions', () => {
       'Ruby parallelogram - north, front',
     )
     expect(placedPiece.querySelector('strong')).toBeNull()
+    const initialSettle = placedPiece.querySelector(
+      '[data-placement-settle="true"]',
+    )
 
     dragWithMouse(placedPiece, panel!, {
       from: boardPoint(3.5, 2.5),
@@ -149,6 +152,11 @@ describe('GameTable piece interactions', () => {
     const movedPiece = screen.getByRole('button', {
       name: 'Ruby parallelogram at C5, R4',
     })
+    const movedSettle = movedPiece.querySelector(
+      '[data-placement-settle="true"]',
+    )
+
+    expect(movedSettle).not.toBe(initialSettle)
 
     fireEvent.contextMenu(movedPiece)
 
@@ -158,6 +166,9 @@ describe('GameTable piece interactions', () => {
     expect(
       movedPiece.querySelector('[data-rotation-motion="clockwise"]'),
     ).not.toBeNull()
+    expect(movedPiece.querySelector('[data-placement-settle="true"]')).toBe(
+      movedSettle,
+    )
 
     fireEvent.doubleClick(movedPiece)
 
@@ -312,6 +323,7 @@ describe('GameTable piece interactions', () => {
     expect(preview?.style.getPropertyValue('--drag-anchor-x')).toBe('50%')
     expect(preview?.style.getPropertyValue('--drag-anchor-y')).toBe('50%')
     expect(preview?.style.getPropertyValue('--drag-start-scale')).toBe('0.62')
+    expect(preview?.querySelector('[data-glass-lift="true"]')).not.toBeNull()
 
     const target = boardPoint(3.5, 2.5)
     fireEvent.mouseMove(document, toMouseEventPoint(target))
