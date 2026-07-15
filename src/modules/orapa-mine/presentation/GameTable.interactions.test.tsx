@@ -389,7 +389,7 @@ describe('GameTable piece interactions', () => {
     expect(pointValues?.every((point) => point >= 0 && point <= 100)).toBe(true)
   })
 
-  it('keeps the current ray fixed while photons bounce along its path', () => {
+  it('keeps the current ray fixed while one photon bounces along its path', () => {
     const currentRayPreview: Extract<Answer, { mode: 'edge' }> = {
       exitLabel: 'R1',
       id: 1,
@@ -423,9 +423,9 @@ describe('GameTable piece interactions', () => {
 
     expect(guide).not.toBeNull()
     expect(guide?.querySelector('animate')).toBeNull()
-    expect(photons).toHaveLength(3)
-    expect(firstPhoton?.getAttribute('rx')).toBe('1.1')
-    expect(firstPhoton?.getAttribute('ry')).toBe('0.88')
+    expect(photons).toHaveLength(1)
+    expect(firstPhoton?.getAttribute('rx')).toBe('0.72')
+    expect(firstPhoton?.getAttribute('ry')).toBe('0.58')
     expect(motion?.getAttribute('keyPoints')).toBe('0;1;0')
     expect(motion?.getAttribute('keyTimes')).toBe('0;0.5;1')
     expect(motion?.getAttribute('repeatCount')).toBe('indefinite')

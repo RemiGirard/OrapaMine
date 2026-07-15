@@ -16,8 +16,6 @@ import styles from './LightPaths.module.css'
 
 type RayAnswer = EdgeAnswer
 
-const currentPhotonPhases = [0, 1 / 3, 2 / 3] as const
-
 export function LightPaths({
   connections,
   currentRay,
@@ -194,14 +192,7 @@ function RayOverlay({ answer }: Readonly<{ answer: RayAnswer }>) {
         className={styles.currentRayCore}
         points={toSvgPoints(points)}
       />
-      {currentPhotonPhases.map((phase, index) => (
-        <BouncingRayPhoton
-          index={index}
-          key={phase}
-          phase={phase}
-          playback={playback}
-        />
-      ))}
+      <BouncingRayPhoton playback={playback} />
       <circle
         className={styles.rayEndpoint}
         cx={points[0].x}
@@ -219,17 +210,12 @@ function RayOverlay({ answer }: Readonly<{ answer: RayAnswer }>) {
 }
 
 function BouncingRayPhoton({
-  index,
-  phase,
   playback,
 }: Readonly<{
-  index: number
-  phase: number
   playback: PhotonPlayback
 }>) {
   const { colorStops, durationMs, motionPath } = playback
   const duration = `${durationMs}ms`
-  const begin = phase === 0 ? '0ms' : `-${Math.round(durationMs * phase)}ms`
   const colorKeyTimes = colorStops
     .map((stop) => formatAnimationNumber(stop.offset))
     .join(';')
@@ -239,14 +225,13 @@ function BouncingRayPhoton({
     <ellipse
       className={styles.currentRayPhoton}
       data-current-ray-photon="true"
-      data-current-ray-photon-index={index}
+      data-current-ray-photon-index="0"
       data-photon-colors={colorStops.map((stop) => stop.color).join(' ')}
-      rx="1.1"
-      ry="0.88"
+      rx="0.72"
+      ry="0.58"
       style={{ color: colorValue(colorStops[0].color) }}
     >
       <animateMotion
-        begin={begin}
         calcMode="linear"
         dur={duration}
         keyPoints="0;1;0"
@@ -256,7 +241,6 @@ function BouncingRayPhoton({
       />
       <animate
         attributeName="color"
-        begin={begin}
         calcMode="discrete"
         dur={duration}
         keyTimes={colorKeyTimes}
