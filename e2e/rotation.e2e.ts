@@ -57,6 +57,7 @@ test.describe('glass rotation', () => {
     game,
   }) => {
     const ruby = await game.placeFromToolbox('red-parallelogram')
+    const northBox = await visibleBox(ruby)
 
     await expect(ruby).toHaveAttribute(
       'title',
@@ -71,6 +72,10 @@ test.describe('glass rotation', () => {
     await expect(
       ruby.locator('[data-rotation-motion="clockwise"]'),
     ).toBeVisible()
+    const eastBox = await visibleBox(ruby)
+    expect(boxCenter(eastBox).x).toBeCloseTo(boxCenter(northBox).x, 1)
+    expect(boxCenter(eastBox).y).toBeCloseTo(boxCenter(northBox).y, 1)
+    await expectRigidRotation(ruby)
 
     await ruby.press('r')
     await expect(ruby).toHaveAttribute(
@@ -83,6 +88,24 @@ test.describe('glass rotation', () => {
       'title',
       'Ruby parallelogram - south, back',
     )
+  })
+
+  test('keeps diamond facets rigid through a quarter turn', async ({
+    game,
+  }) => {
+    const diamond = await game.placeFromToolbox('white-big-triangle')
+    const northBox = await visibleBox(diamond)
+
+    await diamond.click({ button: 'right' })
+    await expect(diamond).toHaveAttribute(
+      'title',
+      'Diamond big triangle - east, front',
+    )
+
+    const eastBox = await visibleBox(diamond)
+    expect(boxCenter(eastBox).x).toBeCloseTo(boxCenter(northBox).x, 1)
+    expect(boxCenter(eastBox).y).toBeCloseTo(boxCenter(northBox).y, 1)
+    await expectRigidRotation(diamond)
   })
 
   test('keeps an edge rotation and marks the outside glass as invalid', async ({
@@ -116,6 +139,52 @@ async function visibleBox(locator: Locator) {
   }
 
   return box
+}
+
+async function expectRigidRotation(piece: Locator) {
+  const shape = piece.locator('[data-rotation-motion="clockwise"]')
+
+  await expect(shape).toHaveAttribute('preserveAspectRatio', 'xMidYMid meet')
+
+  const transitionDurations = await piece.evaluate((element) =>
+    getComputedStyle(element)
+      .transitionDuration.split(',')
+      .map((duration) => duration.trim()),
+  )
+  expect(transitionDurations.every((duration) => duration === '0s')).toBe(true)
+
+  const rotationScale = await shape.evaluate((element) => {
+    const svg = element as SVGSVGElement
+    const animation = svg.getAnimations().at(0)
+
+    if (!animation) {
+      throw new Error('Expected a quarter-turn animation')
+    }
+
+    animation.pause()
+    const duration = animation.effect?.getTiming().duration
+    animation.currentTime = typeof duration === 'number' ? duration / 2 : 140
+
+    const matrix = svg.getScreenCTM()
+
+    if (!matrix) {
+      throw new Error('Expected an SVG transform matrix')
+    }
+
+    return {
+      x: Math.hypot(matrix.a, matrix.b),
+      y: Math.hypot(matrix.c, matrix.d),
+    }
+  })
+
+  expect(rotationScale.x).toBeCloseTo(rotationScale.y, 3)
+}
+
+function boxCenter(box: Awaited<ReturnType<typeof visibleBox>>) {
+  return {
+    x: box.x + box.width / 2,
+    y: box.y + box.height / 2,
+  }
 }
 
 function boxesOverlap(

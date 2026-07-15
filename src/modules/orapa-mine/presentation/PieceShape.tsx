@@ -49,7 +49,7 @@ export function PieceShape({
       data-mineral-id={mineralId}
       data-mineral-orientation={orientation}
       data-rotation-motion={rotationMotion}
-      preserveAspectRatio="none"
+      preserveAspectRatio="xMidYMid meet"
       shapeRendering="geometricPrecision"
       style={
         {
