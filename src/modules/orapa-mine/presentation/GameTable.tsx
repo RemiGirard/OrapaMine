@@ -1,5 +1,5 @@
 import { Mic, RotateCcw, Shuffle } from 'lucide-react'
-import { useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import type { VoiceRecognitionStatus } from '../application/voiceRecognition'
 import type { SolutionSubmissionReadiness } from '../application/solutionSubmission'
 import {
@@ -117,8 +117,26 @@ export function GameTable({
       ? inspectedRay
       : null
   }, [inspectedClue, inspectedRay])
+  const matchingRayShot = useMemo(() => {
+    const shot = rayShot.rayShot
+
+    return shot &&
+      matchingInspectedRay &&
+      edgeAnswersConnectSamePorts(matchingInspectedRay, shot.answer)
+      ? shot
+      : null
+  }, [matchingInspectedRay, rayShot.rayShot])
+
+  useEffect(() => {
+    const shot = rayShot.rayShot
+
+    if (shot && !matchingRayShot) {
+      rayShot.completeRayShot(shot.sequence)
+    }
+  }, [matchingRayShot, rayShot.completeRayShot, rayShot.rayShot])
+
   const activePortAnswer =
-    rayShot.rayShot?.answer ??
+    matchingRayShot?.answer ??
     (light.showCurrentRay && isVisibleRay(matchingInspectedRay)
       ? matchingInspectedRay
       : inspectedClue)
@@ -220,7 +238,7 @@ export function GameTable({
           onShootEdge={rayShot.shootRay}
           placementAssessments={placementAssessments}
           rayConnections={rayConnections}
-          rayShot={rayShot.rayShot}
+          rayShot={matchingRayShot}
           selectedMineralId={familySolution.selectedMineralId}
           showAllRays={light.showAllRays}
           showCurrentRay={light.showCurrentRay}

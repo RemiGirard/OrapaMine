@@ -472,16 +472,6 @@ describe('GameTable piece interactions', () => {
 
   it('fires one continuous photon and changes its color at a mineral contact', () => {
     vi.useFakeTimers()
-    const transparentRay: Extract<Answer, { mode: 'edge' }> = {
-      exitLabel: 'B3',
-      id: -1,
-      message: 'Exit B3 - Transparent',
-      colorContacts: [],
-      mode: 'edge',
-      path: [{ column: 2, row: 4 }],
-      query: 'T3',
-      signalColor: 'transparent',
-    }
     const coloredRay: Extract<Answer, { mode: 'edge' }> = {
       exitLabel: 'R1',
       id: -2,
@@ -495,22 +485,20 @@ describe('GameTable piece interactions', () => {
 
     render(
       <InteractiveGameTable
-        allRayPreviews={[
-          transparentRay,
-          coloredRay,
-          reverseEdgeAnswer(coloredRay),
-        ]}
+        allRayPreviews={[coloredRay, reverseEdgeAnswer(coloredRay)]}
+        answers={[coloredRay]}
+        currentAnswer={coloredRay}
         currentRayPreview={coloredRay}
         showLightPath
       />,
     )
 
-    fireEvent.click(screen.getByRole('button', { name: 'Send ray T3' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Send ray R1' }))
 
     const rayShot = document.querySelector('[data-ray-layer="shot"]')
     const photon = rayShot?.querySelector('[data-ray-photon="true"]')
 
-    expect(rayShot?.getAttribute('data-ray-query')).toBe('T3')
+    expect(rayShot?.getAttribute('data-ray-query')).toBe('R1')
     expect(rayShot?.querySelectorAll('[data-ray-photon="true"]')).toHaveLength(
       1,
     )
@@ -518,22 +506,12 @@ describe('GameTable piece interactions', () => {
     expect(photon?.querySelectorAll('animateMotion')).toHaveLength(1)
     expect(
       photon?.querySelector('animateMotion')?.getAttribute('path'),
-    ).toContain('L 31.25 45')
-    expect(document.querySelector('[data-ray-layer="current"]')).not.toBeNull()
-
-    fireEvent.click(screen.getByRole('button', { name: 'Send ray R1' }))
-
-    const coloredPhoton = document.querySelector('[data-ray-photon="true"]')
-    const colorAnimation = coloredPhoton?.querySelector(
+    ).toContain('L 56.25 5')
+    const colorAnimation = photon?.querySelector(
       'animate[attributeName="color"]',
     )
 
-    expect(
-      document
-        .querySelector('[data-ray-layer="shot"]')
-        ?.getAttribute('data-ray-query'),
-    ).toBe('R1')
-    expect(coloredPhoton?.getAttribute('data-photon-colors')).toBe(
+    expect(photon?.getAttribute('data-photon-colors')).toBe(
       'transparent red red',
     )
     expect(colorAnimation?.getAttribute('calcMode')).toBe('discrete')
@@ -867,12 +845,8 @@ describe('GameTable piece interactions', () => {
 
     fireEvent.click(input)
 
-    expect(
-      document
-        .querySelector('[data-ray-layer="shot"]')
-        ?.getAttribute('data-ray-output'),
-    ).toBe('B4')
-    expect(familyOutput.getAttribute('data-edge-role')).toBe('receiver')
+    expect(document.querySelector('[data-ray-layer="shot"]')).toBeNull()
+    expect(familyOutput.getAttribute('data-edge-role')).toBeNull()
 
     act(() => vi.runAllTimers())
 
