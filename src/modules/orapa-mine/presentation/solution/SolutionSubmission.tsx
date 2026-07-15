@@ -1,4 +1,11 @@
-import { CircleAlert, Gem, Send, TriangleAlert } from 'lucide-react'
+import {
+  CircleAlert,
+  Eye,
+  EyeOff,
+  Gem,
+  Send,
+  TriangleAlert,
+} from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { SolutionSubmissionReadiness } from '../../application/solutionSubmission'
 import type { GuessResult } from '../../domain/familySolution'
@@ -12,13 +19,27 @@ type SubmissionDisplay = Readonly<{
 
 export function SolutionSubmission({
   onSubmit,
+  onToggleSolution,
   readiness,
   result,
+  showSolution,
 }: Readonly<{
   onSubmit: () => void
+  onToggleSolution: () => void
   readiness: SolutionSubmissionReadiness
   result: GuessResult | null
+  showSolution: boolean
 }>) {
+  if (result) {
+    return (
+      <SubmissionResult
+        onToggleSolution={onToggleSolution}
+        result={result}
+        showSolution={showSolution}
+      />
+    )
+  }
+
   const display = submissionDisplay(readiness)
   const isReady = readiness.status === 'ready'
   const Icon = display.Icon
@@ -40,16 +61,54 @@ export function SolutionSubmission({
           <span className={styles.buttonDetail}>{display.detail}</span>
         </span>
       </button>
-      {result ? (
-        <p
-          aria-live="polite"
-          className={result.solved ? styles.solved : styles.notSolved}
-        >
-          {result.solved
-            ? 'Solved'
-            : `${result.exactPlacements}/${result.totalPlacements} exact`}
-        </p>
-      ) : null}
+    </section>
+  )
+}
+
+function SubmissionResult({
+  onToggleSolution,
+  result,
+  showSolution,
+}: Readonly<{
+  onToggleSolution: () => void
+  result: GuessResult
+  showSolution: boolean
+}>) {
+  if (result.solved) {
+    return (
+      <section
+        aria-label="Solution submission"
+        aria-live="polite"
+        className={`${styles.submissionResult} ${styles.solvedResult}`}
+        data-submission-state="solved"
+      >
+        <Gem aria-hidden="true" size={20} strokeWidth={2.25} />
+        <strong>Solved</strong>
+      </section>
+    )
+  }
+
+  return (
+    <section
+      aria-label="Solution submission"
+      aria-live="polite"
+      className={`${styles.submissionResult} ${styles.incorrectResult}`}
+      data-submission-state="incorrect"
+    >
+      <TriangleAlert aria-hidden="true" size={20} strokeWidth={2.25} />
+      <strong>
+        {result.exactPlacements}/{result.totalPlacements} pieces correct
+      </strong>
+      <button
+        aria-label={showSolution ? 'Hide solution' : 'See solution'}
+        aria-pressed={showSolution}
+        className={styles.solutionToggle}
+        onClick={onToggleSolution}
+        type="button"
+      >
+        {showSolution ? <EyeOff size={16} /> : <Eye size={16} />}
+        <span>{showSolution ? 'Hide solution' : 'See solution'}</span>
+      </button>
     </section>
   )
 }

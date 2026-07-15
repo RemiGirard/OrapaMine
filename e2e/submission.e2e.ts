@@ -1,5 +1,6 @@
 import type { Locator } from '@playwright/test'
 import { expect, test } from './support/OrapaGame'
+import type { OrapaGame } from './support/OrapaGame'
 
 test.describe('solution submission', () => {
   test('stays fixed while clues are added and reports missing glass', async ({
@@ -29,14 +30,7 @@ test.describe('solution submission', () => {
     await game.open()
     await game.edgePort('T3').click()
 
-    await game.placeFromToolbox('red-parallelogram', { x: 0.6875, y: 0.05 })
-    await game.placeFromToolbox('yellow-triangle', { x: 0.125, y: 0.1 })
-    const sapphire = await game.placeFromToolbox('blue-big-triangle', {
-      x: 0.5,
-      y: 0.5,
-    })
-    await game.placeFromToolbox('white-diamond', { x: 0.875, y: 0.4 })
-    await game.placeFromToolbox('white-big-triangle', { x: 0.375, y: 0.8 })
+    const sapphire = await placeSolvedMap(game)
 
     await expect(game.submission).toHaveAttribute(
       'data-submission-state',
@@ -53,7 +47,75 @@ test.describe('solution submission', () => {
     await expect(game.submission).toBeDisabled()
     await expect(game.submission).toContainText('0/1 clues match')
   })
+
+  test('scores an incorrect map and compares it with the solution on demand', async ({
+    game,
+    page,
+  }) => {
+    await game.open()
+    const sapphire = await placeSolvedMap(game)
+
+    await sapphire.click({ button: 'right' })
+
+    await expect(game.submission).toHaveAttribute(
+      'data-submission-state',
+      'ready',
+    )
+    await game.submission.click()
+
+    await expect(game.submission).toHaveAttribute(
+      'data-submission-state',
+      'incorrect',
+    )
+    await expect(game.submission).toContainText('4/5 pieces correct')
+
+    const seeSolution = page.getByRole('button', { name: 'See solution' })
+    await seeSolution.click()
+
+    await expect(
+      page.getByRole('button', { name: 'Hide solution' }),
+    ).toHaveAttribute('aria-pressed', 'true')
+    await expect(
+      page.locator('[data-solution-display="comparison"]'),
+    ).toHaveCount(5)
+    await expect(
+      page.locator('[data-submitted-guess-backdrop="true"]'),
+    ).toHaveCount(5)
+    await expect(page.locator('[data-testid^="placed-piece-"]')).toHaveCount(0)
+
+    const solutionZIndex = await page
+      .getByTestId('solution-piece-blue-big-triangle')
+      .evaluate((element) => getComputedStyle(element).zIndex)
+    const submittedZIndex = await page
+      .getByTestId('submitted-guess-blue-big-triangle')
+      .evaluate((element) => getComputedStyle(element).zIndex)
+
+    expect(Number(solutionZIndex)).toBeGreaterThan(Number(submittedZIndex))
+
+    await page.getByRole('button', { name: 'Hide solution' }).click()
+
+    await expect(
+      page.locator('[data-solution-display="comparison"]'),
+    ).toHaveCount(0)
+    await expect(
+      page.locator('[data-submitted-guess-backdrop="true"]'),
+    ).toHaveCount(0)
+    await expect(page.locator('[data-testid^="placed-piece-"]')).toHaveCount(5)
+  })
 })
+
+async function placeSolvedMap(game: OrapaGame) {
+  await game.placeFromToolbox('red-parallelogram', { x: 0.6875, y: 0.05 })
+  await game.placeFromToolbox('yellow-triangle', { x: 0.125, y: 0.1 })
+  const sapphire = await game.placeFromToolbox('blue-big-triangle', {
+    x: 0.5,
+    y: 0.5,
+  })
+  await game.placeFromToolbox('white-diamond', { x: 0.875, y: 0.4 })
+  await game.placeFromToolbox('white-big-triangle', { x: 0.375, y: 0.8 })
+
+  return sapphire
+}
 
 async function visibleBox(locator: Locator) {
   const box = await locator.boundingBox()

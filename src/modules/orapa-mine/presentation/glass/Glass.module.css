@@ -7,6 +7,7 @@
 
 .placedPiece,
 .placementGhost,
+.submittedGuessPiece,
 .solutionPiece {
   align-items: center;
   background: transparent;
@@ -45,6 +46,17 @@
   pointer-events: none;
 }
 
+.submittedGuessPiece {
+  opacity: 0.62;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.comparisonSolutionPiece {
+  opacity: 0.96;
+  z-index: 2;
+}
+
 .placedPiece:focus-visible {
   outline: 2px solid #36ffd0;
   outline-offset: 2px;
@@ -63,13 +75,30 @@
 
 .dragPreviewShape,
 .placedShape,
-.placementGhostShape {
+.placementGhostShape,
+.submittedGuessShape {
   filter: drop-shadow(0 0 9px rgb(255 255 255 / 0.18))
     drop-shadow(0 5px 8px rgb(0 0 0 / 0.24));
   height: 100%;
   inset: 0;
   position: absolute;
   width: 100%;
+}
+
+.submittedGuessShape {
+  filter: brightness(0.2) saturate(0.22)
+    drop-shadow(0 3px 5px rgb(0 0 0 / 0.82));
+}
+
+.submittedGuessShape :global(.piece-highlight),
+.submittedGuessShape :global(.piece-caustics),
+.submittedGuessShape :global(.piece-crystal-grain) {
+  opacity: 0.06;
+}
+
+.comparisonSolutionPiece .solutionShape {
+  filter: drop-shadow(0 0 8px rgb(255 255 255 / 0.48))
+    drop-shadow(0 0 20px rgb(123 215 255 / 0.3));
 }
 
 .dragPreviewShape :global(.piece-facet),

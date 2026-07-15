@@ -92,20 +92,11 @@ describe('GameTable piece interactions', () => {
 
   it('groups display and session options in one toolbar', () => {
     const onNext = vi.fn()
-    const onToggleSolution = vi.fn()
-    render(
-      <InteractiveGameTable
-        onNext={onNext}
-        onToggleSolution={onToggleSolution}
-      />,
-    )
+    render(<InteractiveGameTable onNext={onNext} />)
 
     const options = screen.getByRole('toolbar', { name: 'Game options' })
     const nextButton = within(options).getByRole('button', {
       name: 'New puzzle',
-    })
-    const revealButton = within(options).getByRole('button', {
-      name: 'Reveal solution',
     })
 
     expect(
@@ -117,12 +108,13 @@ describe('GameTable piece interactions', () => {
     expect(
       within(options).getByRole('button', { name: 'Reset solution' }),
     ).not.toBeNull()
+    expect(
+      within(options).queryByRole('button', { name: 'Reveal solution' }),
+    ).toBeNull()
 
     fireEvent.click(nextButton)
-    fireEvent.click(revealButton)
 
     expect(onNext).toHaveBeenCalledOnce()
-    expect(onToggleSolution).toHaveBeenCalledOnce()
   })
 
   it('moves a glass piece from tray to grid, around the grid, flips it, and returns it to the tray', () => {

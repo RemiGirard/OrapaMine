@@ -11,12 +11,14 @@ describe('SolutionSubmission', () => {
     render(
       <SolutionSubmission
         onSubmit={() => undefined}
+        onToggleSolution={() => undefined}
         readiness={{
           placedPlacements: 2,
           status: 'incomplete',
           totalPlacements: 5,
         }}
         result={null}
+        showSolution={false}
       />,
     )
 
@@ -32,12 +34,14 @@ describe('SolutionSubmission', () => {
     const { rerender } = render(
       <SolutionSubmission
         onSubmit={() => undefined}
+        onToggleSolution={() => undefined}
         readiness={{
           invalidPlacements: 1,
           status: 'invalid',
           totalPlacements: 5,
         }}
         result={null}
+        showSolution={false}
       />,
     )
 
@@ -47,12 +51,14 @@ describe('SolutionSubmission', () => {
     rerender(
       <SolutionSubmission
         onSubmit={() => undefined}
+        onToggleSolution={() => undefined}
         readiness={{
           matchedClues: 2,
           status: 'conflicting-clues',
           totalClues: 3,
         }}
         result={null}
+        showSolution={false}
       />,
     )
 
@@ -70,8 +76,10 @@ describe('SolutionSubmission', () => {
     render(
       <SolutionSubmission
         onSubmit={onSubmit}
+        onToggleSolution={() => undefined}
         readiness={{ status: 'ready' }}
         result={null}
+        showSolution={false}
       />,
     )
 
@@ -84,5 +92,48 @@ describe('SolutionSubmission', () => {
     fireEvent.click(button)
 
     expect(onSubmit).toHaveBeenCalledOnce()
+  })
+
+  it('reports exact placements and reveals the solution after an incorrect submission', () => {
+    const onToggleSolution = vi.fn()
+
+    const { rerender } = render(
+      <SolutionSubmission
+        onSubmit={() => undefined}
+        onToggleSolution={onToggleSolution}
+        readiness={{ status: 'ready' }}
+        result={{
+          exactPlacements: 3,
+          solved: false,
+          totalPlacements: 5,
+        }}
+        showSolution={false}
+      />,
+    )
+
+    expect(screen.getByText('3/5 pieces correct')).toBeDefined()
+    expect(screen.getByText('See solution')).toBeDefined()
+
+    fireEvent.click(screen.getByRole('button', { name: 'See solution' }))
+
+    expect(onToggleSolution).toHaveBeenCalledOnce()
+
+    rerender(
+      <SolutionSubmission
+        onSubmit={() => undefined}
+        onToggleSolution={onToggleSolution}
+        readiness={{ status: 'ready' }}
+        result={{
+          exactPlacements: 3,
+          solved: false,
+          totalPlacements: 5,
+        }}
+        showSolution
+      />,
+    )
+
+    const hideButton = screen.getByRole('button', { name: 'Hide solution' })
+
+    expect(hideButton.getAttribute('aria-pressed')).toBe('true')
   })
 })

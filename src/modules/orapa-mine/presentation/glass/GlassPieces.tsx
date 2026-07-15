@@ -20,8 +20,9 @@ import type { usePieceMovementInteraction } from './usePieceMovementInteraction'
 type MovementInteraction = ReturnType<typeof usePieceMovementInteraction>
 
 export function SolutionPiece({
+  isComparison = false,
   placement,
-}: Readonly<{ placement: MineralPlacement }>) {
+}: Readonly<{ isComparison?: boolean; placement: MineralPlacement }>) {
   const orientation =
     placement.orientation ?? minerals[placement.mineralId].defaultOrientation
   const face = placement.face ?? 'front'
@@ -30,7 +31,12 @@ export function SolutionPiece({
 
   return (
     <span
-      className={styles.solutionPiece}
+      className={[
+        styles.solutionPiece,
+        isComparison ? styles.comparisonSolutionPiece : '',
+      ].join(' ')}
+      data-solution-display={isComparison ? 'comparison' : 'preview'}
+      data-testid={`solution-piece-${placement.mineralId}`}
       style={placementStyle(placement.origin, shape.width, shape.height)}
       title={`${mineral.name} solution`}
     >
@@ -39,6 +45,37 @@ export function SolutionPiece({
         face={face}
         mineralId={placement.mineralId}
         orientation={orientation}
+      />
+    </span>
+  )
+}
+
+export function SubmittedGuessPiece({
+  placement,
+}: Readonly<{ placement: GuessPlacement }>) {
+  if (!placement.origin) {
+    return null
+  }
+
+  const shape = getMineralShape(
+    placement.mineralId,
+    placement.orientation,
+    placement.face,
+  )
+
+  return (
+    <span
+      aria-hidden="true"
+      className={styles.submittedGuessPiece}
+      data-submitted-guess-backdrop="true"
+      data-testid={`submitted-guess-${placement.mineralId}`}
+      style={placementStyle(placement.origin, shape.width, shape.height)}
+    >
+      <PieceShape
+        className={styles.submittedGuessShape}
+        face={placement.face}
+        mineralId={placement.mineralId}
+        orientation={placement.orientation}
       />
     </span>
   )

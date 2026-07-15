@@ -81,19 +81,56 @@
   filter: brightness(1.08) drop-shadow(0 0 10px rgb(46 255 205 / 0.22));
 }
 
-.solved,
-.notSolved {
-  font-size: 0.76rem;
+.submissionResult {
+  align-items: center;
+  border-radius: 7px;
+  display: grid;
+  font-size: 0.78rem;
   font-weight: 900;
-  margin: 0;
-  padding: 0.1rem 0.25rem;
-  text-align: center;
+  gap: 0.55rem;
+  grid-template-columns: auto minmax(0, 1fr);
+  min-height: 3.2rem;
+  padding: 0.48rem 0.65rem;
 }
 
-.solved {
+.submissionResult > svg {
+  filter: drop-shadow(0 0 8px currentColor);
+}
+
+.solvedResult {
+  background: rgb(46 255 205 / 0.1);
+  box-shadow: inset 0 0 0 1px rgb(46 255 205 / 0.18);
   color: #8fffe9;
 }
 
-.notSolved {
+.incorrectResult {
+  background: rgb(255 194 91 / 0.1);
+  box-shadow: inset 0 0 0 1px rgb(255 194 91 / 0.2);
   color: #ffd492;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.solutionToggle {
+  align-items: center;
+  background: rgb(255 255 255 / 0.07);
+  border: 0;
+  border-radius: 5px;
+  color: #fff1d1;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 0.68rem;
+  font-weight: 900;
+  gap: 0.32rem;
+  min-height: 2rem;
+  padding: 0.32rem 0.5rem;
+  white-space: nowrap;
+}
+
+.solutionToggle:hover {
+  background: rgb(255 255 255 / 0.12);
+}
+
+.solutionToggle:focus-visible {
+  outline: 2px solid #ffd492;
+  outline-offset: 2px;
 }

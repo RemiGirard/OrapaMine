@@ -1,4 +1,4 @@
-import { Eye, EyeOff, Mic, RotateCcw, Shuffle } from 'lucide-react'
+import { Mic, RotateCcw, Shuffle } from 'lucide-react'
 import { useMemo, useRef } from 'react'
 import type { VoiceRecognitionStatus } from '../application/voiceRecognition'
 import type { SolutionSubmissionReadiness } from '../application/solutionSubmission'
@@ -177,17 +177,6 @@ export function GameTable({
               <Shuffle size={17} />
             </button>
             <button
-              aria-label={
-                puzzle.showSolution ? 'Hide solution' : 'Reveal solution'
-              }
-              aria-pressed={puzzle.showSolution}
-              onClick={puzzle.onToggleSolution}
-              title={puzzle.showSolution ? 'Hide solution' : 'Reveal solution'}
-              type="button"
-            >
-              {puzzle.showSolution ? <EyeOff size={17} /> : <Eye size={17} />}
-            </button>
-            <button
               aria-label="Speak"
               className={voice.status === 'listening' ? styles.listening : ''}
               onClick={voice.onStart}
@@ -235,6 +224,11 @@ export function GameTable({
           selectedMineralId={familySolution.selectedMineralId}
           showAllRays={light.showAllRays}
           showCurrentRay={light.showCurrentRay}
+          showSubmittedComparison={Boolean(
+            puzzle.showSolution &&
+            familySolution.result &&
+            !familySolution.result.solved,
+          )}
           showSolution={puzzle.showSolution}
           solutionPlacements={puzzle.solutionPlacements}
         />
@@ -252,8 +246,10 @@ export function GameTable({
           <div className={styles.statusRail}>
             <SolutionSubmission
               onSubmit={familySolution.onSubmit}
+              onToggleSolution={puzzle.onToggleSolution}
               readiness={familySolution.readiness}
               result={familySolution.result}
+              showSolution={puzzle.showSolution}
             />
             <ClueNotebook
               answers={clues.answers}

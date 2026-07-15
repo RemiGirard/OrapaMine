@@ -127,6 +127,7 @@ export function reduceCooperativeGame(
       return {
         ...game,
         familySolution: startFamilySolution(puzzle),
+        showSolution: false,
       }
     case 'submit-family-solution':
       if (

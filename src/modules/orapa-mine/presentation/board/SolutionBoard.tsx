@@ -13,6 +13,7 @@ import {
   PlacementGhost,
   PlacedPiece,
   SolutionPiece,
+  SubmittedGuessPiece,
 } from '../glass/GlassPieces'
 import glassStyles from '../glass/Glass.module.css'
 import type { usePieceMovementInteraction } from '../glass/usePieceMovementInteraction'
@@ -47,6 +48,7 @@ export function SolutionBoard({
   selectedMineralId,
   showAllRays,
   showCurrentRay,
+  showSubmittedComparison,
   showSolution,
   solutionPlacements,
   currentRay,
@@ -73,6 +75,7 @@ export function SolutionBoard({
   selectedMineralId: MineralId
   showAllRays: boolean
   showCurrentRay: boolean
+  showSubmittedComparison: boolean
   showSolution: boolean
   solutionPlacements: ReadonlyArray<MineralPlacement>
 }>) {
@@ -142,31 +145,43 @@ export function SolutionBoard({
           ) : null}
 
           <div className={glassStyles.pieceLayer}>
+            {showSubmittedComparison
+              ? guess.map((placement) => (
+                  <SubmittedGuessPiece
+                    key={`submitted-${placement.mineralId}`}
+                    placement={placement}
+                  />
+                ))
+              : null}
             {showSolution
               ? solutionPlacements.map((placement) => (
                   <SolutionPiece
+                    isComparison={showSubmittedComparison}
                     key={`solution-${placement.mineralId}`}
                     placement={placement}
                   />
                 ))
               : null}
-            {guess.map((placement) =>
-              placement.origin ? (
-                <PlacedPiece
-                  isDragging={
-                    movement.movementState?.mineralId === placement.mineralId
-                  }
-                  isSelected={placement.mineralId === selectedMineralId}
-                  key={placement.mineralId}
-                  movement={movement}
-                  onFlip={onFlip}
-                  onRotate={onRotate}
-                  onSelect={onSelect}
-                  placement={placement}
-                  assessment={placementAssessments.get(placement.mineralId)}
-                />
-              ) : null,
-            )}
+            {!showSubmittedComparison
+              ? guess.map((placement) =>
+                  placement.origin ? (
+                    <PlacedPiece
+                      isDragging={
+                        movement.movementState?.mineralId ===
+                        placement.mineralId
+                      }
+                      isSelected={placement.mineralId === selectedMineralId}
+                      key={placement.mineralId}
+                      movement={movement}
+                      onFlip={onFlip}
+                      onRotate={onRotate}
+                      onSelect={onSelect}
+                      placement={placement}
+                      assessment={placementAssessments.get(placement.mineralId)}
+                    />
+                  ) : null,
+                )
+              : null}
           </div>
         </div>
 
