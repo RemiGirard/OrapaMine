@@ -27,8 +27,14 @@ describe('experiment session screens', () => {
     )
 
     const difficulty = screen.getByRole('radiogroup', { name: 'Difficulty' })
+    const fullSpectrum = document.querySelector(
+      '[data-optical-apparatus="full"]',
+    )
 
     expect(within(difficulty).getAllByRole('radio')).toHaveLength(3)
+    expect(fullSpectrum?.querySelectorAll('[data-spectrum-ray]')).toHaveLength(
+      7,
+    )
     expect(
       within(difficulty)
         .getByRole('radio', { name: /Classic/ })
@@ -65,6 +71,11 @@ describe('experiment session screens', () => {
     expect(screen.getByText('Clues observed').parentElement?.textContent).toBe(
       'Clues observed7',
     )
+    expect(
+      document
+        .querySelector('[data-optical-apparatus="compact"]')
+        ?.querySelectorAll('[data-spectrum-ray]'),
+    ).toHaveLength(7)
 
     fireEvent.click(screen.getByRole('button', { name: 'Run again' }))
     fireEvent.click(screen.getByRole('button', { name: 'Change difficulty' }))

@@ -13,6 +13,15 @@ test.describe('experiment session flow', () => {
     const setup = page.getByTestId('experiment-setup')
     await expect(setup).toBeVisible()
     await expect(page.getByRole('radio')).toHaveCount(3)
+    await expect(page.locator('[data-spectrum-ray]')).toHaveCount(7)
+    await expect(page.locator('[data-optical-beam="true"]')).toHaveCSS(
+      'height',
+      '1px',
+    )
+    await expect(page.locator('[data-spectrum-ray="green"]')).toHaveCSS(
+      'height',
+      '1px',
+    )
 
     const nearlyImpossible = page.getByRole('radio', {
       name: /Nearly impossible/,
