@@ -4,6 +4,7 @@ node_modules
 tmp
 dist
 dist-ssr
+dist-single
 playwright-report
 test-results
 *.local

@@ -13,6 +13,15 @@ npm run dev
 
 The development server runs at `http://127.0.0.1:3000`.
 
+## Single HTML
+
+```bash
+npm run build:single
+```
+
+This creates the self-contained `dist-single/orapa-mine.html` with the application JavaScript
+and CSS embedded in the file.
+
 ## Verify
 
 ```bash
@@ -21,6 +30,7 @@ npm run test
 npm run test:e2e
 npm run lint
 npm run build
+npm run build:single
 ```
 
 `npm run format` applies Prettier and ESLint fixes.
