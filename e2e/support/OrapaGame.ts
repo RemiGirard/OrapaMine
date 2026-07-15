@@ -10,9 +10,11 @@ type BasicMineralId =
 
 export class OrapaGame {
   readonly board: Locator
+  readonly currentRay: Locator
 
   constructor(private readonly page: Page) {
     this.board = page.getByTestId('solution-board-surface')
+    this.currentRay = page.locator('[data-ray-layer="current"]')
   }
 
   async open() {
@@ -33,6 +35,13 @@ export class OrapaGame {
 
   placedPiece(mineralId: BasicMineralId) {
     return this.page.getByTestId(`placed-piece-${mineralId}`)
+  }
+
+  edgePort(label: string) {
+    return this.page.getByRole('button', {
+      exact: true,
+      name: `Send ray ${label}`,
+    })
   }
 
   async placeFromToolbox(mineralId: BasicMineralId) {

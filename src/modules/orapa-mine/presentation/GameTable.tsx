@@ -17,6 +17,7 @@ import { GlassDragPreview } from './glass/GlassPieces'
 import { usePieceMovementInteraction } from './glass/usePieceMovementInteraction'
 import styles from './GameTable.module.css'
 import { LightControls } from './light/LightControls'
+import { isVisibleRay } from './light/lightVisibility'
 import { SolutionSubmission } from './solution/SolutionSubmission'
 
 type RayAnswer = Extract<Answer, { mode: 'edge' }>
@@ -99,7 +100,7 @@ export function GameTable({
           role="toolbar"
         >
           <LightControls
-            hasCurrentRay={light.currentRay !== null}
+            hasCurrentRay={isVisibleRay(light.currentRay)}
             onShowAllRaysChange={light.onShowAllRaysChange}
             onShowCurrentRayChange={light.onShowCurrentRayChange}
             showAllRays={light.showAllRays}

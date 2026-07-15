@@ -285,7 +285,7 @@ describe('GameTable piece interactions', () => {
       />,
     )
 
-    const rayLayer = document.querySelector('[class*="rayLayer"]')
+    const rayLayer = document.querySelector('[data-ray-layer="current"]')
     const rayPath = rayLayer?.querySelector('polyline')
 
     expect(rayLayer?.getAttribute('viewBox')).toBe('0 0 100 100')
@@ -299,6 +299,28 @@ describe('GameTable piece interactions', () => {
 
     expect(pointValues).toBeDefined()
     expect(pointValues?.every((point) => point >= 0 && point <= 100)).toBe(true)
+  })
+
+  it('does not draw a straight current ray for a transparent clue preview', () => {
+    const transparentRayPreview: Extract<Answer, { mode: 'edge' }> = {
+      exitLabel: 'B3',
+      id: 1,
+      message: 'Exit B3 - Transparent',
+      mode: 'edge',
+      path: [{ column: 2, row: 4 }],
+      query: 'T3',
+      signalColor: 'transparent',
+    }
+
+    render(
+      <InteractiveGameTable
+        currentRayPreview={transparentRayPreview}
+        showLightPath
+      />,
+    )
+
+    expect(document.querySelector('[data-ray-layer="current"]')).toBeNull()
+    expect(screen.queryByRole('checkbox', { name: 'Current ray' })).toBeNull()
   })
 
   it('renders colored placement-derived rays, hides empty ones, and lets the family hide them', () => {

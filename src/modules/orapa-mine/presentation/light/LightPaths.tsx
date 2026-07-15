@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react'
 import { boardSize, parseEdgePort } from '../../domain/coordinates'
 import type { Answer } from '../../domain/questions'
 import { colorValue } from '../colorPalette'
+import { isVisibleRay } from './lightVisibility'
 import styles from './LightPaths.module.css'
 
 type RayAnswer = Extract<Answer, { mode: 'edge' }>
@@ -17,15 +18,19 @@ export function LightPaths({
   showAllRays: boolean
   showCurrentRay: boolean
 }>) {
+  const visibleCurrentRay = isVisibleRay(currentRay) ? currentRay : null
+
   return (
     <>
       {showAllRays ? (
         <AllRaysOverlay
           answers={allRays}
-          excludedQuery={showCurrentRay ? currentRay?.query : undefined}
+          excludedQuery={showCurrentRay ? visibleCurrentRay?.query : undefined}
         />
       ) : null}
-      {currentRay && showCurrentRay ? <RayOverlay answer={currentRay} /> : null}
+      {visibleCurrentRay && showCurrentRay ? (
+        <RayOverlay answer={visibleCurrentRay} />
+      ) : null}
     </>
   )
 }
@@ -41,6 +46,7 @@ function RayOverlay({ answer }: Readonly<{ answer: RayAnswer }>) {
     <svg
       aria-hidden="true"
       className={styles.rayLayer}
+      data-ray-layer="current"
       preserveAspectRatio="none"
       style={{ '--ray-color': colorValue(answer.signalColor) } as CSSProperties}
       viewBox="0 0 100 100"
@@ -71,8 +77,7 @@ function AllRaysOverlay({
   excludedQuery?: string
 }>) {
   const visibleAnswers = answers.filter(
-    (answer) =>
-      answer.signalColor !== 'transparent' && answer.query !== excludedQuery,
+    (answer) => isVisibleRay(answer) && answer.query !== excludedQuery,
   )
 
   if (visibleAnswers.length === 0) {
