@@ -899,6 +899,27 @@ describe('GameTable piece interactions', () => {
     ).not.toBeNull()
     expect(screen.queryByText('Exit B2 - Red')).toBeNull()
   })
+
+  it('keeps every recorded clue available in the logbook', () => {
+    const answers: ReadonlyArray<Extract<Answer, { mode: 'edge' }>> =
+      Array.from({ length: 8 }, (_value, index) => ({
+        exitLabel: `B${index + 1}`,
+        id: index + 1,
+        message: `Exit B${index + 1} - Blue`,
+        colorContacts: [],
+        mode: 'edge',
+        path: [{ column: index, row: 4 }],
+        query: `T${index + 1}`,
+        signalColor: 'blue',
+      }))
+
+    render(<InteractiveGameTable answers={answers} />)
+
+    expect(screen.getAllByRole('listitem')).toHaveLength(8)
+    expect(
+      screen.getByLabelText('T8 linked with B8, Blue, reversible'),
+    ).not.toBeNull()
+  })
 })
 
 function InteractiveGameTable({

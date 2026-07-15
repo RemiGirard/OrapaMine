@@ -26,7 +26,7 @@ export function ClueNotebook({
     <section className={styles.clues} aria-label="Clues">
       <h2>Clues</h2>
       <ol className={styles.logbook} aria-label="Logbook">
-        {answers.slice(0, 6).map((answer) => {
+        {answers.map((answer) => {
           const connection =
             answer.mode === 'edge' ? edgeConnectionFrom(answer) : null
 
