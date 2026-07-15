@@ -1,16 +1,26 @@
+import { useEffect, useState } from 'react'
 import styles from './CooperativeMineGame.module.css'
 import { GameTable } from './GameTable'
 import { useCooperativeMineGame } from './useCooperativeMineGame'
 import { useVoiceCommandRecognition } from './useVoiceCommandRecognition'
 
 export function CooperativeMineGame() {
+  const [isClientReady, setIsClientReady] = useState(false)
   const game = useCooperativeMineGame()
   const voiceCommand = useVoiceCommandRecognition({
     onTranscript: game.clues.askVoiceQuestion,
   })
 
+  useEffect(() => {
+    setIsClientReady(true)
+  }, [])
+
   return (
-    <main className={styles.shell}>
+    <main
+      className={styles.shell}
+      data-client-ready={isClientReady}
+      data-testid="orapa-game"
+    >
       <div aria-hidden="true" className={styles.ambientLight}>
         <span className={styles.aquaBeam} />
         <span className={styles.goldBeam} />

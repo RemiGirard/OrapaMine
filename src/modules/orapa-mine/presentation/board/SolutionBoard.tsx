@@ -85,6 +85,7 @@ export function SolutionBoard({
 
         <div
           className={styles.boardSurface}
+          data-testid="solution-board-surface"
           onClick={movement.dropPickedPiece}
           ref={boardRef}
         >

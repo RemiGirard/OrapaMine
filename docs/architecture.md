@@ -83,3 +83,7 @@ This keeps browser mechanics replaceable without duplicating placement rules.
 - Adapter tests cover pointer-to-board geometry, invalid overlap, and foam-case return targets.
 - React interaction tests exercise the complete case-to-board-to-case workflow, rotation, flipping,
   ray clipping, ray visibility, and edge-output emphasis.
+- Playwright E2E tests exercise browser-only contracts: hydration readiness, real pointer and
+  secondary-click sequences, focus/keyboard input, and rendered piece geometry. Shared workflows
+  live in `e2e/support`; browser specifications use the `*.e2e.ts` suffix so Vitest and Playwright
+  remain isolated.

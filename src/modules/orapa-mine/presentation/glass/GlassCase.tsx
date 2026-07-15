@@ -117,6 +117,7 @@ function GlassCaseSlot({
         <button
           aria-label={`Move ${mineral.name}`}
           className={styles.stackPieceButton}
+          data-testid={`toolbox-piece-${placement.mineralId}`}
           onClick={(event) =>
             movement.pickPieceFromClick(
               event,

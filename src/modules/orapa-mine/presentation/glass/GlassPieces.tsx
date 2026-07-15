@@ -104,6 +104,7 @@ export function PlacedPiece({
         isSelected ? styles.selectedPlacedPiece : '',
         isDragging ? styles.draggingPlacedPiece : '',
       ].join(' ')}
+      data-testid={`placed-piece-${placement.mineralId}`}
       onClick={(event) =>
         movement.pickPieceFromClick(
           event,

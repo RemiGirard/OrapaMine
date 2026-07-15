@@ -157,6 +157,26 @@ describe('Orapa Mine domain', () => {
     expect(compareGuess(puzzle, correctGuess).solved).toBe(true)
   })
 
+  it('rotates gemstone orientations clockwise through a complete turn', () => {
+    const puzzle: Puzzle = {
+      id: 'test-rotation-cycle',
+      placements: [
+        { mineralId: 'red-parallelogram', origin: { column: 1, row: 1 } },
+      ],
+      ruleset: 'basic',
+      title: 'Test Rotation Cycle',
+    }
+    let guess = createEmptyGuess(puzzle)
+    const orientations = []
+
+    for (let turn = 0; turn < 4; turn += 1) {
+      guess = rotateGuessMineral(guess, 'red-parallelogram')
+      orientations.push(guess[0]?.orientation)
+    }
+
+    expect(orientations).toEqual(['east', 'south', 'west', 'north'])
+  })
+
   it('treats gemstone face as part of the family solution', () => {
     const puzzle: Puzzle = {
       id: 'test-flipped',

@@ -4,6 +4,8 @@ node_modules
 tmp
 dist
 dist-ssr
+playwright-report
+test-results
 *.local
 .env
 .nitro

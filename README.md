@@ -18,11 +18,16 @@ The development server runs at `http://127.0.0.1:3000`.
 ```bash
 npm run typecheck
 npm run test
+npm run test:e2e
 npm run lint
 npm run build
 ```
 
 `npm run format` applies Prettier and ESLint fixes.
+
+Playwright starts an isolated game server on `127.0.0.1:4173`. Install its
+browser once with `npx playwright install chromium`; set
+`PLAYWRIGHT_USE_SYSTEM_CHROME=1` to run the same suite against installed Chrome.
 
 ## Structure
 
