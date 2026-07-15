@@ -1,5 +1,7 @@
 import { useEffect } from 'react'
 import type { CSSProperties } from 'react'
+import { edgeConnectionFrom } from '../../domain/edgeConnections'
+import type { EdgeConnection } from '../../domain/edgeConnections'
 import type { EdgeAnswer } from '../../domain/questions'
 import { colorValue } from '../colorPalette'
 import { isVisibleRay } from './lightVisibility'
@@ -17,14 +19,14 @@ type RayAnswer = EdgeAnswer
 const currentPhotonPhases = [0, 1 / 3, 2 / 3] as const
 
 export function LightPaths({
-  allRays,
+  connections,
   currentRay,
   onShotComplete,
   rayShot,
   showAllRays,
   showCurrentRay,
 }: Readonly<{
-  allRays: ReadonlyArray<RayAnswer>
+  connections: ReadonlyArray<EdgeConnection>
   currentRay: RayAnswer | null
   onShotComplete: (sequence: number) => void
   rayShot: RayShot | null
@@ -32,23 +34,28 @@ export function LightPaths({
   showCurrentRay: boolean
 }>) {
   const visibleCurrentRay = isVisibleRay(currentRay) ? currentRay : null
-  const shotQuery = rayShot?.answer.query
-  const excludedAllRayQueries = [
-    showCurrentRay ? visibleCurrentRay?.query : undefined,
-    shotQuery,
-  ].filter((query): query is string => Boolean(query))
+  const currentRayIdentity = visibleCurrentRay
+    ? rayIdentity(visibleCurrentRay)
+    : null
+  const shotRayIdentity = rayShot ? rayIdentity(rayShot.answer) : null
+  const excludedConnectionKeys = [
+    showCurrentRay && visibleCurrentRay
+      ? edgeConnectionFrom(visibleCurrentRay)?.key
+      : undefined,
+    rayShot ? edgeConnectionFrom(rayShot.answer)?.key : undefined,
+  ].filter((key): key is string => Boolean(key))
 
   return (
     <>
       {showAllRays ? (
         <AllRaysOverlay
-          answers={allRays}
-          excludedQueries={excludedAllRayQueries}
+          connections={connections}
+          excludedConnectionKeys={excludedConnectionKeys}
         />
       ) : null}
       {visibleCurrentRay &&
       showCurrentRay &&
-      visibleCurrentRay.query !== shotQuery ? (
+      currentRayIdentity !== shotRayIdentity ? (
         <RayOverlay answer={visibleCurrentRay} />
       ) : null}
       {rayShot ? (
@@ -62,6 +69,10 @@ export function LightPaths({
   )
 }
 
+function rayIdentity(answer: RayAnswer) {
+  return edgeConnectionFrom(answer)?.key ?? `port:${answer.query}`
+}
+
 function RayShotOverlay({
   onComplete,
   shot,
@@ -70,6 +81,7 @@ function RayShotOverlay({
   shot: RayShot
 }>) {
   const { answer, sequence } = shot
+  const connection = edgeConnectionFrom(answer)
   const points = rayPoints(answer)
   const playback =
     points.length < 2 ? null : createPhotonPlayback(answer, points)
@@ -94,7 +106,9 @@ function RayShotOverlay({
     <svg
       aria-hidden="true"
       className={`${styles.rayLayer} ${styles.rayShotLayer}`}
+      data-edge-connection={connection?.key}
       data-ray-layer="shot"
+      data-ray-output={answer.exitLabel}
       data-ray-query={answer.query}
       preserveAspectRatio="none"
       viewBox="0 0 100 100"
@@ -151,6 +165,7 @@ function RayPhoton({ playback }: Readonly<{ playback: PhotonPlayback }>) {
 
 function RayOverlay({ answer }: Readonly<{ answer: RayAnswer }>) {
   const points = rayPoints(answer)
+  const connection = edgeConnectionFrom(answer)
 
   if (points.length < 2) {
     return null
@@ -162,7 +177,9 @@ function RayOverlay({ answer }: Readonly<{ answer: RayAnswer }>) {
     <svg
       aria-hidden="true"
       className={styles.rayLayer}
+      data-edge-connection={connection?.key}
       data-ray-layer="current"
+      data-ray-output={answer.exitLabel}
       data-ray-query={answer.query}
       preserveAspectRatio="none"
       style={{ '--ray-color': colorValue(answer.signalColor) } as CSSProperties}
@@ -250,17 +267,19 @@ function BouncingRayPhoton({
 }
 
 function AllRaysOverlay({
-  answers,
-  excludedQueries,
+  connections,
+  excludedConnectionKeys,
 }: Readonly<{
-  answers: ReadonlyArray<RayAnswer>
-  excludedQueries: ReadonlyArray<string>
+  connections: ReadonlyArray<EdgeConnection>
+  excludedConnectionKeys: ReadonlyArray<string>
 }>) {
-  const visibleAnswers = answers.filter(
-    (answer) => isVisibleRay(answer) && !excludedQueries.includes(answer.query),
+  const visibleConnections = connections.filter(
+    (connection) =>
+      isVisibleRay(connection.rayFromFirstPort) &&
+      !excludedConnectionKeys.includes(connection.key),
   )
 
-  if (visibleAnswers.length === 0) {
+  if (visibleConnections.length === 0) {
     return null
   }
 
@@ -272,7 +291,8 @@ function AllRaysOverlay({
       preserveAspectRatio="none"
       viewBox="0 0 100 100"
     >
-      {visibleAnswers.map((answer) => {
+      {visibleConnections.map((connection) => {
+        const answer = connection.rayFromFirstPort
         const points = rayPoints(answer)
 
         if (points.length < 2) {
@@ -281,8 +301,10 @@ function AllRaysOverlay({
 
         return (
           <g
+            data-edge-connection={connection.key}
+            data-ray-output={connection.secondPort}
             data-ray-query={answer.query}
-            key={answer.query}
+            key={connection.key}
             style={
               { '--ray-color': colorValue(answer.signalColor) } as CSSProperties
             }

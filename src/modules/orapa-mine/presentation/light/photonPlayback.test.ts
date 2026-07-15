@@ -43,7 +43,7 @@ describe('photon playback', () => {
     })
   })
 
-  it('mirrors motion colors over one complete round trip', () => {
+  it('reacquires the same output color in both travel directions', () => {
     const answer: EdgeAnswer = {
       colorContacts: [
         { color: 'red', pathIndex: 0 },
@@ -74,9 +74,10 @@ describe('photon playback', () => {
         { color: 'red', offset: 0.125 },
         { color: 'orange', offset: 0.25 },
         { color: 'orange', offset: 0.5 },
-        { color: 'orange', offset: 0.75 },
-        { color: 'red', offset: 0.875 },
-        { color: 'transparent', offset: 1 },
+        { color: 'transparent', offset: 0.5001 },
+        { color: 'yellow', offset: 0.75 },
+        { color: 'orange', offset: 0.875 },
+        { color: 'orange', offset: 1 },
       ],
       durationMs: 1800,
       motionPath: 'M 0 0 L 25 0 L 50 0 L 100 0',

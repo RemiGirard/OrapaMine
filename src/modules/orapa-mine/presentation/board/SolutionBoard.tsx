@@ -1,5 +1,6 @@
 import type { RefObject } from 'react'
 import { boardSize } from '../../domain/coordinates'
+import type { EdgeConnection } from '../../domain/edgeConnections'
 import type { PlacementAssessment } from '../../domain/familySolution'
 import type {
   GuessPlacement,
@@ -26,7 +27,6 @@ type RayAnswer = Extract<Answer, { mode: 'edge' }>
 
 export function SolutionBoard({
   activeAnswer,
-  allRays,
   boardRef,
   edgeAnswers,
   guess,
@@ -42,6 +42,7 @@ export function SolutionBoard({
   onShotComplete,
   onShootEdge,
   placementAssessments,
+  rayConnections,
   rayShot,
   selectedMineralId,
   showAllRays,
@@ -51,7 +52,6 @@ export function SolutionBoard({
   currentRay,
 }: Readonly<{
   activeAnswer: RayAnswer | null
-  allRays: ReadonlyArray<RayAnswer>
   boardRef: RefObject<HTMLDivElement | null>
   currentRay: RayAnswer | null
   edgeAnswers: ReadonlyMap<string, RayAnswer>
@@ -68,6 +68,7 @@ export function SolutionBoard({
   onShotComplete: (sequence: number) => void
   onShootEdge: (edgeLabel: string) => void
   placementAssessments: ReadonlyMap<MineralId, PlacementAssessment>
+  rayConnections: ReadonlyArray<EdgeConnection>
   rayShot: RayShot | null
   selectedMineralId: MineralId
   showAllRays: boolean
@@ -123,7 +124,7 @@ export function SolutionBoard({
           </div>
 
           <LightPaths
-            allRays={allRays}
+            connections={rayConnections}
             currentRay={currentRay}
             onShotComplete={onShotComplete}
             rayShot={rayShot}

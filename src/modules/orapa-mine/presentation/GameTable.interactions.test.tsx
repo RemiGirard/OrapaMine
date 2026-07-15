@@ -437,7 +437,7 @@ describe('GameTable piece interactions', () => {
     expect(motion?.getAttribute('repeatCount')).toBe('indefinite')
     expect(colorAnimation?.getAttribute('repeatCount')).toBe('indefinite')
     expect(firstPhoton?.getAttribute('data-photon-colors')).toBe(
-      'transparent red red red transparent',
+      'transparent red red transparent red red',
     )
   })
 
@@ -489,7 +489,11 @@ describe('GameTable piece interactions', () => {
 
     render(
       <InteractiveGameTable
-        allRayPreviews={[transparentRay, coloredRay]}
+        allRayPreviews={[
+          transparentRay,
+          coloredRay,
+          reverseEdgeAnswer(coloredRay),
+        ]}
         currentRayPreview={coloredRay}
         showLightPath
       />,
@@ -511,7 +515,7 @@ describe('GameTable piece interactions', () => {
     ).toContain('L 31.25 45')
     expect(document.querySelector('[data-ray-layer="current"]')).not.toBeNull()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Send ray L1' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Send ray R1' }))
 
     const coloredPhoton = document.querySelector('[data-ray-photon="true"]')
     const colorAnimation = coloredPhoton?.querySelector(
@@ -522,7 +526,7 @@ describe('GameTable piece interactions', () => {
       document
         .querySelector('[data-ray-layer="shot"]')
         ?.getAttribute('data-ray-query'),
-    ).toBe('L1')
+    ).toBe('R1')
     expect(coloredPhoton?.getAttribute('data-photon-colors')).toBe(
       'transparent red red',
     )
@@ -562,7 +566,10 @@ describe('GameTable piece interactions', () => {
 
     render(
       <InteractiveGameTable
-        allRayPreviews={allRayPreviews}
+        allRayPreviews={[
+          ...allRayPreviews,
+          reverseEdgeAnswer(allRayPreviews[1]),
+        ]}
         initiallyShowAllLightPaths
       />,
     )
@@ -577,6 +584,9 @@ describe('GameTable piece interactions', () => {
     ).toHaveLength(2)
     expect(document.querySelector('[data-ray-query="T1"]')).toBeNull()
     expect(document.querySelector('[data-ray-query="L1"]')).not.toBeNull()
+    expect(
+      document.querySelectorAll('[data-edge-connection="L1::R1"]'),
+    ).toHaveLength(1)
 
     fireEvent.click(allRaysToggle)
 
@@ -835,11 +845,16 @@ describe('GameTable piece interactions', () => {
 
     render(<InteractiveGameTable answers={[returningAnswer, directAnswer]} />)
 
-    const directRoute = screen.getByLabelText('T2 to B2, Red')
+    const directRoute = screen.getByLabelText(
+      'T2 linked with B2, Red, reversible',
+    )
     const returnRoute = screen.getByLabelText('T6 returns to itself, Blue')
 
     expect(directRoute.textContent).toBe('T2B2')
     expect(directRoute.getAttribute('style')).toContain('#ef4f4a')
+    expect(
+      directRoute.querySelector('[data-clue-reversible="true"]'),
+    ).not.toBeNull()
     expect(
       returnRoute.querySelector('[data-clue-return="true"]'),
     ).not.toBeNull()
@@ -907,10 +922,12 @@ function InteractiveGameTable({
         selectedMineralId: 'red-parallelogram',
       }}
       light={{
-        allRays: allRayPreviews,
         currentRay: currentRayPreview,
         onShowAllRaysChange: setShowAllLightPaths,
         onShowCurrentRayChange: () => undefined,
+        raysByPort: new Map(
+          allRayPreviews.map((preview) => [preview.query, preview]),
+        ),
         showAllRays: showAllLightPaths,
         showCurrentRay: showLightPath,
       }}

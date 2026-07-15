@@ -8,12 +8,12 @@ export type RayShot = Readonly<{
   sequence: number
 }>
 
-export function useRayShot(answers: ReadonlyArray<RayAnswer>) {
+export function useRayShot(answersByPort: ReadonlyMap<string, RayAnswer>) {
   const [rayShot, setRayShot] = useState<RayShot | null>(null)
 
   const shootRay = useCallback(
     (edgeLabel: string) => {
-      const answer = answers.find((candidate) => candidate.query === edgeLabel)
+      const answer = answersByPort.get(edgeLabel)
 
       setRayShot((currentShot) =>
         answer
@@ -24,7 +24,7 @@ export function useRayShot(answers: ReadonlyArray<RayAnswer>) {
           : null,
       )
     },
-    [answers],
+    [answersByPort],
   )
 
   const completeRayShot = useCallback((sequence: number) => {

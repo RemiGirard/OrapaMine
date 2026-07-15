@@ -15,7 +15,7 @@ describe('cooperative game use cases', () => {
       showAllRays: true,
       showCurrentRay: true,
     })
-    expect(view.allRayPreviews).toHaveLength(36)
+    expect(view.rayPreviewsByPort).toHaveProperty('size', 36)
     expect(view.submissionReadiness).toEqual({
       placedPlacements: 0,
       status: 'incomplete',
@@ -80,7 +80,7 @@ describe('cooperative game use cases', () => {
     const view = createCooperativeGameView(withOverlap)
 
     expect(
-      view.allRayPreviews.every(
+      [...view.rayPreviewsByPort.values()].every(
         (preview) => preview.signalColor === 'transparent',
       ),
     ).toBe(true)

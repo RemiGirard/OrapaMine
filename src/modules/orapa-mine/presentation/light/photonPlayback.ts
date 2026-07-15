@@ -1,6 +1,7 @@
 import type { ColorContact, SignalColor } from '../../domain/colors'
 import { mixSignalColor } from '../../domain/colors'
 import type { EdgeAnswer } from '../../domain/questions'
+import { reverseEdgeAnswer } from '../../domain/questions'
 import type { RayPoint } from './rayPathGeometry'
 import { measureRayPath, toMotionPath } from './rayPathGeometry'
 
@@ -35,30 +36,41 @@ export function createBouncingPhotonPlayback(
   points: ReadonlyArray<RayPoint>,
 ): PhotonPlayback {
   const forwardPlayback = createPhotonPlayback(answer, points)
+  const reversePlayback = createPhotonPlayback(
+    reverseEdgeAnswer(answer),
+    [...points].reverse(),
+  )
 
   return {
     ...forwardPlayback,
-    colorStops: mirrorColorStops(forwardPlayback.colorStops),
+    colorStops: createRoundTripColorStops(
+      forwardPlayback.colorStops,
+      reversePlayback.colorStops,
+    ),
     durationMs: forwardPlayback.durationMs * 2,
   }
 }
 
-function mirrorColorStops(
+function createRoundTripColorStops(
   forwardStops: ReadonlyArray<PhotonColorStop>,
+  reverseStops: ReadonlyArray<PhotonColorStop>,
 ): ReadonlyArray<PhotonColorStop> {
   const outwardStops = forwardStops.map((stop) => ({
     ...stop,
     offset: stop.offset / 2,
   }))
-  const returnStops = forwardStops
-    .slice(0, -1)
-    .reverse()
-    .map((stop) => ({
-      ...stop,
-      offset: 1 - stop.offset / 2,
-    }))
+  const reverseStart = reverseStops[0]
+  const outwardEnd = outwardStops[outwardStops.length - 1]
+  const directionReset =
+    outwardEnd.color !== reverseStart.color
+      ? [{ ...reverseStart, offset: 0.5001 }]
+      : []
+  const returnStops = reverseStops.slice(1).map((stop) => ({
+    ...stop,
+    offset: 0.5 + stop.offset / 2,
+  }))
 
-  return [...outwardStops, ...returnStops]
+  return [...outwardStops, ...directionReset, ...returnStops]
 }
 
 function createColorStops(

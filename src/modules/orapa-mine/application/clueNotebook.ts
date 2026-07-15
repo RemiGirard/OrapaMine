@@ -1,6 +1,11 @@
 import type { Puzzle } from '../domain/puzzles'
+import {
+  edgeAnswersShareConnection,
+  edgeConnectionFrom,
+  edgeConnectionRayFrom,
+} from '../domain/edgeConnections'
 import type { Answer, QuestionMode } from '../domain/questions'
-import { answerQuestion, reverseEdgeAnswer } from '../domain/questions'
+import { answerQuestion } from '../domain/questions'
 
 const notebookCapacity = 18
 
@@ -53,9 +58,7 @@ function answersRepresentSameClue(recorded: Answer, candidate: Answer) {
   return (
     recorded.mode === 'edge' &&
     candidate.mode === 'edge' &&
-    recorded.exitLabel === candidate.query &&
-    candidate.exitLabel === recorded.query &&
-    recorded.signalColor === candidate.signalColor
+    edgeAnswersShareConnection(recorded, candidate)
   )
 }
 
@@ -69,12 +72,21 @@ export function knownEdgeClues(
       continue
     }
 
-    if (!cluesByPort.has(answer.query)) {
-      cluesByPort.set(answer.query, answer)
+    const connection = edgeConnectionFrom(answer)
+
+    if (!connection) {
+      if (!cluesByPort.has(answer.query)) {
+        cluesByPort.set(answer.query, answer)
+      }
+      continue
     }
 
-    if (answer.exitLabel && !cluesByPort.has(answer.exitLabel)) {
-      cluesByPort.set(answer.exitLabel, reverseEdgeAnswer(answer))
+    for (const port of [connection.firstPort, connection.secondPort]) {
+      const ray = edgeConnectionRayFrom(connection, port)
+
+      if (ray && !cluesByPort.has(port)) {
+        cluesByPort.set(port, ray)
+      }
     }
   }
 

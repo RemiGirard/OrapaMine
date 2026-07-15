@@ -8,6 +8,7 @@ import {
 } from '../domain/familySolution'
 import type { GuessResult } from '../domain/familySolution'
 import type { Coordinate } from '../domain/coordinates'
+import { edgeConnectionsFrom } from '../domain/edgeConnections'
 import type {
   GuessPlacement,
   MineralId,
@@ -49,10 +50,10 @@ export type GameTableProps = Readonly<{
     selectedMineralId: MineralId
   }>
   light: Readonly<{
-    allRays: ReadonlyArray<RayAnswer>
     currentRay: RayAnswer | null
     onShowAllRaysChange: (visible: boolean) => void
     onShowCurrentRayChange: (visible: boolean) => void
+    raysByPort: ReadonlyMap<string, RayAnswer>
     showAllRays: boolean
     showCurrentRay: boolean
   }>
@@ -84,7 +85,11 @@ export function GameTable({
     onRemove: familySolution.onRemove,
     onSelect: familySolution.onSelect,
   })
-  const rayShot = useRayShot(light.allRays)
+  const rayConnections = useMemo(
+    () => edgeConnectionsFrom(light.raysByPort.values()),
+    [light.raysByPort],
+  )
+  const rayShot = useRayShot(light.raysByPort)
   const currentAnswerRay =
     clues.currentAnswer?.mode === 'edge' ? clues.currentAnswer : null
   const inspectedClue = clueInspection.activeAnswer ?? currentAnswerRay
@@ -94,14 +99,12 @@ export function GameTable({
     }
 
     return (
-      light.allRays.find(
-        (candidate) => candidate.query === inspectedClue.query,
-      ) ??
+      light.raysByPort.get(inspectedClue.query) ??
       (light.currentRay?.query === inspectedClue.query
         ? light.currentRay
         : null)
     )
-  }, [inspectedClue, light.allRays, light.currentRay])
+  }, [inspectedClue, light.currentRay, light.raysByPort])
   const activePortAnswer =
     rayShot.rayShot?.answer ??
     (light.showCurrentRay && isVisibleRay(inspectedRay)
@@ -199,7 +202,6 @@ export function GameTable({
       <div className={styles.playSurface}>
         <SolutionBoard
           activeAnswer={activePortAnswer}
-          allRays={light.allRays}
           boardRef={boardRef}
           currentRay={inspectedRay}
           edgeAnswers={clues.edgeAnswers}
@@ -216,6 +218,7 @@ export function GameTable({
           onShotComplete={rayShot.completeRayShot}
           onShootEdge={rayShot.shootRay}
           placementAssessments={placementAssessments}
+          rayConnections={rayConnections}
           rayShot={rayShot.rayShot}
           selectedMineralId={familySolution.selectedMineralId}
           showAllRays={light.showAllRays}

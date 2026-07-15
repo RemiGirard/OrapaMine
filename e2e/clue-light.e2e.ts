@@ -84,15 +84,38 @@ test.describe('clue light display', () => {
     await t4.click()
     await expect(t4).toHaveAttribute('data-edge-role', 'emitter')
     await expect(l5).toHaveAttribute('data-edge-role', 'receiver')
+    const connectionKey = await t4.getAttribute('data-clue-connection')
+
+    expect(connectionKey).toBeTruthy()
+    await expect(l5).toHaveAttribute('data-clue-connection', connectionKey!)
+    await expect(t4).toHaveAttribute('data-clue-linked-edge', 'L5')
+    await expect(l5).toHaveAttribute('data-clue-linked-edge', 'T4')
+    await expect(t4).toHaveAttribute(
+      'data-active-light-connection',
+      connectionKey!,
+    )
+    await expect(l5).toHaveAttribute(
+      'data-active-light-connection',
+      connectionKey!,
+    )
     await expect(t4).toHaveAttribute(
       'style',
       /--edge-answer-color: #3277d2; --edge-active-color: #ef4f4a/,
     )
     await expect(game.rayShot).toHaveCount(0)
     await expect(game.currentRay).toHaveAttribute('data-ray-query', 'T4')
+    await expect(game.currentRay).toHaveAttribute(
+      'data-edge-connection',
+      connectionKey!,
+    )
 
     await t3.click()
     await expect(game.rayShot).toHaveCount(0)
+    await expect(
+      page.locator(
+        `[data-ray-layer="all"] [data-edge-connection="${connectionKey}"]`,
+      ),
+    ).toHaveCount(1)
 
     await l5.click()
     await page.mouse.move(20, 700)

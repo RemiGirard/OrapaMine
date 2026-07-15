@@ -49,10 +49,10 @@ export function CooperativeMineGame() {
             selectedMineralId: game.familySolution.selectedMineralId,
           }}
           light={{
-            allRays: game.light.allRayPreviews,
             currentRay: game.light.currentRayPreview,
             onShowAllRaysChange: game.light.setShowAllRays,
             onShowCurrentRayChange: game.light.setShowCurrentRay,
+            raysByPort: game.light.rayPreviewsByPort,
             showAllRays: game.light.showAllRays,
             showCurrentRay: game.light.showCurrentRay,
           }}

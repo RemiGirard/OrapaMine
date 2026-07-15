@@ -5,6 +5,12 @@ import {
   rightLabels,
   topLabels,
 } from '../../domain/coordinates'
+import {
+  edgeConnectionFrom,
+  edgeConnectionOtherPort,
+} from '../../domain/edgeConnections'
+import type { EdgeConnection } from '../../domain/edgeConnections'
+import { signalColorLabels } from '../../domain/colors'
 import type { Answer } from '../../domain/questions'
 import type { CluePreviewSource } from '../clues/useClueInspection'
 import { colorValue } from '../colorPalette'
@@ -56,12 +62,16 @@ export function EdgePortGroup({
   const activeColor = activeAnswer
     ? colorValue(activeAnswer.signalColor)
     : undefined
+  const activeConnection = activeAnswer
+    ? edgeConnectionFrom(activeAnswer)
+    : null
 
   return (
     <div className={group.className}>
       {group.labels.map((label) => (
         <EdgePort
           activeColor={activeColor}
+          activeConnection={activeConnection}
           activeRole={activeRoleFor(label, activeAnswer)}
           answer={answers.get(label)}
           isActive={activeLabels.has(label)}
@@ -98,6 +108,7 @@ function activeRoleFor(label: string, answer: EdgeAnswer | null) {
 function EdgePort({
   activeRole,
   activeColor,
+  activeConnection,
   answer,
   isActive,
   label,
@@ -110,6 +121,7 @@ function EdgePort({
 }: Readonly<{
   activeRole: ActiveEdgeRole | null
   activeColor: string | undefined
+  activeConnection: EdgeConnection | null
   answer: EdgeAnswer | undefined
   isActive: boolean
   label: string
@@ -138,6 +150,16 @@ function EdgePort({
     onAsk(label)
   }
 
+  const connection = answer ? edgeConnectionFrom(answer) : null
+  const linkedPort = connection
+    ? edgeConnectionOtherPort(connection, label)
+    : null
+  const title = connection
+    ? `${connection.firstPort} linked with ${connection.secondPort} - ${signalColorLabels[connection.signalColor]}`
+    : answer
+      ? `${label}: ${answer.message}`
+      : `Send ray ${label}`
+
   return (
     <button
       aria-label={`Send ray ${label}`}
@@ -151,8 +173,13 @@ function EdgePort({
           ? styles.activeReceiverEdge
           : '',
       ].join(' ')}
+      data-active-light-connection={
+        isActive ? activeConnection?.key : undefined
+      }
+      data-clue-connection={connection?.key}
       data-edge-role={activeRole ?? undefined}
       data-edge-side={label.slice(0, 1)}
+      data-clue-linked-edge={linkedPort ?? undefined}
       onBlur={() => onClearPreview('focus')}
       onClick={askOrSelect}
       onFocus={() => previewKnownAnswer('focus')}
@@ -168,7 +195,7 @@ function EdgePort({
             } as CSSProperties)
           : undefined
       }
-      title={answer ? `${label}: ${answer.message}` : `Send ray ${label}`}
+      title={title}
       type="button"
     >
       {label}

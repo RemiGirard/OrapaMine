@@ -82,8 +82,8 @@ export function useCooperativeMineGame() {
       submit: () => dispatch({ type: 'submit-family-solution' }),
     },
     light: {
-      allRayPreviews: view.allRayPreviews,
       currentRayPreview: view.currentRayPreview,
+      rayPreviewsByPort: view.rayPreviewsByPort,
       setShowAllRays: (visible: boolean) =>
         dispatch({ type: 'set-all-rays-visible', visible }),
       setShowCurrentRay: (visible: boolean) =>

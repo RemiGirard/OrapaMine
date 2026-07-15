@@ -2,6 +2,11 @@ import { describe, expect, it } from 'vitest'
 import { parseEdgePort, parseGridCoordinate } from './coordinates'
 import { mixSignalColor } from './colors'
 import {
+  edgeConnectionFrom,
+  edgeConnectionRayFrom,
+  edgeConnectionsFrom,
+} from './edgeConnections'
+import {
   assessGuessPlacements,
   compareGuess,
   createEmptyGuess,
@@ -129,6 +134,36 @@ describe('Orapa Mine domain', () => {
           signalColor: answer.signalColor,
         })
       }
+    }
+  })
+
+  it('models reciprocal answers as one color-linked edge connection', () => {
+    const answers = answerAllEdgesForPlacements(preparedPuzzles[0].placements)
+    const connections = edgeConnectionsFrom(answers)
+
+    for (const connection of connections) {
+      const fromFirst = edgeConnectionRayFrom(connection, connection.firstPort)
+      const fromSecond = edgeConnectionRayFrom(
+        connection,
+        connection.secondPort,
+      )
+
+      expect(fromFirst).toMatchObject({
+        exitLabel: connection.secondPort,
+        query: connection.firstPort,
+        signalColor: connection.signalColor,
+      })
+      expect(fromSecond).toMatchObject({
+        exitLabel: connection.firstPort,
+        query: connection.secondPort,
+        signalColor: connection.signalColor,
+      })
+      expect(edgeConnectionFrom(fromFirst!)).toMatchObject({
+        key: connection.key,
+      })
+      expect(edgeConnectionFrom(fromSecond!)).toMatchObject({
+        key: connection.key,
+      })
     }
   })
 
