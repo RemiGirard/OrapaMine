@@ -67,10 +67,10 @@
 
 .currentRayPhoton {
   fill: currentcolor;
-  filter: drop-shadow(0 0 2px #ffffff) drop-shadow(0 0 5px currentcolor)
-    drop-shadow(0 0 11px currentcolor);
+  filter: drop-shadow(0 0 2px #ffffff) drop-shadow(0 0 5px #ffffff)
+    drop-shadow(0 0 9px currentcolor) drop-shadow(0 0 18px currentcolor);
   stroke: #ffffff;
-  stroke-width: 0.22;
+  stroke-width: 0.34;
   vector-effect: non-scaling-stroke;
 }
 

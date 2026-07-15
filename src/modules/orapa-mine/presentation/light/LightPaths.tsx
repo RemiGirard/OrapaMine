@@ -236,12 +236,13 @@ function BouncingRayPhoton({
   const colorValues = colorStops.map((stop) => colorValue(stop.color)).join(';')
 
   return (
-    <circle
+    <ellipse
       className={styles.currentRayPhoton}
       data-current-ray-photon="true"
       data-current-ray-photon-index={index}
       data-photon-colors={colorStops.map((stop) => stop.color).join(' ')}
-      r="0.72"
+      rx="1.1"
+      ry="0.88"
       style={{ color: colorValue(colorStops[0].color) }}
     >
       <animateMotion
@@ -262,7 +263,7 @@ function BouncingRayPhoton({
         repeatCount="indefinite"
         values={colorValues}
       />
-    </circle>
+    </ellipse>
   )
 }
 

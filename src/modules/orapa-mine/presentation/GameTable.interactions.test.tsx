@@ -432,6 +432,8 @@ describe('GameTable piece interactions', () => {
     expect(guide).not.toBeNull()
     expect(guide?.querySelector('animate')).toBeNull()
     expect(photons).toHaveLength(3)
+    expect(firstPhoton?.getAttribute('rx')).toBe('1.1')
+    expect(firstPhoton?.getAttribute('ry')).toBe('0.88')
     expect(motion?.getAttribute('keyPoints')).toBe('0;1;0')
     expect(motion?.getAttribute('keyTimes')).toBe('0;0.5;1')
     expect(motion?.getAttribute('repeatCount')).toBe('indefinite')
