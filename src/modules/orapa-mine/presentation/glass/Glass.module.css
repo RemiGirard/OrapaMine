@@ -35,7 +35,7 @@
 }
 
 .placementGhost {
-  opacity: 0.42;
+  opacity: 0.68;
   pointer-events: none;
   z-index: 3;
 }
@@ -203,18 +203,20 @@
 }
 
 .placementGhostShape {
-  filter: drop-shadow(0 0 12px rgb(210 225 232 / 0.2));
+  filter: drop-shadow(0 5px 7px rgb(0 0 0 / 0.72))
+    drop-shadow(0 0 2px rgb(123 215 255 / 0.2));
 }
 
 .placementGhostShape :global(.piece-body),
 .placementGhostShape :global(.piece-facet) {
-  fill: rgb(182 196 205 / 0.42) !important;
-  stroke: rgb(220 234 242 / 0.82) !important;
+  fill: rgb(2 7 12 / 0.84) !important;
+  stroke: rgb(128 176 194 / 0.38) !important;
+  stroke-width: 0.045;
 }
 
 .placementGhostShape :global(.piece-highlight) {
-  fill: rgb(255 255 255 / 0.22) !important;
-  opacity: 0.2;
+  fill: rgb(123 215 255 / 0.06) !important;
+  opacity: 0.12;
 }
 
 .placementGhostShape :global(.piece-caustics),
@@ -226,16 +228,95 @@
 
 .dragPreview {
   align-items: center;
+  animation: glassLift 210ms cubic-bezier(0.16, 1, 0.3, 1) both;
   display: flex;
   justify-content: center;
   pointer-events: none;
   position: fixed;
+  transform-origin: var(--drag-anchor-x) var(--drag-anchor-y);
   z-index: 20;
 }
 
 .dragPreviewShape {
-  filter: drop-shadow(0 0 14px rgb(255 255 255 / 0.28))
-    drop-shadow(0 9px 14px rgb(0 0 0 / 0.3));
+  filter: drop-shadow(0 0 10px rgb(255 255 255 / 0.42))
+    drop-shadow(
+      0 0 24px color-mix(in srgb, var(--piece-color) 42%, transparent)
+    )
+    drop-shadow(0 11px 16px rgb(0 0 0 / 0.32));
+}
+
+.stackShape :global(.piece-highlight),
+.placedShape :global(.piece-highlight),
+.dragPreviewShape :global(.piece-highlight) {
+  animation: glassReflection 4.8s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.stackShape[data-mineral-color='white'] :global(.piece-caustics),
+.placedShape[data-mineral-color='white'] :global(.piece-caustics),
+.dragPreviewShape[data-mineral-color='white'] :global(.piece-caustics) {
+  animation: diamondRefraction 5.6s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.stackPieceButton::before,
+.stackPieceButton::after,
+.placedPiece::before,
+.placedPiece::after,
+.dragPreview::before,
+.dragPreview::after {
+  background: #ffffff;
+  clip-path: polygon(
+    50% 0,
+    62% 38%,
+    100% 50%,
+    62% 62%,
+    50% 100%,
+    38% 62%,
+    0 50%,
+    38% 38%
+  );
+  content: '';
+  filter: drop-shadow(0 0 4px rgb(255 255 255 / 0.9))
+    drop-shadow(0 0 8px rgb(123 215 255 / 0.68));
+  height: 0.42rem;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  width: 0.42rem;
+  z-index: 3;
+}
+
+.stackPieceButton::before,
+.placedPiece::before,
+.dragPreview::before {
+  left: 17%;
+  top: 14%;
+}
+
+.stackPieceButton::after,
+.placedPiece::after,
+.dragPreview::after {
+  bottom: 17%;
+  right: 14%;
+}
+
+.stackSlot:hover .stackPieceButton::before,
+.stackSlot:focus-within .stackPieceButton::before,
+.placedPiece:hover::before,
+.placedPiece:focus-visible::before,
+.dragPreview::before {
+  animation: glassSparkle 1.65s ease-in-out infinite;
+}
+
+.stackSlot:hover .stackPieceButton::after,
+.stackSlot:focus-within .stackPieceButton::after,
+.placedPiece:hover::after,
+.placedPiece:focus-visible::after,
+.dragPreview::after {
+  animation: glassSparkle 1.65s 520ms ease-in-out infinite;
 }
 
 .toolbarHeader {
@@ -451,15 +532,96 @@
     opacity 160ms ease;
 }
 
-.pieceStack:hover .stackShape {
-  filter: drop-shadow(0 0 13px rgb(255 255 255 / 0.26))
-    drop-shadow(0 0 22px rgb(123 215 255 / 0.12))
-    drop-shadow(0 6px 8px rgb(0 0 0 / 0.18));
-}
-
 .stackSlot:hover .stackShape,
 .stackSlot:focus-within .stackShape {
-  filter: drop-shadow(0 0 16px rgb(255 255 255 / 0.42))
-    drop-shadow(0 0 26px rgb(123 215 255 / 0.24))
-    drop-shadow(0 0 38px rgb(46 255 205 / 0.14));
+  filter: drop-shadow(0 0 8px rgb(255 255 255 / 0.56))
+    drop-shadow(
+      0 0 18px color-mix(in srgb, var(--piece-color) 64%, transparent)
+    )
+    drop-shadow(
+      0 0 36px color-mix(in srgb, var(--piece-color) 32%, transparent)
+    );
+}
+
+@keyframes glassLift {
+  from {
+    opacity: 0.72;
+    transform: translateY(2px) scale(var(--drag-start-scale));
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(-2px) scale(1.035);
+  }
+}
+
+@keyframes glassReflection {
+  0%,
+  100% {
+    filter: brightness(0.88);
+    transform: translateX(-1.5%) skewX(-2deg);
+  }
+
+  46% {
+    filter: brightness(1.55);
+    transform: translateX(1.8%) skewX(2deg);
+  }
+
+  62% {
+    filter: brightness(1.08);
+    transform: translateX(0.4%) skewX(0deg);
+  }
+}
+
+@keyframes diamondRefraction {
+  0%,
+  100% {
+    opacity: 0.58;
+    transform: translateX(-1.2%);
+  }
+
+  48% {
+    opacity: 0.96;
+    transform: translateX(1.4%);
+  }
+}
+
+@keyframes glassSparkle {
+  0%,
+  100% {
+    opacity: 0;
+    transform: rotate(18deg) scale(0.2);
+  }
+
+  34% {
+    opacity: 1;
+    transform: rotate(45deg) scale(1);
+  }
+
+  58% {
+    opacity: 0.18;
+    transform: rotate(70deg) scale(0.58);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stackShape :global(.piece-highlight),
+  .placedShape :global(.piece-highlight),
+  .dragPreviewShape :global(.piece-highlight),
+  .stackShape[data-mineral-color='white'] :global(.piece-caustics),
+  .placedShape[data-mineral-color='white'] :global(.piece-caustics),
+  .dragPreviewShape[data-mineral-color='white'] :global(.piece-caustics),
+  .stackPieceButton::before,
+  .stackPieceButton::after,
+  .placedPiece::before,
+  .placedPiece::after,
+  .dragPreview::before,
+  .dragPreview::after {
+    animation: none;
+  }
+
+  .dragPreview {
+    animation: none;
+    transform: scale(1.035);
+  }
 }

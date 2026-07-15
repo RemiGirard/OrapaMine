@@ -174,6 +174,37 @@ describe('GameTable piece interactions', () => {
     ).not.toBeNull()
   })
 
+  it('lifts a toolbox piece smoothly around its cursor anchor', () => {
+    render(<InteractiveGameTable />)
+
+    const panel = document.querySelector('aside')
+    const stackButton = screen.getByRole('button', {
+      name: 'Move Ruby parallelogram',
+    })
+
+    expect(panel).not.toBeNull()
+
+    fireEvent.mouseDown(stackButton, { button: 0, clientX: 40, clientY: 40 })
+
+    const preview = document.querySelector<HTMLElement>(
+      '[data-glass-drag-preview="true"]',
+    )
+
+    expect(preview).not.toBeNull()
+    expect(preview?.style.getPropertyValue('--drag-anchor-x')).toBe('50%')
+    expect(preview?.style.getPropertyValue('--drag-anchor-y')).toBe('50%')
+    expect(preview?.style.getPropertyValue('--drag-start-scale')).toBe('0.62')
+
+    const target = boardPoint(3.5, 2.5)
+    fireEvent.mouseMove(document, toMouseEventPoint(target))
+
+    expect(
+      document.querySelector('[data-placement-ghost="true"]'),
+    ).not.toBeNull()
+
+    fireEvent.mouseUp(document, toMouseEventPoint(target))
+  })
+
   it('renders each foam cavity at exactly the held glass size', () => {
     render(<InteractiveGameTable />)
 

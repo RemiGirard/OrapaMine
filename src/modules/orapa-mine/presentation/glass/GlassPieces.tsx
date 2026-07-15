@@ -54,6 +54,7 @@ export function PlacementGhost({
 
   return (
     <span
+      data-placement-ghost="true"
       className={styles.placementGhost}
       style={placementStyle(origin, shape.width, shape.height)}
     >
@@ -192,15 +193,23 @@ export function GlassDragPreview({
     placement.orientation,
     placement.face,
   )
-  const style = {
+  const style: CSSProperties & Record<`--drag-${string}`, string> = {
+    '--drag-anchor-x': `${(movementState.anchor.column / shape.width) * 100}%`,
+    '--drag-anchor-y': `${(movementState.anchor.row / shape.height) * 100}%`,
+    '--drag-start-scale': placement.origin ? '0.92' : '0.62',
     height: `${shape.height * cellHeight}px`,
     left: `${movementState.pointer.x - movementState.anchor.column * cellWidth}px`,
     top: `${movementState.pointer.y - movementState.anchor.row * cellHeight}px`,
     width: `${shape.width * cellWidth}px`,
-  } satisfies CSSProperties
+  }
 
   return (
-    <div aria-hidden="true" className={styles.dragPreview} style={style}>
+    <div
+      aria-hidden="true"
+      className={styles.dragPreview}
+      data-glass-drag-preview="true"
+      style={style}
+    >
       <PieceShape
         className={styles.dragPreviewShape}
         face={placement.face}
