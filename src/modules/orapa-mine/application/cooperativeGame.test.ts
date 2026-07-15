@@ -16,6 +16,19 @@ describe('cooperative game use cases', () => {
       showCurrentRay: true,
     })
     expect(view.allRayPreviews).toHaveLength(36)
+    expect(view.submissionReadiness).toEqual({
+      placedPlacements: 0,
+      status: 'incomplete',
+      totalPlacements: 5,
+    })
+  })
+
+  it('ignores submission until the family map is ready', () => {
+    const game = createCooperativeGame()
+
+    expect(
+      reduceCooperativeGame(game, { type: 'submit-family-solution' }),
+    ).toBe(game)
   })
 
   it('records a clue and previews that ray through the family placement', () => {

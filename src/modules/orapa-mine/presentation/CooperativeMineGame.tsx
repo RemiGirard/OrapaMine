@@ -44,6 +44,7 @@ export function CooperativeMineGame() {
             onRotate: game.familySolution.rotateMineral,
             onSelect: game.familySolution.selectMineral,
             onSubmit: game.familySolution.submit,
+            readiness: game.familySolution.readiness,
             result: game.familySolution.result,
             selectedMineralId: game.familySolution.selectedMineralId,
           }}

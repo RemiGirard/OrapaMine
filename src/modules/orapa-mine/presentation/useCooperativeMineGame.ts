@@ -72,6 +72,7 @@ export function useCooperativeMineGame() {
       removeMineral: (mineralId: MineralId) =>
         dispatchMineral('return-family-mineral', mineralId),
       reset: () => dispatch({ type: 'reset-family-solution' }),
+      readiness: view.submissionReadiness,
       result: game.familySolution.submittedResult,
       rotateMineral: (mineralId: MineralId) =>
         dispatchMineral('rotate-family-mineral', mineralId),

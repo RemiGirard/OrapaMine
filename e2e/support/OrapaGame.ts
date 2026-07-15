@@ -15,6 +15,7 @@ export class OrapaGame {
   readonly rayPhoton: Locator
   readonly rayMotion: Locator
   readonly rayShot: Locator
+  readonly submission: Locator
 
   constructor(private readonly page: Page) {
     this.board = page.getByTestId('solution-board-surface')
@@ -25,6 +26,7 @@ export class OrapaGame {
     )
     this.rayMotion = this.rayPhoton.locator('animateMotion')
     this.rayShot = page.locator('[data-ray-layer="shot"]')
+    this.submission = page.locator('[data-submission-state]')
   }
 
   async open() {

@@ -10,6 +10,7 @@ import {
 } from '@testing-library/react'
 import { useState } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { SolutionSubmissionReadiness } from '../application/solutionSubmission'
 import {
   createEmptyGuess,
   flipGuessMineral,
@@ -17,6 +18,7 @@ import {
   removeGuessMineral,
   rotateGuessMineral,
 } from '../domain/familySolution'
+import type { GuessPlacement } from '../domain/minerals'
 import type { Puzzle } from '../domain/puzzles'
 import { reverseEdgeAnswer } from '../domain/questions'
 import type { Answer } from '../domain/questions'
@@ -754,6 +756,7 @@ function InteractiveGameTable({
           ),
         onSelect: () => undefined,
         onSubmit: () => undefined,
+        readiness: testSubmissionReadiness(guess),
         result: null,
         selectedMineralId: 'red-parallelogram',
       }}
@@ -777,6 +780,22 @@ function InteractiveGameTable({
       }}
     />
   )
+}
+
+function testSubmissionReadiness(
+  guess: ReadonlyArray<GuessPlacement>,
+): SolutionSubmissionReadiness {
+  const placedPlacements = guess.filter(
+    (placement) => placement.origin !== null,
+  ).length
+
+  return placedPlacements === guess.length
+    ? { status: 'ready' }
+    : {
+        placedPlacements,
+        status: 'incomplete',
+        totalPlacements: guess.length,
+      }
 }
 
 function dragWithMouse(

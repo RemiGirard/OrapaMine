@@ -1,6 +1,7 @@
 import { Eye, EyeOff, Mic, RotateCcw, Shuffle } from 'lucide-react'
 import { useMemo, useRef } from 'react'
 import type { VoiceRecognitionStatus } from '../application/voiceRecognition'
+import type { SolutionSubmissionReadiness } from '../application/solutionSubmission'
 import {
   assessGuessPlacements,
   moveGuessMineral,
@@ -43,6 +44,7 @@ export type GameTableProps = Readonly<{
     onRotate: (mineralId: MineralId) => void
     onSelect: (mineralId: MineralId) => void
     onSubmit: () => void
+    readiness: SolutionSubmissionReadiness
     result: GuessResult | null
     selectedMineralId: MineralId
   }>
@@ -212,15 +214,16 @@ export function GameTable({
           />
 
           <div className={styles.statusRail}>
+            <SolutionSubmission
+              onSubmit={familySolution.onSubmit}
+              readiness={familySolution.readiness}
+              result={familySolution.result}
+            />
             <ClueNotebook
               answers={clues.answers}
               onClearPreview={cluePreview.clearPreview}
               onPreview={cluePreview.previewAnswer}
               previewedAnswerId={cluePreview.previewedAnswerId}
-            />
-            <SolutionSubmission
-              onSubmit={familySolution.onSubmit}
-              result={familySolution.result}
             />
           </div>
         </div>

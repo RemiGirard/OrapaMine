@@ -2,8 +2,10 @@ import type { Coordinate } from '../domain/coordinates'
 import type { MineralId } from '../domain/minerals'
 import { preparedPuzzles } from '../domain/puzzles'
 import type { QuestionMode } from '../domain/questions'
+import { toValidPlacedMinerals } from '../domain/familySolution'
 import { askForClue, createClueNotebook } from './clueNotebook'
 import type { ClueNotebook } from './clueNotebook'
+import { evaluateClueConsistency } from './clueConsistency'
 import {
   flipFamilyMineral,
   placeFamilyMineral,
@@ -14,6 +16,7 @@ import {
   submitFamilySolution,
 } from './familySolution'
 import type { FamilySolution } from './familySolution'
+import { evaluateSolutionSubmissionReadiness } from './solutionSubmission'
 
 export type LightDisplay = Readonly<{
   showAllRays: boolean
@@ -126,6 +129,18 @@ export function reduceCooperativeGame(
         familySolution: startFamilySolution(puzzle),
       }
     case 'submit-family-solution':
+      if (
+        evaluateSolutionSubmissionReadiness(
+          game.familySolution.guess,
+          evaluateClueConsistency(
+            game.clueNotebook,
+            toValidPlacedMinerals(game.familySolution.guess),
+          ),
+        ).status !== 'ready'
+      ) {
+        return game
+      }
+
       return {
         ...game,
         familySolution: submitFamilySolution(game.familySolution, puzzle),

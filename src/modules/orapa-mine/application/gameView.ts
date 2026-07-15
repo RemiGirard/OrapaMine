@@ -6,6 +6,8 @@ import { evaluateClueConsistency } from './clueConsistency'
 import type { ClueConsistency } from './clueConsistency'
 import { knownEdgeClues, latestClue } from './clueNotebook'
 import type { CooperativeGame } from './cooperativeGame'
+import { evaluateSolutionSubmissionReadiness } from './solutionSubmission'
+import type { SolutionSubmissionReadiness } from './solutionSubmission'
 
 export type CooperativeGameView = Readonly<{
   allRayPreviews: ReadonlyArray<Extract<Answer, { mode: 'edge' }>>
@@ -14,6 +16,7 @@ export type CooperativeGameView = Readonly<{
   currentRayPreview: Extract<Answer, { mode: 'edge' }> | null
   edgeAnswers: ReadonlyMap<string, Extract<Answer, { mode: 'edge' }>>
   puzzle: (typeof preparedPuzzles)[number]
+  submissionReadiness: SolutionSubmissionReadiness
 }>
 
 export function createCooperativeGameView(
@@ -34,5 +37,9 @@ export function createCooperativeGameView(
         : null,
     edgeAnswers: knownEdgeClues(game.clueNotebook),
     puzzle,
+    submissionReadiness: evaluateSolutionSubmissionReadiness(
+      game.familySolution.guess,
+      clueConsistency,
+    ),
   }
 }
