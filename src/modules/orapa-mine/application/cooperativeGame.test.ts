@@ -10,6 +10,7 @@ describe('cooperative game use cases', () => {
     const view = createCooperativeGameView(game)
 
     expect(game.clueNotebook.answers).toEqual([])
+    expect(game.difficulty).toBe('easy')
     expect(toPlacedMinerals(game.familySolution.guess)).toEqual([])
     expect(game.lightDisplay).toEqual({
       showAllRays: true,
@@ -22,6 +23,26 @@ describe('cooperative game use cases', () => {
       totalPlacements: 5,
     })
   })
+
+  it.each([
+    ['easy', 'resting-place', 5],
+    ['classic', 'deep-vein', 5],
+    ['nearly-impossible', 'expert-shaft', 7],
+  ] as const)(
+    'starts the %s optical protocol with its prepared puzzle',
+    (difficulty, puzzleId, totalPlacements) => {
+      const game = reduceCooperativeGame(createCooperativeGame(), {
+        difficulty,
+        type: 'start-game',
+      })
+      const view = createCooperativeGameView(game)
+
+      expect(game.difficulty).toBe(difficulty)
+      expect(view.puzzle.id).toBe(puzzleId)
+      expect(game.familySolution.guess).toHaveLength(totalPlacements)
+      expect(game.clueNotebook.answers).toEqual([])
+    },
+  )
 
   it('ignores submission until the family map is ready', () => {
     const game = createCooperativeGame()

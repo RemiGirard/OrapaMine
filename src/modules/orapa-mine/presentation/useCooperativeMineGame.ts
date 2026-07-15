@@ -5,6 +5,7 @@ import {
 } from '../application/cooperativeGame'
 import { createCooperativeGameView } from '../application/gameView'
 import type { Coordinate } from '../domain/coordinates'
+import type { GameDifficulty } from '../domain/gameConfiguration'
 import type { MineralId } from '../domain/minerals'
 import type { QuestionMode } from '../domain/questions'
 import { parseVoiceQuestion } from '../domain/voiceCommands'
@@ -92,8 +93,11 @@ export function useCooperativeMineGame() {
       showCurrentRay: game.lightDisplay.showCurrentRay,
     },
     session: {
+      difficulty: game.difficulty,
       nextPuzzle: () => dispatch({ type: 'next-puzzle' }),
       puzzle: view.puzzle,
+      start: (difficulty: GameDifficulty) =>
+        dispatch({ difficulty, type: 'start-game' }),
       setShowSolution: (visible: boolean) =>
         dispatch({ type: 'set-solution-visible', visible }),
       showSolution: game.showSolution,

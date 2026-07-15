@@ -43,6 +43,13 @@ export class OrapaGame {
       'data-client-ready',
       'true',
     )
+    await expect(this.page.getByTestId('experiment-setup')).toBeVisible()
+    await this.page.getByRole('radio', { name: /Easy/ }).click()
+    await this.page.getByRole('button', { name: 'Start experiment' }).click()
+    await expect(this.page.getByTestId('orapa-game')).toHaveAttribute(
+      'data-game-screen',
+      'game',
+    )
     await expect(
       this.page.getByRole('heading', { name: 'Orapa Mine' }),
     ).toBeVisible()

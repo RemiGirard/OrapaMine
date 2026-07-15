@@ -102,6 +102,28 @@ test.describe('solution submission', () => {
     ).toHaveCount(0)
     await expect(page.locator('[data-testid^="placed-piece-"]')).toHaveCount(5)
   })
+
+  test('finishes a solved experiment with a replayable spectrum result', async ({
+    game,
+    page,
+  }) => {
+    await game.open()
+    await placeSolvedMap(game)
+
+    await game.submission.click()
+
+    await expect(page.getByTestId('victory-screen')).toBeVisible()
+    await expect(
+      page.getByRole('heading', { name: 'Spectrum resolved' }),
+    ).toBeVisible()
+    await expect(page.getByText('Easy calibration')).toBeVisible()
+    await expect(page.getByText('Specimens aligned')).toBeVisible()
+
+    await page.getByRole('button', { name: 'Run again' }).click()
+
+    await expect(game.board).toBeVisible()
+    await expect(game.submission).toContainText('0/5 placed')
+  })
 })
 
 async function placeSolvedMap(game: OrapaGame) {

@@ -1,0 +1,205 @@
+.apparatus {
+  height: clamp(12rem, 31vh, 18rem);
+  isolation: isolate;
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+}
+
+.axis {
+  background: repeating-linear-gradient(
+    90deg,
+    rgb(193 239 255 / 0.22) 0 1px,
+    transparent 1px 3.5rem
+  );
+  bottom: 12%;
+  height: 1px;
+  inset-inline: 4%;
+  opacity: 0.45;
+  position: absolute;
+}
+
+.axis::before,
+.axis::after {
+  background: rgb(193 239 255 / 0.42);
+  content: '';
+  height: 0.38rem;
+  position: absolute;
+  top: -0.18rem;
+  width: 1px;
+}
+
+.axis::before {
+  left: 0;
+}
+
+.axis::after {
+  right: 0;
+}
+
+.source {
+  background: #f2ffff;
+  border-radius: 50%;
+  box-shadow:
+    0 0 0.4rem #ffffff,
+    0 0 1.2rem #8aeaff,
+    0 0 3.4rem rgb(93 244 255 / 0.62);
+  height: 0.7rem;
+  left: 4.5%;
+  position: absolute;
+  top: 47.5%;
+  width: 0.7rem;
+  z-index: 3;
+}
+
+.whiteBeam {
+  animation: whitePulse 4.8s ease-in-out infinite;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgb(229 253 255 / 0.94) 45%,
+    #ffffff 50%,
+    rgb(157 237 255 / 0.76) 55%,
+    transparent
+  );
+  filter: drop-shadow(0 0 0.45rem rgb(172 246 255 / 0.8));
+  height: 1.05rem;
+  left: 5%;
+  position: absolute;
+  top: 47%;
+  width: 39%;
+  z-index: 1;
+}
+
+.prism {
+  filter: drop-shadow(0 0 0.45rem rgb(255 255 255 / 0.72))
+    drop-shadow(0 0 1.4rem rgb(83 220 255 / 0.54));
+  height: 46%;
+  left: 39%;
+  overflow: visible;
+  position: absolute;
+  top: 28%;
+  width: 22%;
+  z-index: 4;
+}
+
+.prismGlow {
+  animation: prismPulse 5.6s ease-in-out infinite;
+  background: radial-gradient(
+    circle,
+    rgb(255 255 255 / 0.34),
+    rgb(94 227 255 / 0.09) 48%,
+    transparent 72%
+  );
+  height: 72%;
+  left: 31%;
+  position: absolute;
+  top: 13%;
+  width: 37%;
+  z-index: 2;
+}
+
+.spectrum {
+  inset: 0;
+  position: absolute;
+  z-index: 1;
+}
+
+.spectrum > span {
+  animation: spectrumPulse 5.6s ease-in-out infinite;
+  filter: drop-shadow(0 0 0.55rem currentcolor);
+  height: 0.42rem;
+  left: 55%;
+  position: absolute;
+  transform-origin: left center;
+  width: 43%;
+}
+
+.redRay {
+  background: linear-gradient(90deg, #ff7c72, rgb(255 76 68 / 0.08));
+  color: #ff5c54;
+  top: 45%;
+  transform: rotate(-8deg);
+}
+
+.goldRay {
+  animation-delay: -0.18s !important;
+  background: linear-gradient(90deg, #ffe287, rgb(255 208 75 / 0.08));
+  color: #ffd55f;
+  top: 47%;
+  transform: rotate(-3.5deg);
+}
+
+.greenRay {
+  animation-delay: -0.36s !important;
+  background: linear-gradient(90deg, #83ffe2, rgb(51 255 193 / 0.06));
+  color: #55f8cf;
+  top: 49%;
+  transform: rotate(1deg);
+}
+
+.blueRay {
+  animation-delay: -0.54s !important;
+  background: linear-gradient(90deg, #80d8ff, rgb(53 147 255 / 0.07));
+  color: #6ac8ff;
+  top: 51%;
+  transform: rotate(5.5deg);
+}
+
+.violetRay {
+  animation-delay: -0.72s !important;
+  background: linear-gradient(90deg, #d9a2ff, rgb(183 84 255 / 0.05));
+  color: #c178ff;
+  top: 53%;
+  transform: rotate(10deg);
+}
+
+.compact {
+  height: clamp(10rem, 25vh, 14rem);
+  max-width: 52rem;
+}
+
+@keyframes whitePulse {
+  0%,
+  100% {
+    opacity: 0.72;
+    transform: scaleX(0.98);
+  }
+
+  48% {
+    opacity: 1;
+    transform: scaleX(1.02);
+  }
+}
+
+@keyframes spectrumPulse {
+  0%,
+  100% {
+    opacity: 0.42;
+  }
+
+  52% {
+    opacity: 0.92;
+  }
+}
+
+@keyframes prismPulse {
+  0%,
+  100% {
+    opacity: 0.52;
+    transform: scale(0.96);
+  }
+
+  50% {
+    opacity: 0.88;
+    transform: scale(1.04);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prismGlow,
+  .spectrum > span,
+  .whiteBeam {
+    animation: none;
+  }
+}

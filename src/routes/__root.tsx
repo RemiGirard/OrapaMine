@@ -13,11 +13,12 @@ export const Route = createRootRoute({
         content: 'width=device-width, initial-scale=1',
       },
       {
-        title: 'Orapa Mine Coop',
+        title: 'Orapa Mine · Newtonian Optics',
       },
       {
         name: 'description',
-        content: 'A cooperative Orapa Mine deduction board for family play.',
+        content:
+          'A cooperative light, color, and mineral deduction experiment for family play.',
       },
     ],
     links: [

@@ -1,4 +1,9 @@
 import type { Coordinate } from '../domain/coordinates'
+import {
+  difficultyForPuzzleIndex,
+  puzzleIndexForDifficulty,
+} from '../domain/gameConfiguration'
+import type { GameDifficulty } from '../domain/gameConfiguration'
 import type { MineralId } from '../domain/minerals'
 import { preparedPuzzles } from '../domain/puzzles'
 import type { QuestionMode } from '../domain/questions'
@@ -25,6 +30,7 @@ export type LightDisplay = Readonly<{
 
 export type CooperativeGame = Readonly<{
   clueNotebook: ClueNotebook
+  difficulty: GameDifficulty
   familySolution: FamilySolution
   lightDisplay: LightDisplay
   puzzleIndex: number
@@ -33,6 +39,7 @@ export type CooperativeGame = Readonly<{
 
 export type CooperativeGameEvent =
   | Readonly<{ type: 'next-puzzle' }>
+  | Readonly<{ difficulty: GameDifficulty; type: 'start-game' }>
   | Readonly<{
       type: 'ask-clue'
       id: number
@@ -54,11 +61,15 @@ export type CooperativeGameEvent =
   | Readonly<{ type: 'set-all-rays-visible'; visible: boolean }>
   | Readonly<{ type: 'set-current-ray-visible'; visible: boolean }>
 
-export function createCooperativeGame(puzzleIndex = 0): CooperativeGame {
+export function createCooperativeGame(
+  difficulty: GameDifficulty = 'easy',
+): CooperativeGame {
+  const puzzleIndex = puzzleIndexForDifficulty(difficulty)
   const puzzle = preparedPuzzles[puzzleIndex]
 
   return {
     clueNotebook: createClueNotebook(),
+    difficulty,
     familySolution: startFamilySolution(puzzle),
     lightDisplay: {
       showAllRays: true,
@@ -76,9 +87,13 @@ export function reduceCooperativeGame(
   const puzzle = preparedPuzzles[game.puzzleIndex]
 
   switch (event.type) {
+    case 'start-game':
+      return createCooperativeGame(event.difficulty)
     case 'next-puzzle':
       return createCooperativeGame(
-        (game.puzzleIndex + 1) % preparedPuzzles.length,
+        difficultyForPuzzleIndex(
+          (game.puzzleIndex + 1) % preparedPuzzles.length,
+        ),
       )
     case 'ask-clue':
       return {

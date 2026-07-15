@@ -82,6 +82,16 @@
   max-width: 1250px;
 }
 
+.shell[data-game-screen='setup'],
+.shell[data-game-screen='victory'] {
+  padding-block: 0;
+}
+
+.shell[data-game-screen='setup'] .layout,
+.shell[data-game-screen='victory'] .layout {
+  max-width: none;
+}
+
 @keyframes aquaDrift {
   0%,
   100% {
