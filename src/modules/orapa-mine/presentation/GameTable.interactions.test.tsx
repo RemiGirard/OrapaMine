@@ -750,16 +750,14 @@ describe('GameTable piece interactions', () => {
     }
     const latestFamilyRay: Extract<Answer, { mode: 'edge' }> = {
       ...latestClue,
-      exitLabel: 'B4',
       id: -4,
-      message: 'Exit B4 - Red',
+      message: 'Exit L5 - Red',
       signalColor: 'red',
     }
     const selectedFamilyRay: Extract<Answer, { mode: 'edge' }> = {
       ...selectedClue,
-      exitLabel: 'B3',
       id: -3,
-      message: 'Exit B3 - Red',
+      message: 'Exit L6 - Red',
       signalColor: 'red',
     }
     const reverseLatestClue = reverseEdgeAnswer(latestClue)
@@ -790,22 +788,22 @@ describe('GameTable piece interactions', () => {
     ).toBe('T4')
 
     const selectedInput = screen.getByRole('button', { name: 'Send ray T3' })
-    const familyOutput = screen.getByRole('button', { name: 'Send ray B3' })
-    const clueOutput = screen.getByRole('button', { name: 'Send ray L6' })
+    const linkedOutput = screen.getByRole('button', { name: 'Send ray L6' })
 
     fireEvent.click(selectedInput)
     fireEvent.pointerLeave(selectedInput)
 
     expect(selectedInput.getAttribute('data-edge-role')).toBe('emitter')
-    expect(familyOutput.getAttribute('data-edge-role')).toBe('receiver')
-    expect(clueOutput.getAttribute('data-edge-role')).toBeNull()
+    expect(linkedOutput.getAttribute('data-edge-role')).toBe('receiver')
     expect(selectedInput.style.getPropertyValue('--edge-answer-color')).toBe(
       '#3277d2',
     )
     expect(selectedInput.style.getPropertyValue('--edge-active-color')).toBe(
       '#ef4f4a',
     )
-    expect(clueOutput.style.getPropertyValue('--edge-active-color')).toBe('')
+    expect(linkedOutput.style.getPropertyValue('--edge-active-color')).toBe(
+      '#ef4f4a',
+    )
     expect(
       document
         .querySelector('[data-ray-layer="shot"]')
@@ -820,7 +818,63 @@ describe('GameTable piece interactions', () => {
         ?.getAttribute('data-ray-query'),
     ).toBe('T3')
     expect(selectedInput.getAttribute('data-edge-role')).toBe('emitter')
+    expect(linkedOutput.getAttribute('data-edge-role')).toBe('receiver')
+  })
+
+  it('hides the fixed ray when the family output does not match the clue', () => {
+    vi.useFakeTimers()
+    const clue: Extract<Answer, { mode: 'edge' }> = {
+      exitLabel: 'L5',
+      id: 14,
+      message: 'Exit L5 - Blue',
+      colorContacts: [],
+      mode: 'edge',
+      path: [{ column: 3, row: 4 }],
+      query: 'T4',
+      signalColor: 'blue',
+    }
+    const familyRay: Extract<Answer, { mode: 'edge' }> = {
+      ...clue,
+      exitLabel: 'B4',
+      id: -4,
+      message: 'Exit B4 - Red',
+      signalColor: 'red',
+    }
+
+    render(
+      <InteractiveGameTable
+        allRayPreviews={[familyRay]}
+        answers={[clue]}
+        currentAnswer={clue}
+        currentRayPreview={familyRay}
+        showLightPath
+      />,
+    )
+
+    const input = screen.getByRole('button', { name: 'Send ray T4' })
+    const clueOutput = screen.getByRole('button', { name: 'Send ray L5' })
+    const familyOutput = screen.getByRole('button', { name: 'Send ray B4' })
+
+    expect(document.querySelector('[data-ray-layer="current"]')).toBeNull()
+    expect(screen.queryByRole('checkbox', { name: 'Current ray' })).toBeNull()
+    expect(input.getAttribute('data-edge-role')).toBe('emitter')
+    expect(clueOutput.getAttribute('data-edge-role')).toBe('receiver')
+    expect(familyOutput.getAttribute('data-edge-role')).toBeNull()
+
+    fireEvent.click(input)
+
+    expect(
+      document
+        .querySelector('[data-ray-layer="shot"]')
+        ?.getAttribute('data-ray-output'),
+    ).toBe('B4')
     expect(familyOutput.getAttribute('data-edge-role')).toBe('receiver')
+
+    act(() => vi.runAllTimers())
+
+    expect(document.querySelector('[data-ray-layer="current"]')).toBeNull()
+    expect(clueOutput.getAttribute('data-edge-role')).toBe('receiver')
+    expect(familyOutput.getAttribute('data-edge-role')).toBeNull()
   })
 
   it('renders compact colored routes and a return arrow for self-returns', () => {

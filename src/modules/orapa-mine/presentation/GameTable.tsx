@@ -8,7 +8,10 @@ import {
 } from '../domain/familySolution'
 import type { GuessResult } from '../domain/familySolution'
 import type { Coordinate } from '../domain/coordinates'
-import { edgeConnectionsFrom } from '../domain/edgeConnections'
+import {
+  edgeAnswersConnectSamePorts,
+  edgeConnectionsFrom,
+} from '../domain/edgeConnections'
 import type {
   GuessPlacement,
   MineralId,
@@ -105,10 +108,19 @@ export function GameTable({
         : null)
     )
   }, [inspectedClue, light.currentRay, light.raysByPort])
+  const matchingInspectedRay = useMemo(() => {
+    if (!inspectedClue || !inspectedRay) {
+      return inspectedRay
+    }
+
+    return edgeAnswersConnectSamePorts(inspectedClue, inspectedRay)
+      ? inspectedRay
+      : null
+  }, [inspectedClue, inspectedRay])
   const activePortAnswer =
     rayShot.rayShot?.answer ??
-    (light.showCurrentRay && isVisibleRay(inspectedRay)
-      ? inspectedRay
+    (light.showCurrentRay && isVisibleRay(matchingInspectedRay)
+      ? matchingInspectedRay
       : inspectedClue)
   const draggedPlacement = movement.movementState
     ? familySolution.guess.find(
@@ -145,7 +157,7 @@ export function GameTable({
           role="toolbar"
         >
           <LightControls
-            hasCurrentRay={isVisibleRay(inspectedRay)}
+            hasCurrentRay={isVisibleRay(matchingInspectedRay)}
             onShowAllRaysChange={light.onShowAllRaysChange}
             onShowCurrentRayChange={light.onShowCurrentRayChange}
             showAllRays={light.showAllRays}
@@ -203,7 +215,7 @@ export function GameTable({
         <SolutionBoard
           activeAnswer={activePortAnswer}
           boardRef={boardRef}
-          currentRay={inspectedRay}
+          currentRay={matchingInspectedRay}
           edgeAnswers={clues.edgeAnswers}
           guess={familySolution.guess}
           movement={movement}

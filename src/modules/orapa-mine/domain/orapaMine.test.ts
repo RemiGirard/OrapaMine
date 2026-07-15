@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { parseEdgePort, parseGridCoordinate } from './coordinates'
 import { mixSignalColor } from './colors'
 import {
+  edgeAnswersConnectSamePorts,
   edgeConnectionFrom,
   edgeConnectionRayFrom,
   edgeConnectionsFrom,
@@ -158,6 +159,7 @@ describe('Orapa Mine domain', () => {
         query: connection.secondPort,
         signalColor: connection.signalColor,
       })
+      expect(edgeAnswersConnectSamePorts(fromFirst!, fromSecond!)).toBe(true)
       expect(edgeConnectionFrom(fromFirst!)).toMatchObject({
         key: connection.key,
       })

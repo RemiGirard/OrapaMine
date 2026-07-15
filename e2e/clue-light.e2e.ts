@@ -74,6 +74,32 @@ test.describe('clue light display', () => {
     )
   })
 
+  test('hides the fixed ray when the family output misses the clue output', async ({
+    game,
+  }) => {
+    await game.placeFromToolbox('red-parallelogram', { x: 0.5, y: 0.6 })
+
+    const t4 = game.edgePort('T4')
+    const clueOutput = game.edgePort('L5')
+
+    await t4.click()
+    await expect(game.rayShot).toHaveAttribute('data-ray-query', 'T4')
+    const familyOutputLabel = await game.rayShot.getAttribute('data-ray-output')
+
+    if (!familyOutputLabel) {
+      throw new Error('Expected the family ray to leave through an edge port')
+    }
+
+    expect(familyOutputLabel).not.toBe('L5')
+    const familyOutput = game.edgePort(familyOutputLabel)
+
+    await expect(game.rayShot).toHaveCount(0)
+    await expect(game.currentRay).toHaveCount(0)
+    await expect(t4).toHaveAttribute('data-edge-role', 'emitter')
+    await expect(clueOutput).toHaveAttribute('data-edge-role', 'receiver')
+    await expect(familyOutput).not.toHaveAttribute('data-edge-role', 'receiver')
+  })
+
   test('keeps a known reverse clue selected and aligned with its family ray', async ({
     game,
     page,

@@ -91,13 +91,22 @@ export function edgeAnswersShareConnection(
   first: EdgeAnswer,
   second: EdgeAnswer,
 ) {
+  return (
+    edgeAnswersConnectSamePorts(first, second) &&
+    first.signalColor === second.signalColor
+  )
+}
+
+export function edgeAnswersConnectSamePorts(
+  first: EdgeAnswer,
+  second: EdgeAnswer,
+) {
   const firstConnection = edgeConnectionFrom(first)
   const secondConnection = edgeConnectionFrom(second)
 
   return (
     firstConnection !== null &&
     secondConnection !== null &&
-    firstConnection.key === secondConnection.key &&
-    firstConnection.signalColor === secondConnection.signalColor
+    firstConnection.key === secondConnection.key
   )
 }
