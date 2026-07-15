@@ -4,7 +4,7 @@ import type { GuessPlacement, MineralId } from '../../domain/minerals'
 import layoutStyles from '../GameTable.module.css'
 import { PieceShape } from '../PieceShape'
 import styles from './Glass.module.css'
-import { glassCaseSlotLayout } from './glassCaseLayout'
+import { glassCasePieceLayout, glassCaseSlotLayout } from './glassCaseLayout'
 import { RotatingPieceShape } from './RotatingPieceShape'
 import type { usePieceMovementInteraction } from './usePieceMovementInteraction'
 
@@ -69,7 +69,8 @@ function GlassCaseSlot({
   const isDragged = movement.movementState?.mineralId === placement.mineralId
   const isReturnTarget =
     isDragged && movement.movementState?.target?.kind === 'stack'
-  const slotLayout = glassCaseSlotLayout(placement)
+  const slotLayout = glassCaseSlotLayout(placement.mineralId)
+  const pieceLayout = glassCasePieceLayout(placement)
 
   return (
     <div
@@ -95,9 +96,9 @@ function GlassCaseSlot({
       >
         <PieceShape
           className={styles.stackCavityShape}
-          face={placement.face}
+          face="front"
           mineralId={placement.mineralId}
-          orientation={placement.orientation}
+          orientation={mineral.defaultOrientation}
         />
       </div>
       {isPlaced ? (
@@ -119,6 +120,12 @@ function GlassCaseSlot({
           aria-label={`Move ${mineral.name}`}
           className={styles.stackPieceButton}
           data-testid={`toolbox-piece-${placement.mineralId}`}
+          style={{
+            height: `${pieceLayout.heightPercent}%`,
+            left: `${pieceLayout.leftPercent}%`,
+            top: `${pieceLayout.topPercent}%`,
+            width: `${pieceLayout.widthPercent}%`,
+          }}
           onClick={(event) =>
             movement.pickPieceFromClick(
               event,

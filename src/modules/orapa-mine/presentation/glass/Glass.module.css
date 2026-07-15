@@ -23,10 +23,10 @@
   cursor: grab;
   touch-action: none;
   transition:
-    height 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    left 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    top 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    width 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    height 280ms cubic-bezier(0.25, 0.8, 0.25, 1),
+    left 280ms cubic-bezier(0.25, 0.8, 0.25, 1),
+    top 280ms cubic-bezier(0.25, 0.8, 0.25, 1),
+    width 280ms cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .placedPiece:active {
@@ -61,7 +61,7 @@
 }
 
 .rotatingPieceShape {
-  animation: pieceQuarterTurn 240ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation: pieceQuarterTurn 280ms cubic-bezier(0.25, 0.8, 0.25, 1) both;
   transform-box: border-box;
   transform-origin: center;
 }
@@ -499,7 +499,6 @@
   border-radius: 7px;
   display: flex;
   height: 100%;
-  inset: 0;
   justify-content: center;
   padding: 0;
   position: absolute;
@@ -525,6 +524,7 @@
 
 .stackResetButton {
   color: #9fb4c2;
+  inset: 0;
   pointer-events: none;
   position: relative;
 }
@@ -593,15 +593,11 @@
 
 @keyframes pieceQuarterTurn {
   from {
-    transform: rotate(-90deg) scale(0.92);
-  }
-
-  72% {
-    transform: rotate(4deg) scale(1.025);
+    transform: rotate(-90deg);
   }
 
   to {
-    transform: rotate(0deg) scale(1);
+    transform: rotate(0deg);
   }
 }
 

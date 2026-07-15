@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import type { GuessPlacement, MineralId } from '../../domain/minerals'
-import { GLASS_CASE_GRID_SIZE, glassCaseSlotLayout } from './glassCaseLayout'
+import {
+  GLASS_CASE_GRID_SIZE,
+  glassCasePieceLayout,
+  glassCaseSlotLayout,
+} from './glassCaseLayout'
 
 function placement(
   mineralId: MineralId,
@@ -16,21 +20,42 @@ function placement(
 
 describe('glass case layout', () => {
   it('uses the real mineral dimensions on one shared scale', () => {
-    expect(glassCaseSlotLayout(placement('red-parallelogram'))).toMatchObject({
+    expect(glassCaseSlotLayout('red-parallelogram')).toMatchObject({
       height: 1,
       width: 3,
     })
-    expect(glassCaseSlotLayout(placement('yellow-triangle'))).toMatchObject({
+    expect(glassCaseSlotLayout('yellow-triangle')).toMatchObject({
       height: 2,
       width: 2,
     })
-    expect(glassCaseSlotLayout(placement('blue-big-triangle'))).toMatchObject({
+    expect(glassCaseSlotLayout('blue-big-triangle')).toMatchObject({
       height: 2,
       width: 4,
     })
   })
 
-  it('keeps every orientation inside the case', () => {
+  it('keeps the foam slot fixed while its glass rotates at one shared scale', () => {
+    expect(
+      glassCasePieceLayout(placement('red-parallelogram', 'north')),
+    ).toEqual({
+      heightPercent: 100,
+      leftPercent: 0,
+      topPercent: 0,
+      widthPercent: 100,
+    })
+    const eastLayout = glassCasePieceLayout(
+      placement('red-parallelogram', 'east'),
+    )
+
+    expect(eastLayout).toMatchObject({
+      heightPercent: 300,
+      topPercent: -100,
+    })
+    expect(eastLayout.leftPercent).toBeCloseTo(100 / 3)
+    expect(eastLayout.widthPercent).toBeCloseTo(100 / 3)
+  })
+
+  it('keeps every fixed foam slot inside the case', () => {
     const mineralIds: ReadonlyArray<MineralId> = [
       'red-parallelogram',
       'yellow-triangle',
@@ -40,24 +65,15 @@ describe('glass case layout', () => {
       'transparent-prism',
       'black-absorber',
     ]
-    const orientations: ReadonlyArray<GuessPlacement['orientation']> = [
-      'north',
-      'east',
-      'south',
-      'west',
-    ]
-
     for (const mineralId of mineralIds) {
-      for (const orientation of orientations) {
-        const layout = glassCaseSlotLayout(placement(mineralId, orientation))
+      const layout = glassCaseSlotLayout(mineralId)
 
-        expect(layout.column + layout.width).toBeLessThanOrEqual(
-          GLASS_CASE_GRID_SIZE,
-        )
-        expect(layout.row + layout.height).toBeLessThanOrEqual(
-          GLASS_CASE_GRID_SIZE,
-        )
-      }
+      expect(layout.column + layout.width).toBeLessThanOrEqual(
+        GLASS_CASE_GRID_SIZE,
+      )
+      expect(layout.row + layout.height).toBeLessThanOrEqual(
+        GLASS_CASE_GRID_SIZE,
+      )
     }
   })
 })

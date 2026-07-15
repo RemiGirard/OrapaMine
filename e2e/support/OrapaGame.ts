@@ -43,6 +43,14 @@ export class OrapaGame {
     return this.page.getByTestId(`toolbox-piece-${mineralId}`)
   }
 
+  toolboxCavity(mineralId: BasicMineralId) {
+    return this.page.locator(`[data-stack-cavity-mineral-id="${mineralId}"]`)
+  }
+
+  toolboxSlot(mineralId: BasicMineralId) {
+    return this.page.locator(`[data-stack-mineral-id="${mineralId}"]`)
+  }
+
   placedPiece(mineralId: BasicMineralId) {
     return this.page.getByTestId(`placed-piece-${mineralId}`)
   }

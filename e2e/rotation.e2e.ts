@@ -10,15 +10,35 @@ test.describe('glass rotation', () => {
     game,
   }) => {
     const ruby = game.toolboxPiece('red-parallelogram')
+    const rubyCavity = game.toolboxCavity('red-parallelogram')
+    const rubySlot = game.toolboxSlot('red-parallelogram')
 
     await expect(ruby).toHaveAttribute(
       'title',
       'Ruby parallelogram - north, front',
     )
     const northBox = await visibleBox(ruby)
+    const northCavityBox = await visibleBox(rubyCavity)
+    const northSlotBox = await visibleBox(rubySlot)
     expect(northBox.width).toBeGreaterThan(northBox.height)
 
-    for (const orientation of ['east', 'south', 'west', 'north']) {
+    await ruby.click({ button: 'right' })
+    await expect(ruby).toHaveAttribute(
+      'title',
+      'Ruby parallelogram - east, front',
+    )
+    const eastBox = await visibleBox(ruby)
+    expect(eastBox.height).toBeGreaterThan(eastBox.width)
+    expect(await visibleBox(rubyCavity)).toEqual(northCavityBox)
+    expect(await visibleBox(rubySlot)).toEqual(northSlotBox)
+    await expect(
+      rubyCavity.locator('[data-mineral-orientation="north"]'),
+    ).toBeVisible()
+    await expect(
+      rubyCavity.locator('[data-mineral-face="front"]'),
+    ).toBeVisible()
+
+    for (const orientation of ['south', 'west', 'north']) {
       await ruby.click({ button: 'right' })
       await expect(ruby).toHaveAttribute(
         'title',
