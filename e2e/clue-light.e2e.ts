@@ -70,4 +70,36 @@ test.describe('clue light display', () => {
       'indefinite',
     )
   })
+
+  test('keeps a known reverse clue selected and aligned with its family ray', async ({
+    game,
+    page,
+  }) => {
+    await game.placeFromToolbox('red-parallelogram')
+
+    const t4 = game.edgePort('T4')
+    const t3 = game.edgePort('T3')
+    const l5 = game.edgePort('L5')
+
+    await t4.click()
+    await expect(t4).toHaveAttribute('data-edge-role', 'emitter')
+    await expect(l5).toHaveAttribute('data-edge-role', 'receiver')
+    await expect(t4).toHaveAttribute(
+      'style',
+      /--edge-answer-color: #3277d2; --edge-active-color: #ef4f4a/,
+    )
+    await expect(game.rayShot).toHaveCount(0)
+    await expect(game.currentRay).toHaveAttribute('data-ray-query', 'T4')
+
+    await t3.click()
+    await expect(game.rayShot).toHaveCount(0)
+
+    await l5.click()
+    await page.mouse.move(20, 700)
+
+    await expect(l5).toHaveAttribute('data-edge-role', 'emitter')
+    await expect(t4).toHaveAttribute('data-edge-role', 'receiver')
+    await expect(game.rayShot).toHaveCount(0)
+    await expect(game.currentRay).toHaveAttribute('data-ray-query', 'L5')
+  })
 })

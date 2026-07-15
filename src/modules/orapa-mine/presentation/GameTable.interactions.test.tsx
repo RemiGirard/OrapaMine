@@ -666,7 +666,7 @@ describe('GameTable piece interactions', () => {
     expect(port.className).toContain('activeReceiverEdge')
   })
 
-  it('previews an answered edge instead of asking for the clue again', () => {
+  it('selects an answered edge instead of asking for the clue again', () => {
     const answer: Extract<Answer, { mode: 'edge' }> = {
       exitLabel: 'B2',
       id: 12,
@@ -704,9 +704,111 @@ describe('GameTable piece interactions', () => {
     expect(output.getAttribute('data-edge-role')).toBe('emitter')
     expect(input.getAttribute('data-edge-role')).toBe('receiver')
 
+    fireEvent.pointerLeave(output)
+
+    expect(output.getAttribute('data-edge-role')).toBe('emitter')
+    expect(input.getAttribute('data-edge-role')).toBe('receiver')
+
     fireEvent.click(screen.getByRole('button', { name: 'Send ray T3' }))
     expect(onAskEdge).toHaveBeenCalledOnce()
     expect(onAskEdge).toHaveBeenCalledWith('T3')
+  })
+
+  it('keeps the selected query aligned across active labels and the current family ray', () => {
+    vi.useFakeTimers()
+    const latestClue: Extract<Answer, { mode: 'edge' }> = {
+      exitLabel: 'L5',
+      id: 14,
+      message: 'Exit L5 - Blue',
+      colorContacts: [],
+      mode: 'edge',
+      path: [{ column: 3, row: 4 }],
+      query: 'T4',
+      signalColor: 'blue',
+    }
+    const selectedClue: Extract<Answer, { mode: 'edge' }> = {
+      exitLabel: 'L6',
+      id: 13,
+      message: 'Exit L6 - Blue',
+      colorContacts: [],
+      mode: 'edge',
+      path: [{ column: 2, row: 5 }],
+      query: 'T3',
+      signalColor: 'blue',
+    }
+    const latestFamilyRay: Extract<Answer, { mode: 'edge' }> = {
+      ...latestClue,
+      exitLabel: 'B4',
+      id: -4,
+      message: 'Exit B4 - Red',
+      signalColor: 'red',
+    }
+    const selectedFamilyRay: Extract<Answer, { mode: 'edge' }> = {
+      ...selectedClue,
+      exitLabel: 'B3',
+      id: -3,
+      message: 'Exit B3 - Red',
+      signalColor: 'red',
+    }
+    const reverseLatestClue = reverseEdgeAnswer(latestClue)
+    const reverseSelectedClue = reverseEdgeAnswer(selectedClue)
+
+    render(
+      <InteractiveGameTable
+        allRayPreviews={[latestFamilyRay, selectedFamilyRay]}
+        answers={[latestClue, selectedClue]}
+        currentAnswer={latestClue}
+        currentRayPreview={latestFamilyRay}
+        edgeAnswers={
+          new Map([
+            [latestClue.query, latestClue],
+            [reverseLatestClue.query, reverseLatestClue],
+            [selectedClue.query, selectedClue],
+            [reverseSelectedClue.query, reverseSelectedClue],
+          ])
+        }
+        showLightPath
+      />,
+    )
+
+    expect(
+      document
+        .querySelector('[data-ray-layer="current"]')
+        ?.getAttribute('data-ray-query'),
+    ).toBe('T4')
+
+    const selectedInput = screen.getByRole('button', { name: 'Send ray T3' })
+    const familyOutput = screen.getByRole('button', { name: 'Send ray B3' })
+    const clueOutput = screen.getByRole('button', { name: 'Send ray L6' })
+
+    fireEvent.click(selectedInput)
+    fireEvent.pointerLeave(selectedInput)
+
+    expect(selectedInput.getAttribute('data-edge-role')).toBe('emitter')
+    expect(familyOutput.getAttribute('data-edge-role')).toBe('receiver')
+    expect(clueOutput.getAttribute('data-edge-role')).toBeNull()
+    expect(selectedInput.style.getPropertyValue('--edge-answer-color')).toBe(
+      '#3277d2',
+    )
+    expect(selectedInput.style.getPropertyValue('--edge-active-color')).toBe(
+      '#ef4f4a',
+    )
+    expect(clueOutput.style.getPropertyValue('--edge-active-color')).toBe('')
+    expect(
+      document
+        .querySelector('[data-ray-layer="shot"]')
+        ?.getAttribute('data-ray-query'),
+    ).toBe('T3')
+
+    act(() => vi.runAllTimers())
+
+    expect(
+      document
+        .querySelector('[data-ray-layer="current"]')
+        ?.getAttribute('data-ray-query'),
+    ).toBe('T3')
+    expect(selectedInput.getAttribute('data-edge-role')).toBe('emitter')
+    expect(familyOutput.getAttribute('data-edge-role')).toBe('receiver')
   })
 
   it('renders compact colored routes and a return arrow for self-returns', () => {

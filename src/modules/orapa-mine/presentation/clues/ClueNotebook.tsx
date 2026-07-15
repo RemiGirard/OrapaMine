@@ -3,6 +3,7 @@ import type { CSSProperties } from 'react'
 import { signalColorLabels } from '../../domain/colors'
 import type { Answer } from '../../domain/questions'
 import { colorValue } from '../colorPalette'
+import type { CluePreviewSource } from './useClueInspection'
 import styles from './ClueNotebook.module.css'
 
 export function ClueNotebook({
@@ -12,8 +13,8 @@ export function ClueNotebook({
   previewedAnswerId,
 }: Readonly<{
   answers: ReadonlyArray<Answer>
-  onClearPreview: () => void
-  onPreview: (answer: Answer) => void
+  onClearPreview: (source: CluePreviewSource) => void
+  onPreview: (answer: Answer, source: CluePreviewSource) => void
   previewedAnswerId: number | null
 }>) {
   if (answers.length === 0) {
@@ -32,10 +33,10 @@ export function ClueNotebook({
               answer.id === previewedAnswerId ? styles.activeLogEntry : '',
             ].join(' ')}
             key={answer.id}
-            onBlur={onClearPreview}
-            onFocus={() => onPreview(answer)}
-            onPointerEnter={() => onPreview(answer)}
-            onPointerLeave={onClearPreview}
+            onBlur={() => onClearPreview('focus')}
+            onFocus={() => onPreview(answer, 'focus')}
+            onPointerEnter={() => onPreview(answer, 'pointer')}
+            onPointerLeave={() => onClearPreview('pointer')}
             style={
               {
                 '--clue-color': colorValue(answer.signalColor),

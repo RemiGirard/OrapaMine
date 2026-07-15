@@ -163,6 +163,7 @@ function RayOverlay({ answer }: Readonly<{ answer: RayAnswer }>) {
       aria-hidden="true"
       className={styles.rayLayer}
       data-ray-layer="current"
+      data-ray-query={answer.query}
       preserveAspectRatio="none"
       style={{ '--ray-color': colorValue(answer.signalColor) } as CSSProperties}
       viewBox="0 0 100 100"

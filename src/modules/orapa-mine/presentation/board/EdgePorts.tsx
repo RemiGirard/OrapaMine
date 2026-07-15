@@ -6,6 +6,7 @@ import {
   topLabels,
 } from '../../domain/coordinates'
 import type { Answer } from '../../domain/questions'
+import type { CluePreviewSource } from '../clues/useClueInspection'
 import { colorValue } from '../colorPalette'
 import styles from './EdgePorts.module.css'
 
@@ -28,15 +29,19 @@ export function EdgePortGroup({
   answers,
   onAsk,
   onClearPreview,
+  onClearSelection,
   onPreview,
+  onSelect,
   onShoot,
   side,
 }: Readonly<{
   activeAnswer: EdgeAnswer | null
   answers: ReadonlyMap<string, EdgeAnswer>
   onAsk: (edgeLabel: string) => void
-  onClearPreview: () => void
-  onPreview: (answer: Answer) => void
+  onClearPreview: (source: CluePreviewSource) => void
+  onClearSelection: () => void
+  onPreview: (answer: Answer, source: CluePreviewSource) => void
+  onSelect: (answer: EdgeAnswer) => void
   onShoot: (edgeLabel: string) => void
   side: EdgeSide
 }>) {
@@ -64,7 +69,9 @@ export function EdgePortGroup({
           label={label}
           onAsk={onAsk}
           onClearPreview={onClearPreview}
+          onClearSelection={onClearSelection}
           onPreview={onPreview}
+          onSelect={onSelect}
           onShoot={onShoot}
         />
       ))}
@@ -96,7 +103,9 @@ function EdgePort({
   label,
   onAsk,
   onClearPreview,
+  onClearSelection,
   onPreview,
+  onSelect,
   onShoot,
 }: Readonly<{
   activeRole: ActiveEdgeRole | null
@@ -105,24 +114,27 @@ function EdgePort({
   isActive: boolean
   label: string
   onAsk: (edgeLabel: string) => void
-  onClearPreview: () => void
-  onPreview: (answer: Answer) => void
+  onClearPreview: (source: CluePreviewSource) => void
+  onClearSelection: () => void
+  onPreview: (answer: Answer, source: CluePreviewSource) => void
+  onSelect: (answer: EdgeAnswer) => void
   onShoot: (edgeLabel: string) => void
 }>) {
-  function previewKnownAnswer() {
+  function previewKnownAnswer(source: CluePreviewSource) {
     if (answer) {
-      onPreview(answer)
+      onPreview(answer, source)
     }
   }
 
-  function askOrPreview() {
+  function askOrSelect() {
     onShoot(label)
 
     if (answer) {
-      onPreview(answer)
+      onSelect(answer)
       return
     }
 
+    onClearSelection()
     onAsk(label)
   }
 
@@ -141,18 +153,18 @@ function EdgePort({
       ].join(' ')}
       data-edge-role={activeRole ?? undefined}
       data-edge-side={label.slice(0, 1)}
-      onBlur={onClearPreview}
-      onClick={askOrPreview}
-      onFocus={previewKnownAnswer}
-      onPointerEnter={previewKnownAnswer}
-      onPointerLeave={onClearPreview}
+      onBlur={() => onClearPreview('focus')}
+      onClick={askOrSelect}
+      onFocus={() => previewKnownAnswer('focus')}
+      onPointerEnter={() => previewKnownAnswer('pointer')}
+      onPointerLeave={() => onClearPreview('pointer')}
       style={
-        answer || activeColor
+        answer || (isActive && activeColor)
           ? ({
               '--edge-answer-color': answer
                 ? colorValue(answer.signalColor)
-                : activeColor,
-              '--edge-active-color': activeColor,
+                : undefined,
+              '--edge-active-color': isActive ? activeColor : undefined,
             } as CSSProperties)
           : undefined
       }

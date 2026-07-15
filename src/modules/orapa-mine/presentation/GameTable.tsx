@@ -16,7 +16,7 @@ import type {
 import type { Answer } from '../domain/questions'
 import { SolutionBoard } from './board/SolutionBoard'
 import { ClueNotebook } from './clues/ClueNotebook'
-import { useCluePreview } from './clues/useCluePreview'
+import { useClueInspection } from './clues/useClueInspection'
 import { GlassCase } from './glass/GlassCase'
 import { GlassDragPreview } from './glass/GlassPieces'
 import { usePieceMovementInteraction } from './glass/usePieceMovementInteraction'
@@ -76,7 +76,7 @@ export function GameTable({
   voice,
 }: GameTableProps) {
   const boardRef = useRef<HTMLDivElement>(null)
-  const cluePreview = useCluePreview(clues.answers)
+  const clueInspection = useClueInspection(clues.answers)
   const movement = usePieceMovementInteraction({
     boardRef,
     guess: familySolution.guess,
@@ -87,7 +87,26 @@ export function GameTable({
   const rayShot = useRayShot(light.allRays)
   const currentAnswerRay =
     clues.currentAnswer?.mode === 'edge' ? clues.currentAnswer : null
-  const activeAnswer = cluePreview.previewedAnswer ?? currentAnswerRay
+  const inspectedClue = clueInspection.activeAnswer ?? currentAnswerRay
+  const inspectedRay = useMemo(() => {
+    if (!inspectedClue) {
+      return light.currentRay
+    }
+
+    return (
+      light.allRays.find(
+        (candidate) => candidate.query === inspectedClue.query,
+      ) ??
+      (light.currentRay?.query === inspectedClue.query
+        ? light.currentRay
+        : null)
+    )
+  }, [inspectedClue, light.allRays, light.currentRay])
+  const activePortAnswer =
+    rayShot.rayShot?.answer ??
+    (light.showCurrentRay && isVisibleRay(inspectedRay)
+      ? inspectedRay
+      : inspectedClue)
   const draggedPlacement = movement.movementState
     ? familySolution.guess.find(
         (placement) =>
@@ -123,7 +142,7 @@ export function GameTable({
           role="toolbar"
         >
           <LightControls
-            hasCurrentRay={isVisibleRay(light.currentRay)}
+            hasCurrentRay={isVisibleRay(inspectedRay)}
             onShowAllRaysChange={light.onShowAllRaysChange}
             onShowCurrentRayChange={light.onShowCurrentRayChange}
             showAllRays={light.showAllRays}
@@ -179,19 +198,21 @@ export function GameTable({
 
       <div className={styles.playSurface}>
         <SolutionBoard
-          activeAnswer={activeAnswer}
+          activeAnswer={activePortAnswer}
           allRays={light.allRays}
           boardRef={boardRef}
-          currentRay={light.currentRay}
+          currentRay={inspectedRay}
           edgeAnswers={clues.edgeAnswers}
           guess={familySolution.guess}
           movement={movement}
           onAskEdge={clues.onAskEdge}
-          onClearAnswerPreview={cluePreview.clearPreview}
+          onClearAnswerPreview={clueInspection.clearPreview}
+          onClearAnswerSelection={clueInspection.clearSelection}
           onFlip={familySolution.onFlip}
-          onPreviewAnswer={cluePreview.previewAnswer}
+          onPreviewAnswer={clueInspection.previewAnswer}
           onRotate={familySolution.onRotate}
           onSelect={familySolution.onSelect}
+          onSelectAnswer={clueInspection.selectAnswer}
           onShotComplete={rayShot.completeRayShot}
           onShootEdge={rayShot.shootRay}
           placementAssessments={placementAssessments}
@@ -221,9 +242,9 @@ export function GameTable({
             />
             <ClueNotebook
               answers={clues.answers}
-              onClearPreview={cluePreview.clearPreview}
-              onPreview={cluePreview.previewAnswer}
-              previewedAnswerId={cluePreview.previewedAnswerId}
+              onClearPreview={clueInspection.clearPreview}
+              onPreview={clueInspection.previewAnswer}
+              previewedAnswerId={clueInspection.activeAnswerId}
             />
           </div>
         </div>

@@ -7,6 +7,7 @@ import type {
   MineralPlacement,
 } from '../../domain/minerals'
 import type { Answer } from '../../domain/questions'
+import type { CluePreviewSource } from '../clues/useClueInspection'
 import {
   PlacementGhost,
   PlacedPiece,
@@ -32,10 +33,12 @@ export function SolutionBoard({
   movement,
   onAskEdge,
   onClearAnswerPreview,
+  onClearAnswerSelection,
   onFlip,
   onPreviewAnswer,
   onRotate,
   onSelect,
+  onSelectAnswer,
   onShotComplete,
   onShootEdge,
   placementAssessments,
@@ -55,11 +58,13 @@ export function SolutionBoard({
   guess: ReadonlyArray<GuessPlacement>
   movement: MovementInteraction
   onAskEdge: (edgeLabel: string) => void
-  onClearAnswerPreview: () => void
+  onClearAnswerPreview: (source: CluePreviewSource) => void
+  onClearAnswerSelection: () => void
   onFlip: (mineralId: MineralId) => void
-  onPreviewAnswer: (answer: Answer) => void
+  onPreviewAnswer: (answer: Answer, source: CluePreviewSource) => void
   onRotate: (mineralId: MineralId) => void
   onSelect: (mineralId: MineralId) => void
+  onSelectAnswer: (answer: RayAnswer) => void
   onShotComplete: (sequence: number) => void
   onShootEdge: (edgeLabel: string) => void
   placementAssessments: ReadonlyMap<MineralId, PlacementAssessment>
@@ -81,7 +86,9 @@ export function SolutionBoard({
     answers: edgeAnswers,
     onAsk: onAskEdge,
     onClearPreview: onClearAnswerPreview,
+    onClearSelection: onClearAnswerSelection,
     onPreview: onPreviewAnswer,
+    onSelect: onSelectAnswer,
     onShoot: onShootEdge,
   }
 
